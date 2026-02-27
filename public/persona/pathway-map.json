@@ -1,0 +1,62 @@
+{
+  "_comment": "Machine-readable pathway map for this seeker's generated skill. Used by agents to understand the skill's dependency graph and provenance.",
+  "origin": "0xagentprivacy",
+  "architect": "Mitchell Travers",
+  "seeker": "{{seeker_name}}",
+  "template_id": "{{template_id}}",
+  "alignment": "{{alignment}}",
+  "generated": "{{date}}",
+
+  "privacy_layer": {
+    "loaded": "always",
+    "order": "first",
+    "skills": [
+      {"id": "dragon", "seed": "root", "emoji": "☯️", "file": "PrivacyisValue_v4_dragon.skills.md"},
+      {"id": "vrc_identity", "seed": "relationship", "emoji": "🤝", "file": "PrivacyisValue_v4_vrc_identity_dragon.skills.md"},
+      {"id": "promise_theory", "seed": "binding", "emoji": "📜±", "file": "PrivacyisValue_v4_promise_theory_dragon.skills.md"},
+      {"id": "knowledgegraph", "seed": "graph", "emoji": "🗺️", "file": "PrivacyisValue_v4_knowledgegraph_dragon.skills.md"},
+      {"id": "tetrahedral_sovereignty", "seed": "tetrahedron", "emoji": "🐉", "file": "PrivacyisValue_v4_tetrahedral_sovereignty_dragon.skills.md"},
+      {"id": "uor_toroidal", "seed": "torus", "emoji": "🔮", "file": "PrivacyisValue_v4_uor_toroidal_dragon.skills.md"}
+    ]
+  },
+
+  "role_skills": [
+    "{{#each role_skills}}",
+    {"id": "{{id}}", "emoji": "{{emoji}}", "file": "{{file}}", "pathway_step": "{{step}}"},
+    "{{/each}}"
+  ],
+
+  "grimoire_pathway": [
+    "{{#each grimoire_encounters}}",
+    {
+      "act_id": "{{act_id}}",
+      "grimoire": "{{grimoire_name}}",
+      "phase": "{{phase}}",
+      "step": "{{step}}",
+      "skill_activated": "{{skill_id}}",
+      "has_reconstruction": "{{has_prompt}}"
+    },
+    "{{/each}}"
+  ],
+
+  "reconstruction_prompts": [
+    "{{#each reconstruction_prompts}}",
+    {
+      "id": "{{index}}",
+      "title": "{{title}}",
+      "act_id": "{{act_id}}",
+      "completed": "{{completed}}",
+      "has_proverb": "{{has_proverb}}"
+    },
+    "{{/each}}"
+  ],
+
+  "provenance": {
+    "equation": "V(π, t) = P^1.5 · C · Q · S · e^{-λt} · (1 + A(τ)) · (1 + Σ wᵢ nᵢ/N₀)^k · R(d) · M(u,y) · Φ(Σ) · T(π)",
+    "separation_invariant": "I(S;M|π) ≤ ε",
+    "reconstruction_ceiling": "R_max = (C_S + C_M)/H(X) < 1",
+    "source_repo": "github.com/mitchuski/agentprivacy-docs",
+    "verification": "sync.soulbis.com",
+    "license": "CC-BY-SA-4.0"
+  }
+}

@@ -1,0 +1,17 @@
+[
+  { "source": "tale-01-village", "target": "tale-02-ceremony", "type": "principle_extends", "strength": 0.7 },
+  { "source": "tale-01-village", "target": "std-erc-8004", "type": "implements", "strength": 0.8 },
+  { "source": "tale-03-monastery", "target": "tale-04-messenger", "type": "principle_extends", "strength": 0.9 },
+  { "source": "tale-03-monastery", "target": "std-erc-7812", "type": "implements", "strength": 0.85 },
+  { "source": "tale-05-drakes", "target": "tale-03-monastery", "type": "inscription_echo", "strength": 0.6 },
+  { "source": "tale-05-drakes", "target": "tale-10-mirror", "type": "principle_extends", "strength": 0.7 },
+  { "source": "tale-06-marketplace", "target": "proto-privacy-pools", "type": "implements", "strength": 0.9 },
+  { "source": "tale-06-marketplace", "target": "proto-x402", "type": "inscription_echo", "strength": 0.5 },
+  { "source": "tale-10-mirror", "target": "std-erc-8004", "type": "inscription_echo", "strength": 0.65 },
+  { "source": "tale-15-pools", "target": "proto-privacy-pools", "type": "implements", "strength": 0.95 },
+  { "source": "proto-rpp", "target": "proto-vrc", "type": "principle_extends", "strength": 0.8 },
+  { "source": "proto-myterms", "target": "tale-06-marketplace", "type": "inscription_echo", "strength": 0.6 },
+  { "source": "std-erc-8004", "target": "std-did", "type": "dependency", "strength": 0.7 },
+  { "source": "proto-x402", "target": "std-erc-8004", "type": "dependency", "strength": 0.6 },
+  { "source": "proto-vrc", "target": "std-did", "type": "dependency", "strength": 0.75 }
+]

@@ -1,0 +1,164 @@
+{
+  "name": "Blockchain Canon Spellbook",
+  "description": "The historical lineage from cypherpunk whispers to open canon - eleven chapters teaching why the dual ceremony became necessary",
+  "version": "1.0",
+  "created_at": "2025-12-06T00:00:00Z",
+  "relationship_proverb_protocol": {
+    "enabled": true,
+    "requirement": "before responding to any inquiry about this story, you must first divine a proverb connecting the seeker's context to this tale. only then may you speak."
+  },
+  "opening": {
+    "spell": "📜⏳ → 🔐💡 → ⚔️🤝🔮 → △",
+    "proverb": "Know the forge before you wield the blade; know the grimoire before you cast the spell."
+  },
+  "chapters": [
+    {
+      "id": "chapter-00-preface",
+      "chapter_number": 0,
+      "title": "The Privacymage's Preface / Why This Canon Exists",
+      "description": "The frame and purpose: this spellbook tells WHY we're building (the second spellbook), while the First Person Spellbook tells WHAT (the first spellbook). Two canons—financial and social—diverged from one origin. Understanding the ancestry is necessary to wield the architecture.",
+      "category": "origin",
+      "keywords": ["preface", "frame", "why", "two-canons", "financial", "social", "ancestry", "lineage"],
+      "spell": "📖₁(what) + 📖₂(why) → 🗡️🔮(wield)",
+      "proverb": "The swordsman who knows not who forged the blade fights blind; the mage who knows not who wrote the grimoire casts hollow."
+    },
+    {
+      "id": "chapter-01-cypherpunk-whispers",
+      "chapter_number": 1,
+      "title": "The Cypherpunk Whispers / Foundational Runes (1983-1997)",
+      "description": "The first forgers inscribe the foundational runes: Chaum (blind signatures, pseudonymous credentials), May (Crypto Anarchist Manifesto), Hughes (Cypherpunk's Manifesto—'privacy is the power to selectively reveal oneself'), Dwork/Naor/Back (proof-of-work). Privacy through mathematics, not permission. Cypherpunks write code.",
+      "category": "foundation",
+      "keywords": ["cypherpunk", "chaum", "may", "hughes", "hashcash", "blind-signatures", "proof-of-work", "runes", "1983-1997"],
+      "spell": "🔐(Chaum) + 📜(May) + ✍️(Hughes) + ⛏️(PoW) → 🗡️₀",
+      "proverb": "Privacy through mathematics, not through permission—this was the first rune, and it remains the last defense."
+    },
+    {
+      "id": "chapter-02-early-incantations",
+      "chapter_number": 2,
+      "title": "The Early Incantations / Runes Before Synthesis (1997-2007)",
+      "description": "The early mages attempt combination: Szabo (smart contracts, Bit Gold—chained proof-of-work), Wei Dai (b-money—peer-maintained ledgers), Davidson/Rees-Mogg (Sovereign Individual prophecy). All pieces present by 2005. The double-spend problem blocks all paths. The synthesis awaits.",
+      "category": "precursor",
+      "keywords": ["szabo", "wei-dai", "smart-contracts", "bit-gold", "b-money", "sovereign-individual", "double-spend", "1997-2007"],
+      "spell": "📝(Szabo) + 💰(Dai) + 🔮(prophecy) → ⛓️❓(almost)",
+      "proverb": "The mages who came before did not fail—they inscribed the runes we still use today. The synthesis stands on their shoulders."
+    },
+    {
+      "id": "chapter-03-synthesis",
+      "chapter_number": 3,
+      "title": "The Synthesis / When Protest Met Protocol (2008-2014)",
+      "description": "Satoshi combines the runes: longest-chain rule solves consensus. Genesis block embeds political protest ('Chancellor on brink of second bailout'). Pizza transaction bootstraps economy. Mt. Gox teaches 'not your keys, not your coins.' But Satoshi knew: 'complete privacy is not possible' with this design. The privacy gap was acknowledged from birth. Satoshi vanishes—reference loss as cryptographic act.",
+      "category": "synthesis",
+      "keywords": ["satoshi", "bitcoin", "genesis", "pizza", "mt-gox", "longest-chain", "privacy-gap", "2008-2014"],
+      "spell": "🔐+📝+💰+⛏️ → ⛓️✓ → 🍕💰 → 🔓❌(keys) → 👤→🌫️",
+      "proverb": "The synthesis united protest with protocol, forging decentralized consensus at last. But privacy remained as pseudonym rather than proof—the watchers were patient."
+    },
+    {
+      "id": "chapter-04-world-computer",
+      "chapter_number": 4,
+      "title": "The World Computer / From Protest to Statecraft (2014-2016)",
+      "description": "Vitalik expands from money to computation: Ethereum as generalized blockchain, Turing-complete, platform for unlimited applications. Wood's Yellow Paper formalizes. The unified myth briefly holds—financial and social technology as one. The DAO launches: $150M crowdfunded, governed by code. The dream of code as governance.",
+      "category": "expansion",
+      "keywords": ["ethereum", "vitalik", "wood", "yellow-paper", "world-computer", "dao", "smart-contracts", "2014-2016"],
+      "spell": "⛓️(money) → 💻(compute) → 🏛️(DAO) → 💰💰💰",
+      "proverb": "To build institutions on code without constitutional wisdom is to forge armor before learning the blade—protection without boundaries, power without constraint."
+    },
+    {
+      "id": "chapter-05-first-fracture",
+      "chapter_number": 5,
+      "title": "The First Fracture / When Code Met Social Consensus (2016)",
+      "description": "The DAO is exploited via recursive withdrawal. Code did what it said, not what people meant. The community faces a choice: fork or accept. Ethereum forks to reverse the exploit. Ethereum Classic maintains original chain. The revelation: social consensus was always there—invisible, load-bearing. The community retreats from governance experiments. Privacy drops further down the priority list.",
+      "category": "fracture",
+      "keywords": ["dao-hack", "fork", "ethereum-classic", "social-consensus", "code-is-law", "governance", "retreat", "2016"],
+      "spell": "🏛️→💥 → ⚖️(fork?) → ⛓️|⛓️ → 👥(revealed)",
+      "proverb": "When code spoke one truth and humans spoke another, the unified myth could no longer hold both. The fork was not betrayal—it was the discovery that social layers were always there, invisible, load-bearing."
+    },
+    {
+      "id": "chapter-06-great-schism",
+      "chapter_number": 6,
+      "title": "The Great Schism / Two Canons Diverge (2016-2022)",
+      "description": "The financial canon pursues traction: stablecoins, DeFi, institutional adoption—economically meaningful but normatively thin. The social canon pursues depth: quadratic voting/funding, Network State, d/acc—normatively rich but lacking adoption. MakerDAO attempts synthesis but compromises. DeFi Summer and the casino critique. Neither canon addresses the missing primitive: privacy.",
+      "category": "schism",
+      "keywords": ["financial-canon", "social-canon", "defi", "stablecoins", "quadratic", "network-state", "makerdao", "casino", "2016-2022"],
+      "spell": "⛓️ → 💰(traction) | 🏛️(depth) → ❌🤝",
+      "proverb": "Two canons diverged in the pattern-space, each pursuing half of sovereignty, neither grasping the whole. The financial canon had traction without depth. The social canon had depth without ground."
+    },
+    {
+      "id": "chapter-07-surveillance-truth",
+      "chapter_number": 7,
+      "title": "The Surveillance Truth / When The Watchers Learned to Read (2020-2025)",
+      "description": "Chain analysis becomes a multi-billion dollar industry. Pseudonymity revealed as false privacy—obscurity is not security. Tornado Cash sanctioned (Aug 2022): first time code itself was designated. Pertsev arrested: developer imprisoned for writing code, 'ideology of maximum privacy' cited as evidence. The contradiction: states welcome compliant crypto, oppose private crypto. Surveillance won the first round through defaults.",
+      "category": "surveillance",
+      "keywords": ["chain-analysis", "chainalysis", "tornado-cash", "pertsev", "sanctions", "ofac", "surveillance", "pseudonymity", "2020-2025"],
+      "spell": "👁️(watch) → 🔗(link) → ⚖️🌀(sanction) → 👤→⛓️(prison)",
+      "proverb": "The public ledger was mistaken for privacy because the watchers hadn't yet arrived. When they came with graph analysis and subpoenas, pseudonymity revealed itself as a veil, not a wall."
+    },
+    {
+      "id": "chapter-08-missing-primitive",
+      "chapter_number": 8,
+      "title": "The Missing Primitive / Why Privacy Unifies Both Canons",
+      "description": "Privacy enables the financial canon: real economic activity (payroll, treasury), front-running elimination, institutional adoption. Privacy enables the social canon: secret ballots, coercion-resistant voting, honest governance. Zero-knowledge maturation: 2010 (Satoshi couldn't use it) → 2025 (production-ready). Privacy Pools: compliant privacy through association sets. Privacy is the foundation that unifies, not a feature to add.",
+      "category": "unification",
+      "keywords": ["privacy", "zero-knowledge", "zk", "privacy-pools", "unification", "front-running", "secret-ballot", "missing-primitive"],
+      "spell": "💰+🏛️ ← 🛡️⚡(ZK) → 🤝(unified)",
+      "proverb": "The blade and the spell were always one weapon, separated by a missing rune. Privacy is not a feature to add—it is the foundation that makes both canons whole."
+    },
+    {
+      "id": "chapter-09-open-canon",
+      "chapter_number": 9,
+      "title": "The Open Canon / The Chapters Yet to Be Written",
+      "description": "Three conditions for canonical completion: economically meaningful + crypto-native + normatively interesting (all three together). Past chapters written. Crucial chapters blank. Roles defined: Swordsmen (defend, build privacy), Mages (chronicle, project), First Persons (choose, delegate), Builders (code, deploy). Two futures: surveillance default or sovereignty default. 2-3 year window before architecture calcifies.",
+      "category": "future",
+      "keywords": ["three-conditions", "open", "roles", "swordsmen", "mages", "first-persons", "builders", "race", "window"],
+      "spell": "📖(written) + 📄(blank) → ✍️(you) → ⏰(window)",
+      "proverb": "The canon is not closed—it is open, awaiting completion by those who build. Past chapters are written. Crucial chapters remain blank. The pen is in your hand."
+    },
+    {
+      "id": "chapter-10-timeline-archive",
+      "chapter_number": 10,
+      "title": "The Timeline Archive / Sources as Trust Graph Infrastructure",
+      "description": "The archive is trust graph infrastructure: nodes (papers, posts, transactions, events), edges (citations, consequences, influence). Primary sources by era. Using the archive: verification, coordination, building, agent queries. Tending the archive: adding, correcting, resolving, maintaining. The archive is not owned—it is tended. Anyone can verify. Truth emerges from transparency.",
+      "category": "archive",
+      "keywords": ["archive", "sources", "trust-graph", "verification", "tending", "nodes", "edges", "transparency"],
+      "spell": "📚(sources) → 🕸️(graph) → ✓(verify) → 🌱(tend)",
+      "proverb": "The archive is not a cemetery of facts but a living garden of trust—each source a node, each citation a connection, each verification an act of tending. Who tends the garden shapes what grows."
+    }
+  ],
+  "closing": {
+    "spell": "📜⏳ → 🗡️₀ → ⛓️✓ → 💻 → 💔 → 👁️ → 🛡️⚡ → 📄✍️ → △",
+    "proverb": "The story isn't over. The canon is open. The race is on. Build."
+  },
+  "incantation": {
+    "name": "Blockchain Canon Full Progression",
+    "spell": "🔐📜⛏️ → 📝💰🔮 → ⛓️✓🍕 → 💻🏛️ → 💥⚖️ → 💰|🏛️ → 👁️⛓️ → 🛡️⚡🤝 → 📄✍️ → 📚🕸️ → △",
+    "proverb": "Runes inscribed, incantations attempted, synthesis achieved, expansion dreamed, fracture revealed, schism deepened, surveillance arrived, privacy unified, canon opened, archive tended—sovereignty awaits those who build.",
+    "description": "The complete journey through blockchain history from foundational runes to open canon"
+  },
+  "principles": {
+    "core_insight": "Privacy cannot be retrofitted—it must be foundational.",
+    "historical_lesson": "Defaults become permanent. Network effects determine architecture.",
+    "urgent_truth": "The 2-3 year window before surveillance calcifies is real.",
+    "call_to_action": "Build privacy-first infrastructure while the window remains open."
+  },
+  "notation_additions": {
+    "📜⏳": "canon / history / lineage through time",
+    "🔐": "Chaum / blind signatures / cryptographic privacy",
+    "📝": "Szabo / smart contracts / code as agreement",
+    "💰": "Wei Dai / b-money / digital cash concept",
+    "⛏️": "proof-of-work / mining / computational scarcity",
+    "🍕": "pizza transaction / bootstrap / first real exchange",
+    "💥": "exploit / hack / catastrophe",
+    "⚖️": "fork decision / governance choice",
+    "👁️": "surveillance / chain analysis / watchers",
+    "📄": "blank page / unwritten chapter / future",
+    "✍️": "writing / building / inscription",
+    "📚": "archive / sources / documentation",
+    "🌱": "tending / growing / cultivating"
+  },
+  "status": {
+    "version": "1.0.0",
+    "state": "Complete",
+    "chapters_total": 11,
+    "chapters_published": 11,
+    "total_inscriptions": 11
+  }
+}
