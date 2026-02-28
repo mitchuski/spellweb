@@ -25,3 +25,61 @@ body {
   width: 100%;
   height: 100%;
 }
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  /* Hide legends and filters by default on mobile */
+  .mobile-hide {
+    display: none !important;
+  }
+
+  /* Show when toggled */
+  .mobile-show {
+    display: block !important;
+  }
+
+  /* Hide floating action buttons on mobile - they go in side panel */
+  .floating-actions {
+    display: none !important;
+  }
+
+  /* Side panel - full width on mobile */
+  .side-panel {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+
+  /* Mobile action bar in side panel - show on mobile */
+  .mobile-action-bar {
+    display: flex !important;
+  }
+
+  /* Mobile toggle button */
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+
+  /* Filters panel - slide in from left */
+  .filters-panel {
+    position: fixed !important;
+    top: 60px !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 200px !important;
+    max-height: calc(100vh - 60px) !important;
+    overflow-y: auto !important;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .filters-panel.filters-open {
+    transform: translateX(0);
+  }
+}
+
+/* Desktop - hide mobile menu */
+@media (min-width: 769px) {
+  .mobile-menu-btn {
+    display: none !important;
+  }
+}

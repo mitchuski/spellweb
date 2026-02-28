@@ -14,6 +14,16 @@ interface NodeInspectorProps {
   isInConstellation?: boolean;
   isWaypointActive?: boolean;
   isInPath?: boolean;
+  // Mobile action bar props
+  onToggleConstellation?: () => void;
+  onStartWaypoint?: () => void;
+  onClosePortal?: () => void;
+  onToggleEvoke?: () => void;
+  constellationCount?: number;
+  castingSpells?: boolean;
+  incantationActive?: boolean;
+  canStartWaypoint?: boolean;
+  canClosePortal?: boolean;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -26,7 +36,12 @@ const TYPE_LABELS: Record<string, string> = {
   term: "GLOSSARY TERM",
 };
 
-export function NodeInspector({ node, edges, onClose, onNavigate, onCastSpell, onConnect, onAddToPath, isInConstellation, isWaypointActive, isInPath }: NodeInspectorProps) {
+export function NodeInspector({
+  node, edges, onClose, onNavigate, onCastSpell, onConnect, onAddToPath,
+  isInConstellation, isWaypointActive, isInPath,
+  onToggleConstellation, onStartWaypoint, onClosePortal, onToggleEvoke,
+  constellationCount = 0, castingSpells, incantationActive, canStartWaypoint, canClosePortal
+}: NodeInspectorProps) {
   const visual = getNodeVisual(node);
 
   const connected: ConnectedNode[] = edges
@@ -49,6 +64,7 @@ export function NodeInspector({ node, edges, onClose, onNavigate, onCastSpell, o
 
   return (
     <div
+      className="side-panel"
       style={{
         position: "absolute",
         top: 0,
@@ -63,6 +79,89 @@ export function NodeInspector({ node, edges, onClose, onNavigate, onCastSpell, o
         flexDirection: "column",
       }}
     >
+      {/* Mobile Action Bar - shown only on mobile */}
+      <div
+        className="mobile-action-bar"
+        style={{
+          display: "none",
+          alignItems: "center",
+          justifyContent: "space-around",
+          padding: "8px 12px",
+          borderBottom: `1px solid ${THEME.panelBorder}`,
+          background: `${THEME.panelBg}`,
+          flexShrink: 0,
+        }}
+      >
+        <button
+          onClick={onToggleConstellation}
+          disabled={constellationCount === 0}
+          style={{
+            padding: "8px 12px",
+            borderRadius: 6,
+            background: castingSpells ? `#00d9ff20` : "transparent",
+            border: `1px solid ${castingSpells ? '#ffd700' : (constellationCount > 0 ? '#00d9ff' : THEME.panelBorder)}`,
+            color: castingSpells ? '#ffd700' : (constellationCount > 0 ? '#00d9ff' : THEME.textDim),
+            fontSize: 16,
+            cursor: constellationCount > 0 ? "pointer" : "default",
+            opacity: constellationCount > 0 ? 1 : 0.5,
+          }}
+          title="Constellation"
+        >
+          🌌
+        </button>
+        <button
+          onClick={onStartWaypoint}
+          disabled={!canStartWaypoint}
+          style={{
+            padding: "8px 12px",
+            borderRadius: 6,
+            background: isWaypointActive ? `#00d9ff20` : "transparent",
+            border: `1px solid ${canStartWaypoint ? '#00d9ff' : THEME.panelBorder}`,
+            color: canStartWaypoint ? '#00d9ff' : THEME.textDim,
+            fontSize: 16,
+            cursor: canStartWaypoint ? "pointer" : "default",
+            opacity: canStartWaypoint ? 1 : 0.5,
+          }}
+          title="Start Waypoint"
+        >
+          📍
+        </button>
+        <button
+          onClick={onClosePortal}
+          disabled={!canClosePortal}
+          style={{
+            padding: "8px 12px",
+            borderRadius: 6,
+            background: canClosePortal ? `#7b68ee20` : "transparent",
+            border: `1px solid ${canClosePortal ? '#7b68ee' : THEME.panelBorder}`,
+            color: canClosePortal ? '#7b68ee' : THEME.textDim,
+            fontSize: 16,
+            cursor: canClosePortal ? "pointer" : "default",
+            opacity: canClosePortal ? 1 : 0.5,
+          }}
+          title="Close Portal"
+        >
+          🌀
+        </button>
+        <button
+          onClick={onToggleEvoke}
+          disabled={constellationCount === 0}
+          style={{
+            padding: "8px 12px",
+            borderRadius: 6,
+            background: incantationActive ? `#ff660020` : "transparent",
+            border: `1px solid ${incantationActive ? '#ff6600' : (constellationCount > 0 ? '#ff9944' : THEME.panelBorder)}`,
+            color: incantationActive ? '#ff6600' : (constellationCount > 0 ? '#ff9944' : THEME.textDim),
+            fontSize: 16,
+            cursor: constellationCount > 0 ? "pointer" : "default",
+            opacity: constellationCount > 0 ? 1 : 0.5,
+          }}
+          title="Evoke"
+        >
+          🔥
+        </button>
+      </div>
+
       <div style={{ padding: "20px 20px 0", flexShrink: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <span

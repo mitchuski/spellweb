@@ -2,6 +2,7 @@ import { THEME } from '../data/theme';
 
 interface LegendProps {
   hasSelectedNode: boolean;
+  className?: string;
 }
 
 const DOMAINS = [
@@ -19,9 +20,10 @@ const EDGE_TYPES = [
   { label: "compresses", color: "#ffd700" },
 ];
 
-export function Legend({ hasSelectedNode }: LegendProps) {
+export function Legend({ hasSelectedNode, className = '' }: LegendProps) {
   return (
     <div
+      className={`mobile-hide ${className}`}
       style={{
         position: "absolute",
         bottom: 16,

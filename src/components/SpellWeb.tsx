@@ -147,6 +147,9 @@ export default function SpellWeb() {
     plurality: true,
   });
 
+  // Mobile UI state
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
   // Persist userEdges to localStorage
   useEffect(() => {
     localStorage.setItem('spellweb-user-edges', JSON.stringify(userEdges));
@@ -1223,14 +1226,39 @@ export default function SpellWeb() {
         onToggleLayer={toggleLayer}
         onToggleType={toggleType}
         onToggleSpellbook={toggleSpellbook}
+        isOpen={mobileFiltersOpen}
       />
+
+      {/* Mobile Menu Toggle Button */}
+      <button
+        className="mobile-menu-btn"
+        onClick={() => setMobileFiltersOpen(o => !o)}
+        style={{
+          position: "absolute",
+          top: 68,
+          left: 12,
+          zIndex: 90,
+          padding: "10px 12px",
+          borderRadius: 6,
+          background: mobileFiltersOpen ? `${THEME.panelBg}` : `${THEME.panelBg}e0`,
+          border: `1px solid ${mobileFiltersOpen ? '#00d9ff' : THEME.panelBorder}`,
+          color: mobileFiltersOpen ? '#00d9ff' : THEME.text,
+          fontSize: 16,
+          cursor: "pointer",
+          backdropFilter: "blur(8px)",
+          display: "none",
+        }}
+      >
+        {mobileFiltersOpen ? '✕' : '☰'}
+      </button>
 
       <Legend hasSelectedNode={!!selectedNode} />
 
       {hoveredNode && !selectedNode && <HoverTooltip node={hoveredNode} />}
 
-      {/* Action Buttons - Top Right - Always Visible */}
+      {/* Action Buttons - Top Right - Hidden on mobile (shown in header instead) */}
       <div
+        className="floating-actions"
         style={{
           position: "absolute",
           top: 68,
@@ -1245,6 +1273,7 @@ export default function SpellWeb() {
         {/* Connection Mode Cancel - only when connecting */}
         {connectionMode.active && (
           <button
+            className="action-btn"
             onClick={handleCancelConnect}
             style={{
               padding: "10px 16px",
@@ -1261,12 +1290,13 @@ export default function SpellWeb() {
               backdropFilter: "blur(8px)",
             }}
           >
-            <span>✕</span> Cancel Connection
+            <span>✕</span> <span className="action-btn-text">Cancel Connection</span>
           </button>
         )}
 
         {/* Constellation - light up your spell path */}
         <button
+          className="action-btn"
           onClick={() => setCastingSpells((c) => !c)}
           disabled={constellation.length === 0}
           style={{
@@ -1285,11 +1315,12 @@ export default function SpellWeb() {
             opacity: constellation.length > 0 ? 1 : 0.6,
           }}
         >
-          <span>🌌</span> {castingSpells ? 'Shining!' : `Constellation${constellation.length > 0 ? ` (${constellation.length})` : ''}`}
+          <span>🌌</span> <span className="action-btn-text">{castingSpells ? 'Shining!' : `Constellation${constellation.length > 0 ? ` (${constellation.length})` : ''}`}</span>
         </button>
 
         {/* Start Waypoint - Begin path building */}
         <button
+          className="action-btn"
           onClick={handleStartNavigator}
           disabled={!selectedNode || waypoint.active}
           style={{
@@ -1308,11 +1339,12 @@ export default function SpellWeb() {
             opacity: (selectedNode && !waypoint.active) ? 1 : 0.5,
           }}
         >
-          <span>📍</span> Start Waypoint
+          <span>📍</span> <span className="action-btn-text">Start Waypoint</span>
         </button>
 
         {/* Close Portal - End path building and open summary */}
         <button
+          className="action-btn"
           onClick={handleClosePortal}
           disabled={!waypoint.active || waypoint.path.length === 0}
           style={{
@@ -1331,11 +1363,12 @@ export default function SpellWeb() {
             opacity: waypoint.active ? 1 : 0.5,
           }}
         >
-          <span>🌀</span> Close Portal
+          <span>🌀</span> <span className="action-btn-text">Close Portal</span>
         </button>
 
         {/* Evoke - Fire emoji, reveals spell compressions */}
         <button
+          className="action-btn"
           onClick={() => setIncantationActive(i => !i)}
           disabled={constellation.length === 0}
           style={{
@@ -1354,7 +1387,7 @@ export default function SpellWeb() {
             opacity: constellation.length > 0 ? 1 : 0.6,
           }}
         >
-          <span>🔥</span> {incantationActive ? 'Evoking!' : 'Evoke'}
+          <span>🔥</span> <span className="action-btn-text">{incantationActive ? 'Evoking!' : 'Evoke'}</span>
         </button>
       </div>
 
@@ -2719,6 +2752,16 @@ export default function SpellWeb() {
           isInConstellation={constellationNodeIds.has(selectedNode.id)}
           isWaypointActive={waypoint.active}
           isInPath={waypoint.path.includes(selectedNode.id)}
+          // Mobile action bar props
+          onToggleConstellation={() => setCastingSpells(c => !c)}
+          onStartWaypoint={handleStartNavigator}
+          onClosePortal={handleClosePortal}
+          onToggleEvoke={() => setIncantationActive(i => !i)}
+          constellationCount={constellation.length}
+          castingSpells={castingSpells}
+          incantationActive={incantationActive}
+          canStartWaypoint={!waypoint.active}
+          canClosePortal={waypoint.active && waypoint.path.length > 0}
         />
       )}
 

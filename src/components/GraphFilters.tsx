@@ -8,6 +8,7 @@ interface GraphFiltersProps {
   onToggleLayer: (layer: keyof FilterState) => void;
   onToggleType: (type: keyof TypeFilterState) => void;
   onToggleSpellbook: (spellbook: keyof SpellbookFilterState) => void;
+  isOpen?: boolean;
 }
 
 const LAYER_BUTTONS = [
@@ -34,9 +35,10 @@ const SPELLBOOK_BUTTONS = [
   { key: "plurality" as const, label: "⿻ Plurality", color: "#7b68ee" },
 ];
 
-export function GraphFilters({ filters, typeFilters, spellbookFilters, onToggleLayer, onToggleType, onToggleSpellbook }: GraphFiltersProps) {
+export function GraphFilters({ filters, typeFilters, spellbookFilters, onToggleLayer, onToggleType, onToggleSpellbook, isOpen = true }: GraphFiltersProps) {
   return (
     <div
+      className={`filters-panel ${isOpen ? 'filters-open' : ''}`}
       style={{
         position: "absolute",
         top: 68,
