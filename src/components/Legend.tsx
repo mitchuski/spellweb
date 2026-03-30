@@ -27,47 +27,48 @@ export function Legend({ hasSelectedNode, className = '' }: LegendProps) {
       style={{
         position: "absolute",
         bottom: 16,
-        right: hasSelectedNode ? 396 : 16,
+        right: hasSelectedNode ? 436 : 16,
         zIndex: 50,
         background: `${THEME.panelBg}e0`,
         borderRadius: 8,
         border: `1px solid ${THEME.panelBorder}`,
-        padding: "14px 18px",
+        padding: "10px 14px",
         backdropFilter: "blur(8px)",
-        fontSize: 11,
+        fontSize: 10,
         transition: "right 0.2s",
-        minWidth: 320,
+        maxWidth: 280,
       }}
     >
       <div
         style={{
-          fontSize: 10,
-          letterSpacing: 2,
+          fontSize: 9,
+          letterSpacing: 1,
           color: THEME.textDim,
-          marginBottom: 8,
+          marginBottom: 6,
           fontFamily: "'JetBrains Mono', monospace",
         }}
       >
         DOMAINS
       </div>
-      <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         {DOMAINS.map((d) => (
           <div
             key={d.label}
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 6,
+              gap: 4,
               color: d.color,
+              fontSize: 9,
             }}
           >
             <span
               style={{
-                width: 8,
-                height: 8,
+                width: 6,
+                height: 6,
                 borderRadius: "50%",
                 background: d.color,
-                boxShadow: `0 0 6px ${d.color}`,
+                boxShadow: `0 0 4px ${d.color}`,
               }}
             />
             <span>{d.label}</span>
@@ -76,17 +77,17 @@ export function Legend({ hasSelectedNode, className = '' }: LegendProps) {
       </div>
       <div
         style={{
-          fontSize: 10,
-          letterSpacing: 2,
+          fontSize: 9,
+          letterSpacing: 1,
           color: THEME.textDim,
-          marginTop: 12,
-          marginBottom: 6,
+          marginTop: 8,
+          marginBottom: 4,
           fontFamily: "'JetBrains Mono', monospace",
         }}
       >
         EDGES
       </div>
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: 9 }}>
         {EDGE_TYPES.map((e) => (
           <span key={e.label} style={{ color: e.color }}>
             {e.label}
