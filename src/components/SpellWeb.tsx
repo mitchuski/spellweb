@@ -9,6 +9,8 @@ import { GraphFilters } from './GraphFilters';
 import { Legend } from './Legend';
 import { HoverTooltip } from './HoverTooltip';
 import { NodeInspector } from './NodeInspector';
+import { SpellCeremony, type SpellProof } from './SpellCeremony';
+import { WanderingOrbs } from './WanderingOrbs';
 
 // D3 simulation node type
 interface SimulationNode extends SpellwebNode {
@@ -75,6 +77,25 @@ export default function SpellWeb() {
     connections: ConstellationConnection[];
     inscribedSpell?: string;
     reflection?: string;
+    proof?: SpellProof; // Proof of presence from evoke ceremony
+  }
+
+  // Forged blade structure
+  interface ForgedBlade {
+    id: string;
+    name: string;
+    emoji: string;
+    tier: 'light' | 'heavy' | 'dragon';
+    stratum: number;
+    proof: SpellProof;
+    forgedAt: string;
+    constellationNodes: number;
+    constellationMarks: ConstellationMark[]; // Store the actual path
+    constellationConnections: ConstellationConnection[];
+    // Witness blade fields (Promise Theory bilateral exchange)
+    isWitness?: boolean;              // True if forged while witnessing another's constellation
+    witnessOf?: string;               // Hash of the original constellation being witnessed
+    witnessedFrom?: string;           // Optional: identifier of who shared the constellation
   }
   const [constellation, setConstellation] = useState<ConstellationMark[]>([]);
   const [constellationConnections, setConstellationConnections] = useState<ConstellationConnection[]>([]);
@@ -85,7 +106,13 @@ export default function SpellWeb() {
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
-  const [savedConstellations, setSavedConstellations] = useState<SavedConstellation[]>([]);
+  const [savedConstellations, setSavedConstellations] = useState<SavedConstellation[]>(() => {
+    try {
+      const saved = localStorage.getItem('spellweb-constellations');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [activeConstellationId, setActiveConstellationId] = useState<string | null>(null);
   const [showMarkModal, setShowMarkModal] = useState(false);
   const [markEmoji, setMarkEmoji] = useState("");
   const [markNote, setMarkNote] = useState("");
@@ -122,6 +149,31 @@ export default function SpellWeb() {
   });
   const [showNavigatorModal, _setShowNavigatorModal] = useState(false);
   const [showClearMapModal, setShowClearMapModal] = useState(false);
+  const [showForgeModal, setShowForgeModal] = useState(false);
+  const [latestProof, setLatestProof] = useState<SpellProof | null>(null);
+  const [forgePhase, setForgePhase] = useState<'ignite' | 'forge' | 'temper' | 'complete' | 'naming' | 'manifesting'>('ignite');
+  const [bladeName, setBladeName] = useState('');
+  const [bladeEmoji, setBladeEmoji] = useState('');
+  const [forgedBlades, setForgedBlades] = useState<ForgedBlade[]>(() => {
+    try {
+      const saved = localStorage.getItem('spellweb-forged-blades');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [activeBlade, setActiveBlade] = useState<ForgedBlade | null>(null); // Currently highlighted blade
+  const [bladeTraceActive, setBladeTraceActive] = useState(false); // Whether orbs are tracing a blade's constellation
+  const [orbsAtHome, setOrbsAtHome] = useState(false); // Whether orbs are at ceremony panel vs wandering
+
+  // Delete mode for blade inventories
+  const [deleteMode, setDeleteMode] = useState<'forged' | 'witness' | null>(null);
+  const [bladesToDelete, setBladesToDelete] = useState<Set<string>>(new Set());
+
+  // Witness mode state (Promise Theory bilateral exchange)
+  const [witnessMode, setWitnessMode] = useState<{
+    active: boolean;
+    constellationHash: string;
+    witnessedFrom?: string;
+  } | null>(null);
 
   const [filters, setFilters] = useState<FilterState>({
     knowledge: true,
@@ -154,6 +206,16 @@ export default function SpellWeb() {
   useEffect(() => {
     localStorage.setItem('spellweb-user-edges', JSON.stringify(userEdges));
   }, [userEdges]);
+
+  // Persist forgedBlades to localStorage
+  useEffect(() => {
+    localStorage.setItem('spellweb-forged-blades', JSON.stringify(forgedBlades));
+  }, [forgedBlades]);
+
+  // Persist savedConstellations to localStorage
+  useEffect(() => {
+    localStorage.setItem('spellweb-constellations', JSON.stringify(savedConstellations));
+  }, [savedConstellations]);
 
   const filteredNodes = useMemo(
     () => NODES.filter((n) => {
@@ -1009,13 +1071,35 @@ export default function SpellWeb() {
   const handleClosePortal = useCallback(() => {
     // Initialize path marks with default emojis from nodes
     const initialMarks: Record<string, { emoji: string; note: string }> = {};
-    waypoint.path.forEach(nodeId => {
+    const marks: ConstellationMark[] = [];
+    const connections: ConstellationConnection[] = [];
+
+    waypoint.path.forEach((nodeId, i) => {
       const node = NODES.find(n => n.id === nodeId);
       initialMarks[nodeId] = {
         emoji: node?.emoji || "✦",
         note: "",
       };
+      marks.push({
+        nodeId,
+        nodeLabel: node?.label || nodeId,
+        emoji: node?.emoji || "✦",
+        note: "",
+      });
+      // Build connections from path order
+      if (i > 0) {
+        connections.push({
+          sourceId: waypoint.path[i - 1],
+          targetId: nodeId,
+          note: "",
+        });
+      }
     });
+
+    // Set constellation immediately so evoke can work before saving
+    setConstellation(marks);
+    setConstellationConnections(connections);
+
     setPathMarks(initialMarks);
     setConstellationName("");
     setInscribedSpell("");
@@ -1060,6 +1144,7 @@ export default function SpellWeb() {
     // Also add to current constellation for display
     setConstellation(marks);
     setConstellationConnections(connections);
+    setActiveConstellationId(newConstellation.id);
 
     // Close modal and waypoint mode
     setShowClosePortalModal(false);
@@ -1077,12 +1162,79 @@ export default function SpellWeb() {
     setWaypoint({ active: false, path: [] });
   }, []);
 
-  // Export constellation to markdown
+  // Handle proof generated from evoke ceremony - update the active constellation
+  const handleProofGenerated = useCallback((proof: SpellProof) => {
+    // Store latest proof for forging
+    setLatestProof(proof);
+
+    if (!activeConstellationId) return;
+    // Update the active constellation with the proof
+    setSavedConstellations(prev => {
+      const idx = prev.findIndex(c => c.id === activeConstellationId);
+      if (idx === -1) return prev;
+      const updated = [...prev];
+      updated[idx] = { ...updated[idx], proof };
+      return updated;
+    });
+  }, [activeConstellationId]);
+
+  // Export constellation to markdown (only enabled when blade is forged)
   const handleExportConstellation = useCallback((saved: SavedConstellation) => {
+    // Get the forged blade for this constellation
+    const forgedBlade = saved.proof
+      ? forgedBlades.find(b => b.proof.signature === saved.proof?.signature)
+      : null;
+
+    // Build dimension status table for blade
+    const dimensionTable = forgedBlade ? [
+      "### Blade Dimensions",
+      "| Dimension | Status |",
+      "|-----------|--------|",
+      `| 🛡️ Protection | ${forgedBlade.proof.bladeDimensions.protection ? '✅ Active' : '⬜ Dormant'} |`,
+      `| 🤝 Delegation | ${forgedBlade.proof.bladeDimensions.delegation ? '✅ Active' : '⬜ Dormant'} |`,
+      `| 📜 Memory | ${forgedBlade.proof.bladeDimensions.memory ? '✅ Active' : '⬜ Dormant'} |`,
+      `| 🔗 Connection | ${forgedBlade.proof.bladeDimensions.connection ? '✅ Active' : '⬜ Dormant'} |`,
+      `| ⚡ Computation | ${forgedBlade.proof.bladeDimensions.computation ? '✅ Active' : '⬜ Dormant'} |`,
+      `| 💎 Value | ${forgedBlade.proof.bladeDimensions.value ? '✅ Active' : '⬜ Dormant'} |`,
+      "",
+    ] : [];
+
     const md = [
-      `# ${saved.name}`,
+      `# ${forgedBlade ? `${forgedBlade.emoji} ${forgedBlade.name}` : saved.name}`,
       `*Created: ${new Date(saved.createdAt).toLocaleString()}*`,
       "",
+      ...(forgedBlade ? [
+        forgedBlade.isWitness ? "## Witness Blade" : "## Forged Blade",
+        `**${forgedBlade.emoji} ${forgedBlade.name}**`,
+        `- **Tier:** ${forgedBlade.tier.charAt(0).toUpperCase() + forgedBlade.tier.slice(1)} Blade`,
+        `- **Stratum:** ${forgedBlade.stratum}/6`,
+        `- **Forged:** ${new Date(forgedBlade.forgedAt).toLocaleString()}`,
+        `- **Nodes:** ${forgedBlade.constellationNodes}`,
+        ...(forgedBlade.isWitness ? [
+          "",
+          "### Promise Exchange",
+          `- **Type:** Witness (Bilateral Promise)`,
+          `- **Witnessed:** ${forgedBlade.witnessedFrom || 'Unknown'}`,
+          `- **Original Hash:** \`${forgedBlade.witnessOf}\``,
+        ] : []),
+        "",
+        ...dimensionTable,
+      ] : []),
+      ...(saved.proof ? [
+        "## Proof of Presence",
+        `- **Charge Level:** ${saved.proof.chargeLevel.toUpperCase()} 🔥`,
+        `- **Laps:** ${saved.proof.lapCount}`,
+        `- **Duration:** ${Math.round(saved.proof.duration / 1000)}s`,
+        `- **Spells Cast:** ${saved.proof.spellsCast || 0}`,
+        "",
+        "### Cryptographic Proof",
+        "```",
+        `Signature: ${saved.proof.signature}`,
+        `Hash: ${saved.proof.constellationHash}`,
+        `Hex: ${saved.proof.bladeHex}`,
+        "```",
+        "",
+      ] : []),
       ...(saved.inscribedSpell ? [
         "## Inscribed Spell",
         `\`${saved.inscribedSpell}\``,
@@ -1093,28 +1245,34 @@ export default function SpellWeb() {
         `> ${saved.reflection}`,
         "",
       ] : []),
-      "## Path",
+      "## Constellation Path",
       ...saved.marks.map((m, i) =>
         `${i + 1}. ${m.emoji} **${m.nodeLabel}**${m.note ? ` - ${m.note}` : ""}`
       ),
       "",
-      "## Connections",
-      ...saved.connections.map(c => {
-        const source = saved.marks.find(m => m.nodeId === c.sourceId);
-        const target = saved.marks.find(m => m.nodeId === c.targetId);
-        return `- ${source?.emoji || "◆"} ${source?.nodeLabel} → ${target?.emoji || "◆"} ${target?.nodeLabel}`;
-      }),
-      "",
+      ...(saved.connections.length > 0 ? [
+        "## Connections",
+        ...saved.connections.map(c => {
+          const source = saved.marks.find(m => m.nodeId === c.sourceId);
+          const target = saved.marks.find(m => m.nodeId === c.targetId);
+          return `- ${source?.emoji || "◆"} ${source?.nodeLabel} → ${target?.emoji || "◆"} ${target?.nodeLabel}`;
+        }),
+        "",
+      ] : []),
       "---",
-      "*Exported from Spellweb*",
+      `*Forged in the 64-Tetrahedra Lattice*`,
+      `*(⚔️⊥⿻⊥🧙)🙂*`,
     ].join("\n");
 
-    // Download as file
+    // Download as file - use blade name if forged
+    const filename = forgedBlade
+      ? `${forgedBlade.name.replace(/[^a-z0-9]/gi, "_").toLowerCase()}-blade.md`
+      : `${saved.name.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.md`;
     const blob = new Blob([md], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${saved.name.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.md`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
 
@@ -1122,12 +1280,13 @@ export default function SpellWeb() {
     if (saved.inscribedSpell) {
       window.navigator.clipboard.writeText(saved.inscribedSpell).catch(() => {});
     }
-  }, []);
+  }, [forgedBlades]);
 
   // Load a saved constellation
   const handleLoadConstellation = useCallback((saved: SavedConstellation) => {
     setConstellation(saved.marks);
     setConstellationConnections(saved.connections);
+    setActiveConstellationId(saved.id);
     setCastingSpells(true);
     setShowMyConstellations(false);
   }, []);
@@ -1157,15 +1316,6 @@ export default function SpellWeb() {
     handleCancelWaypoint();
   }, [handleCancelWaypoint]);
 
-  // Mark node for constellation
-  const handleMarkForConstellation = useCallback(() => {
-    if (selectedNode) {
-      setMarkEmoji(selectedNode.emoji || "");
-      setMarkNote("");
-      setShowMarkModal(true);
-    }
-  }, [selectedNode]);
-
   const handleConfirmMark = useCallback(() => {
     if (selectedNode && (markEmoji.trim() || markNote.trim())) {
       const newMark: ConstellationMark = {
@@ -1185,19 +1335,6 @@ export default function SpellWeb() {
   const handleRemoveFromConstellation = useCallback((nodeId: string) => {
     setConstellation((prev) => prev.filter(m => m.nodeId !== nodeId));
   }, []);
-
-  const handleClearConstellation = useCallback(() => {
-    setConstellation([]);
-    setConstellationConnections([]);
-    setCastingSpells(false);
-  }, []);
-
-  const handleStartConnect = useCallback((sourceNode?: SpellwebNode | null) => {
-    const nodeToConnect = sourceNode || selectedNode;
-    if (nodeToConnect) {
-      setConnectionMode({ active: true, sourceNode: nodeToConnect });
-    }
-  }, [selectedNode]);
 
 
   return (
@@ -1256,24 +1393,17 @@ export default function SpellWeb() {
 
       {hoveredNode && !selectedNode && <HoverTooltip node={hoveredNode} />}
 
-      {/* Action Buttons - Top Right - Hidden on mobile (shown in header instead) */}
-      <div
-        className="floating-actions"
-        style={{
-          position: "absolute",
-          top: 68,
-          right: selectedNode ? 396 : 16,
-          zIndex: 80,
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          transition: "right 0.2s",
-        }}
-      >
-        {/* Connection Mode Cancel - only when connecting */}
-        {connectionMode.active && (
+      {/* Connection Mode Cancel - only when connecting */}
+      {connectionMode.active && (
+        <div
+          style={{
+            position: "absolute",
+            top: 68,
+            right: selectedNode ? 396 : 16,
+            zIndex: 80,
+          }}
+        >
           <button
-            className="action-btn"
             onClick={handleCancelConnect}
             style={{
               padding: "10px 16px",
@@ -1290,164 +1420,8 @@ export default function SpellWeb() {
               backdropFilter: "blur(8px)",
             }}
           >
-            <span>✕</span> <span className="action-btn-text">Cancel Connection</span>
+            <span>✕</span> Cancel Connection
           </button>
-        )}
-
-        {/* Constellation - light up your spell path */}
-        <button
-          className="action-btn"
-          onClick={() => setCastingSpells((c) => !c)}
-          disabled={constellation.length === 0}
-          style={{
-            padding: "10px 16px",
-            borderRadius: 6,
-            background: castingSpells ? `#00d9ff30` : (constellation.length > 0 ? `${THEME.panelBg}e0` : `${THEME.panelBg}80`),
-            border: `1px solid ${castingSpells ? '#ffd700' : (constellation.length > 0 ? '#00d9ff' : THEME.panelBorder)}`,
-            color: castingSpells ? '#ffd700' : (constellation.length > 0 ? '#00d9ff' : THEME.textDim),
-            fontSize: 12,
-            fontFamily: "'JetBrains Mono', monospace",
-            cursor: constellation.length > 0 ? "pointer" : "default",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            backdropFilter: "blur(8px)",
-            opacity: constellation.length > 0 ? 1 : 0.6,
-          }}
-        >
-          <span>🌌</span> <span className="action-btn-text">{castingSpells ? 'Shining!' : `Constellation${constellation.length > 0 ? ` (${constellation.length})` : ''}`}</span>
-        </button>
-
-        {/* Start Waypoint - Begin path building */}
-        <button
-          className="action-btn"
-          onClick={handleStartNavigator}
-          disabled={!selectedNode || waypoint.active}
-          style={{
-            padding: "10px 16px",
-            borderRadius: 6,
-            background: (selectedNode && !waypoint.active) ? `${THEME.panelBg}e0` : `${THEME.panelBg}80`,
-            border: `1px solid ${(selectedNode && !waypoint.active) ? '#00d9ff' : THEME.panelBorder}`,
-            color: (selectedNode && !waypoint.active) ? "#00d9ff" : THEME.textDim,
-            fontSize: 12,
-            fontFamily: "'JetBrains Mono', monospace",
-            cursor: (selectedNode && !waypoint.active) ? "pointer" : "default",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            backdropFilter: "blur(8px)",
-            opacity: (selectedNode && !waypoint.active) ? 1 : 0.5,
-          }}
-        >
-          <span>📍</span> <span className="action-btn-text">Start Waypoint</span>
-        </button>
-
-        {/* Close Portal - End path building and open summary */}
-        <button
-          className="action-btn"
-          onClick={handleClosePortal}
-          disabled={!waypoint.active || waypoint.path.length === 0}
-          style={{
-            padding: "10px 16px",
-            borderRadius: 6,
-            background: waypoint.active ? `linear-gradient(135deg, #7b68ee30, #e9456030)` : `${THEME.panelBg}80`,
-            border: `1px solid ${waypoint.active ? '#7b68ee' : THEME.panelBorder}`,
-            color: waypoint.active ? "#7b68ee" : THEME.textDim,
-            fontSize: 12,
-            fontFamily: "'JetBrains Mono', monospace",
-            cursor: waypoint.active ? "pointer" : "default",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            backdropFilter: "blur(8px)",
-            opacity: waypoint.active ? 1 : 0.5,
-          }}
-        >
-          <span>🌀</span> <span className="action-btn-text">Close Portal</span>
-        </button>
-
-        {/* Evoke - Fire emoji, reveals spell compressions */}
-        <button
-          className="action-btn"
-          onClick={() => setIncantationActive(i => !i)}
-          disabled={constellation.length === 0}
-          style={{
-            padding: "10px 16px",
-            borderRadius: 6,
-            background: incantationActive ? `#ff660030` : (constellation.length > 0 ? `${THEME.panelBg}e0` : `${THEME.panelBg}80`),
-            border: `1px solid ${incantationActive ? '#ff6600' : (constellation.length > 0 ? '#ff9944' : THEME.panelBorder)}`,
-            color: incantationActive ? '#ff6600' : (constellation.length > 0 ? '#ff9944' : THEME.textDim),
-            fontSize: 12,
-            fontFamily: "'JetBrains Mono', monospace",
-            cursor: constellation.length > 0 ? "pointer" : "default",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            backdropFilter: "blur(8px)",
-            opacity: constellation.length > 0 ? 1 : 0.6,
-          }}
-        >
-          <span>🔥</span> <span className="action-btn-text">{incantationActive ? 'Evoking!' : 'Evoke'}</span>
-        </button>
-      </div>
-
-      {/* Evoke Panel - Shows emoji spells during evoke mode */}
-      {incantationActive && incantationHighlightNodes.size > 0 && (
-        <div
-          style={{
-            position: "absolute",
-            top: 264,
-            right: selectedNode ? 396 : 16,
-            maxWidth: 340,
-            maxHeight: 280,
-            overflow: "auto",
-            background: `${THEME.panelBg}e0`,
-            border: `1px solid #ff6600`,
-            borderRadius: 8,
-            padding: "12px 16px",
-            zIndex: 50,
-            backdropFilter: "blur(8px)",
-            transition: "right 0.2s",
-          }}
-        >
-          <div style={{ fontSize: 10, letterSpacing: 2, color: "#ff6600", marginBottom: 10, fontFamily: "'JetBrains Mono', monospace" }}>
-            🔥 EVOKE SPELLS
-          </div>
-          {Array.from(incantationHighlightNodes).map(nodeId => {
-            const node = NODES.find(n => n.id === nodeId);
-            if (!node || (!node.emojiSpell && !node.proverb)) return null;
-            return (
-              <div
-                key={nodeId}
-                style={{
-                  fontSize: 12,
-                  color: THEME.text,
-                  marginBottom: 12,
-                  padding: "10px",
-                  background: compressionSpellNodes.has(nodeId) ? "#ff660015" : "#ffd70015",
-                  borderRadius: 6,
-                  borderLeft: `3px solid ${compressionSpellNodes.has(nodeId) ? '#ff6600' : '#ffd700'}`,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 14 }}>{node.emoji || "✦"}</span>
-                  <span style={{ color: compressionSpellNodes.has(nodeId) ? "#ff6600" : "#ffd700", fontSize: 11, fontWeight: 500 }}>
-                    {node.label}
-                  </span>
-                </div>
-                {node.emojiSpell && (
-                  <div style={{ fontFamily: "sans-serif", fontSize: 13, marginBottom: 6, letterSpacing: 1 }}>
-                    {node.emojiSpell}
-                  </div>
-                )}
-                {node.proverb && (
-                  <div style={{ fontStyle: "italic", color: THEME.textDim, fontSize: 11 }}>
-                    "{node.proverb}"
-                  </div>
-                )}
-              </div>
-            );
-          })}
         </div>
       )}
 
@@ -1490,7 +1464,7 @@ export default function SpellWeb() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 200,
+            zIndex: 300,
           }}
           onClick={() => setShowMarkModal(false)}
         >
@@ -1625,7 +1599,7 @@ export default function SpellWeb() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 200,
+            zIndex: 300,
           }}
           onClick={handleNavigatorCancel}
         >
@@ -1878,144 +1852,579 @@ export default function SpellWeb() {
         </div>
       )}
 
-      {/* Constellation Panel - shows marked nodes */}
-      {constellation.length > 0 && !castingSpells && !navigator.active && (
-        <div
-          style={{
-            position: "absolute",
-            top: 68,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: `${THEME.panelBg}f0`,
-            border: `1px solid #7b68ee`,
-            borderRadius: 8,
-            padding: "12px 16px",
-            zIndex: 90,
-            backdropFilter: "blur(12px)",
-            maxWidth: 500,
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ fontSize: 11, letterSpacing: 2, color: "#7b68ee", fontFamily: "'JetBrains Mono', monospace" }}>
-              ✨ SPELLS ({constellation.length})
-            </span>
-            <button
-              onClick={handleClearConstellation}
-              style={{
-                background: "none",
-                border: "none",
-                color: THEME.textDim,
-                fontSize: 10,
-                cursor: "pointer",
-                padding: "2px 6px",
-              }}
-            >
-              Clear
-            </button>
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {constellation.map((mark, i) => (
-              <div
-                key={mark.nodeId}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: "4px 8px",
-                  background: "#7b68ee20",
-                  borderRadius: 4,
-                  fontSize: 12,
-                }}
-                title={mark.note || mark.nodeLabel}
-              >
-                <span>{mark.emoji}</span>
-                {i < constellation.length - 1 && <span style={{ color: THEME.textDim, marginLeft: 4 }}>→</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Blade Inventories - Left side grid between Witness and ZK buttons */}
 
-      {/* Constellation Notes Panel - Bottom Left (when casting, not incanting) */}
-      {castingSpells && !incantationActive && constellation.some(m => m.note) && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: constellation.length > 0 ? 100 : 60,
-            left: 16,
-            maxWidth: 320,
-            maxHeight: 240,
-            overflow: "auto",
-            background: `${THEME.panelBg}e0`,
-            border: `1px solid #ffd700`,
-            borderRadius: 8,
-            padding: "12px 16px",
-            zIndex: 50,
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <div style={{ fontSize: 10, letterSpacing: 2, color: "#ffd700", marginBottom: 10, fontFamily: "'JetBrains Mono', monospace" }}>
-            ✦ YOUR CONSTELLATION
-          </div>
-          {constellation.filter(m => m.note).map((mark) => (
-            <div
-              key={mark.nodeId}
+      {/* Left menu buttons with blade inventories */}
+      {(() => {
+        const ownBlades = forgedBlades.filter(b => !b.isWitness);
+        const witnessBlades = forgedBlades.filter(b => b.isWitness);
+        const witnessColor = '#3b82f6';
+
+        // Calculate inventory heights (5 blades per row, up to 2 rows each)
+        const ownRows = Math.ceil(Math.min(ownBlades.length, 10) / 5);
+        const witnessRows = Math.ceil(Math.min(witnessBlades.length, 10) / 5);
+        const ownInventoryHeight = ownBlades.length > 0 ? (ownRows * 38 + 28) : 0;
+        const witnessInventoryHeight = witnessBlades.length > 0 ? (witnessRows * 38 + 28) : 0;
+
+        // Stack positions from bottom up: Share(16), Constellations(70), ZK Blades, Inventories, Witness Button
+        const zkBladesBottom = 124;
+        const ownInventoryBottom = zkBladesBottom + 54;
+        const witnessInventoryBottom = ownInventoryBottom + ownInventoryHeight;
+        const witnessButtonBottom = witnessInventoryBottom + witnessInventoryHeight;
+
+        return (
+          <>
+            {/* Witness Blade Import Button - Top of stack */}
+            <label
               style={{
+                position: "absolute",
+                bottom: witnessButtonBottom,
+                left: 16,
+                padding: "10px 16px",
+                borderRadius: 8,
+                background: "linear-gradient(135deg, #3b82f620, #1e40af20)",
+                border: "1px solid #3b82f6",
+                color: "#3b82f6",
                 fontSize: 12,
-                color: THEME.text,
-                marginBottom: 10,
-                padding: "10px",
-                background: "#ffffff08",
-                borderRadius: 6,
-                borderLeft: `3px solid #00d9ff`,
+                cursor: "pointer",
+                fontFamily: "'JetBrains Mono', monospace",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                transition: "all 0.3s",
+                zIndex: 100,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                <span style={{ fontSize: 16 }}>{mark.emoji}</span>
-                <span style={{ color: "#00d9ff", fontSize: 11 }}>{mark.nodeLabel}</span>
+              <span>👁️</span> Witness Blade
+              <input
+                type="file"
+                accept=".md"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = (evt) => {
+                    const content = evt.target?.result as string;
+                    if (!content) return;
+
+                    // Parse blade info
+                    const bladeMatch = content.match(/\*\*(.+?) (.+?)\*\*/);
+                    const tierMatch = content.match(/\*\*Tier:\*\* (\w+)/i);
+                    const stratumMatch = content.match(/\*\*Stratum:\*\* (\d+)/i);
+
+                    // Parse proof
+                    const chargeMatch = content.match(/\*\*Charge Level:\*\* (\w+)/i);
+                    const lapsMatch = content.match(/\*\*Laps:\*\* (\d+)/);
+                    const durationMatch = content.match(/\*\*Duration:\*\* (\d+)s/);
+                    const spellsCastMatch = content.match(/\*\*Spells Cast:\*\* (\d+)/);
+                    const signatureMatch = content.match(/Signature: (SPELL-[\w-]+)/);
+                    const hashMatch = content.match(/Hash: ([a-f0-9]+)/);
+                    const hexMatch = content.match(/Hex: ([01]+)/);
+
+                    // Parse dimensions
+                    const dimProtection = content.includes('Protection | ✅');
+                    const dimDelegation = content.includes('Delegation | ✅');
+                    const dimMemory = content.includes('Memory | ✅');
+                    const dimConnection = content.includes('Connection | ✅');
+                    const dimComputation = content.includes('Computation | ✅');
+                    const dimValue = content.includes('Value | ✅');
+
+                    // Parse path
+                    const pathMatches = content.matchAll(/^\d+\.\s+(.+?)\s+\*\*(.+?)\*\*/gm);
+                    const marks: ConstellationMark[] = [];
+                    for (const match of pathMatches) {
+                      const emoji = match[1].trim();
+                      const label = match[2].trim();
+                      const node = NODES.find(n => n.label === label);
+                      marks.push({
+                        nodeId: node?.id || `imported-${marks.length}`,
+                        nodeLabel: label,
+                        emoji,
+                        note: "",
+                      });
+                    }
+
+                    if (marks.length === 0) {
+                      alert("Could not parse constellation path from file");
+                      return;
+                    }
+
+                    // Build connections
+                    const connections: ConstellationConnection[] = [];
+                    for (let i = 0; i < marks.length - 1; i++) {
+                      connections.push({
+                        sourceId: marks[i].nodeId,
+                        targetId: marks[i + 1].nodeId,
+                        note: "",
+                      });
+                    }
+
+                    // Create proof if we have the data
+                    const proof: SpellProof | undefined = signatureMatch && hashMatch ? {
+                      signature: signatureMatch[1],
+                      constellationHash: hashMatch[1],
+                      bladeHex: hexMatch?.[1] || "",
+                      lapCount: parseInt(lapsMatch?.[1] || "0"),
+                      duration: parseInt(durationMatch?.[1] || "0") * 1000,
+                      startedAt: 0,
+                      completedAt: 0,
+                      nodeCount: marks.length,
+                      chargeLevel: (chargeMatch?.[1]?.toLowerCase() || "ember") as 'ember' | 'blaze' | 'inferno',
+                      spellsCast: parseInt(spellsCastMatch?.[1] || "0"),
+                      bladeDimensions: {
+                        protection: dimProtection,
+                        delegation: dimDelegation,
+                        memory: dimMemory,
+                        connection: dimConnection,
+                        computation: dimComputation,
+                        value: dimValue,
+                      },
+                      bladeStratum: parseInt(stratumMatch?.[1] || "0"),
+                      bladeTier: (tierMatch?.[1]?.toLowerCase() || "light") as 'light' | 'heavy' | 'dragon',
+                    } : undefined;
+
+                    // Set up witness mode
+                    const witnessHash = proof?.constellationHash || hashMatch?.[1] || `imported-${Date.now()}`;
+                    const creatorName = bladeMatch ? `${bladeMatch[1]} ${bladeMatch[2]}` : file.name.replace('.md', '');
+
+                    setWitnessMode({
+                      active: true,
+                      constellationHash: witnessHash,
+                      witnessedFrom: creatorName,
+                    });
+
+                    // Load constellation for tracing
+                    setConstellation(marks);
+                    setConstellationConnections(connections);
+                    setCastingSpells(true);
+                  };
+                  reader.readAsText(file);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+
+            {/* Witness Blades Inventory (blue, round) */}
+            {witnessBlades.length > 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: witnessInventoryBottom,
+                  left: 16,
+                  padding: "6px 10px",
+                  borderRadius: 10,
+                  background: "rgba(10, 10, 30, 0.9)",
+                  border: `1px solid ${deleteMode === 'witness' ? '#ff4444' : witnessColor + '40'}`,
+                  backdropFilter: "blur(8px)",
+                  zIndex: 100,
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 4,
+                }}>
+                  <div style={{
+                    fontSize: 8,
+                    color: witnessColor,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                    opacity: 0.8,
+                  }}>
+                    👁️ Witnessed ({witnessBlades.length})
+                  </div>
+                  {/* Delete toggle */}
+                  <div
+                    title={deleteMode === 'witness' ? "Cancel delete" : "Delete blades"}
+                    onClick={() => {
+                      if (deleteMode === 'witness') {
+                        setDeleteMode(null);
+                        setBladesToDelete(new Set());
+                      } else {
+                        setDeleteMode('witness');
+                        setBladesToDelete(new Set());
+                      }
+                    }}
+                    style={{
+                      width: 14,
+                      height: 14,
+                      borderRadius: 3,
+                      background: deleteMode === 'witness' ? '#ff444440' : 'rgba(255,255,255,0.1)',
+                      border: `1px solid ${deleteMode === 'witness' ? '#ff4444' : '#666'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 8,
+                      cursor: 'pointer',
+                      color: deleteMode === 'witness' ? '#ff4444' : '#888',
+                    }}
+                  >
+                    {deleteMode === 'witness' ? '✕' : '−'}
+                  </div>
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(5, 32px)',
+                  gap: 4,
+                }}>
+                  {witnessBlades.slice(0, 10).map((blade) => {
+                    const isActive = activeBlade?.id === blade.id;
+                    const isMarkedForDelete = bladesToDelete.has(blade.id);
+                    return (
+                      <div
+                        key={blade.id}
+                        title={deleteMode === 'witness'
+                          ? (isMarkedForDelete ? `Click to unmark ${blade.name}` : `Click to mark ${blade.name} for deletion`)
+                          : `${blade.name} - Witnessed: ${blade.witnessedFrom} - Click to trace`}
+                        onClick={() => {
+                          if (deleteMode === 'witness') {
+                            const newSet = new Set(bladesToDelete);
+                            if (isMarkedForDelete) {
+                              newSet.delete(blade.id);
+                            } else {
+                              newSet.add(blade.id);
+                            }
+                            setBladesToDelete(newSet);
+                          } else {
+                            if (isActive) {
+                              setActiveBlade(null);
+                              setBladeTraceActive(false);
+                            } else {
+                              setActiveBlade(blade);
+                              setBladeTraceActive(true);
+                              setOrbsAtHome(false);
+                              if (blade.constellationMarks) {
+                                setConstellation(blade.constellationMarks);
+                                setConstellationConnections(blade.constellationConnections || []);
+                              }
+                            }
+                          }
+                        }}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: '50%',
+                          background: isMarkedForDelete
+                            ? 'linear-gradient(135deg, #ff444450, #ff444430)'
+                            : isActive
+                              ? `linear-gradient(135deg, ${witnessColor}50, ${witnessColor}30)`
+                              : `linear-gradient(135deg, ${witnessColor}25, ${witnessColor}10)`,
+                          border: `2px solid ${isMarkedForDelete ? '#ff4444' : isActive ? witnessColor : witnessColor + '70'}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 14,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          boxShadow: isMarkedForDelete
+                            ? '0 0 12px #ff444480'
+                            : isActive ? `0 0 12px ${witnessColor}80` : `0 0 6px ${witnessColor}25`,
+                          transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                          opacity: deleteMode === 'witness' && !isMarkedForDelete ? 0.7 : 1,
+                          position: 'relative',
+                        }}
+                      >
+                        {blade.emoji}
+                        {isMarkedForDelete && (
+                          <div style={{
+                            position: 'absolute',
+                            top: -4,
+                            right: -4,
+                            width: 12,
+                            height: 12,
+                            borderRadius: '50%',
+                            background: '#ff4444',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 8,
+                            color: '#fff',
+                          }}>✕</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Confirm delete button */}
+                {deleteMode === 'witness' && bladesToDelete.size > 0 && (
+                  <div
+                    onClick={() => {
+                      const updated = forgedBlades.filter(b => !bladesToDelete.has(b.id));
+                      setForgedBlades(updated);
+                      localStorage.setItem('spellweb-forged-blades', JSON.stringify(updated));
+                      setDeleteMode(null);
+                      setBladesToDelete(new Set());
+                    }}
+                    style={{
+                      marginTop: 6,
+                      padding: '4px 8px',
+                      borderRadius: 4,
+                      background: '#ff4444',
+                      color: '#fff',
+                      fontSize: 9,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Delete {bladesToDelete.size} blade{bladesToDelete.size > 1 ? 's' : ''}
+                  </div>
+                )}
               </div>
-              <div style={{ fontStyle: "italic", color: THEME.textDim, fontSize: 11 }}>"{mark.note}"</div>
-            </div>
-          ))}
-        </div>
-      )}
+            )}
 
+            {/* Own Forged Blades Inventory (gold/tier, square) */}
+            {ownBlades.length > 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: ownInventoryBottom,
+                  left: 16,
+                  padding: "6px 10px",
+                  borderRadius: 10,
+                  background: "rgba(10, 10, 20, 0.9)",
+                  border: `1px solid ${deleteMode === 'forged' ? '#ff4444' : '#ffd70040'}`,
+                  backdropFilter: "blur(8px)",
+                  zIndex: 100,
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 4,
+                }}>
+                  <div style={{
+                    fontSize: 8,
+                    color: '#ffd700',
+                    fontFamily: "'JetBrains Mono', monospace",
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                    opacity: 0.8,
+                  }}>
+                    ⚔️ Forged ({ownBlades.length})
+                  </div>
+                  {/* Delete toggle */}
+                  <div
+                    title={deleteMode === 'forged' ? "Cancel delete" : "Delete blades"}
+                    onClick={() => {
+                      if (deleteMode === 'forged') {
+                        setDeleteMode(null);
+                        setBladesToDelete(new Set());
+                      } else {
+                        setDeleteMode('forged');
+                        setBladesToDelete(new Set());
+                      }
+                    }}
+                    style={{
+                      width: 14,
+                      height: 14,
+                      borderRadius: 3,
+                      background: deleteMode === 'forged' ? '#ff444440' : 'rgba(255,255,255,0.1)',
+                      border: `1px solid ${deleteMode === 'forged' ? '#ff4444' : '#666'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 8,
+                      cursor: 'pointer',
+                      color: deleteMode === 'forged' ? '#ff4444' : '#888',
+                    }}
+                  >
+                    {deleteMode === 'forged' ? '✕' : '−'}
+                  </div>
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(5, 32px)',
+                  gap: 4,
+                }}>
+                  {ownBlades.slice(0, 10).map((blade) => {
+                    const isActive = activeBlade?.id === blade.id;
+                    const isMarkedForDelete = bladesToDelete.has(blade.id);
+                    const tierColor = blade.tier === 'dragon' ? '#ffd700' :
+                      blade.tier === 'heavy' ? '#c0c0c0' : '#87ceeb';
+                    return (
+                      <div
+                        key={blade.id}
+                        title={deleteMode === 'forged'
+                          ? (isMarkedForDelete ? `Click to unmark ${blade.name}` : `Click to mark ${blade.name} for deletion`)
+                          : `${blade.name} (${blade.tier} blade, stratum ${blade.stratum}) - Click to trace`}
+                        onClick={() => {
+                          if (deleteMode === 'forged') {
+                            const newSet = new Set(bladesToDelete);
+                            if (isMarkedForDelete) {
+                              newSet.delete(blade.id);
+                            } else {
+                              newSet.add(blade.id);
+                            }
+                            setBladesToDelete(newSet);
+                          } else {
+                            if (isActive) {
+                              setActiveBlade(null);
+                              setBladeTraceActive(false);
+                            } else {
+                              setActiveBlade(blade);
+                              setBladeTraceActive(true);
+                              setOrbsAtHome(false);
+                              if (blade.constellationMarks) {
+                                setConstellation(blade.constellationMarks);
+                                setConstellationConnections(blade.constellationConnections || []);
+                              }
+                            }
+                          }
+                        }}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 6,
+                          background: isMarkedForDelete
+                            ? 'linear-gradient(135deg, #ff444450, #ff444430)'
+                            : isActive
+                              ? `linear-gradient(135deg, ${tierColor}50, ${tierColor}30)`
+                              : blade.tier === 'dragon'
+                                ? 'linear-gradient(135deg, #ffd70030, #ff660020)'
+                                : blade.tier === 'heavy'
+                                  ? 'linear-gradient(135deg, #c0c0c030, #88888820)'
+                                  : 'linear-gradient(135deg, #87ceeb30, #4a9eff20)',
+                          border: `2px solid ${isMarkedForDelete ? '#ff4444' : isActive ? tierColor : tierColor + '50'}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 14,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          boxShadow: isMarkedForDelete
+                            ? '0 0 12px #ff444480'
+                            : isActive ? `0 0 12px ${tierColor}80` : 'none',
+                          transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                          opacity: deleteMode === 'forged' && !isMarkedForDelete ? 0.7 : 1,
+                          position: 'relative',
+                        }}
+                      >
+                        {blade.emoji}
+                        {isMarkedForDelete && (
+                          <div style={{
+                            position: 'absolute',
+                            top: -4,
+                            right: -4,
+                            width: 12,
+                            height: 12,
+                            borderRadius: '50%',
+                            background: '#ff4444',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 8,
+                            color: '#fff',
+                          }}>✕</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Confirm delete button */}
+                {deleteMode === 'forged' && bladesToDelete.size > 0 && (
+                  <div
+                    onClick={() => {
+                      const updated = forgedBlades.filter(b => !bladesToDelete.has(b.id));
+                      setForgedBlades(updated);
+                      localStorage.setItem('spellweb-forged-blades', JSON.stringify(updated));
+                      setDeleteMode(null);
+                      setBladesToDelete(new Set());
+                    }}
+                    style={{
+                      marginTop: 6,
+                      padding: '4px 8px',
+                      borderRadius: 4,
+                      background: '#ff4444',
+                      color: '#fff',
+                      fontSize: 9,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Delete {bladesToDelete.size} blade{bladesToDelete.size > 1 ? 's' : ''}
+                  </div>
+                )}
+              </div>
+            )}
 
-      {/* My Constellations Button - Bottom Left (above Share Knowledge) */}
-      {savedConstellations.length > 0 && (
-        <button
-          onClick={() => setShowMyConstellations(true)}
-          style={{
-            position: "absolute",
-            bottom: 68,
-            left: 16,
-            padding: "12px 20px",
-            borderRadius: 8,
-            background: `linear-gradient(135deg, #ffd70020, #ff660020)`,
-            border: `1px solid #ffd700`,
-            color: "#ffd700",
-            fontSize: 12,
-            fontFamily: "'JetBrains Mono', monospace",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            backdropFilter: "blur(8px)",
-            zIndex: 50,
-            transition: "all 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = `linear-gradient(135deg, #ffd70040, #ff660040)`;
-            e.currentTarget.style.transform = "translateY(-2px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = `linear-gradient(135deg, #ffd70020, #ff660020)`;
-            e.currentTarget.style.transform = "translateY(0)";
-          }}
-        >
-          <span>🌌</span> My Constellations ({savedConstellations.length})
-        </button>
-      )}
+            {/* Forge ZK Blades Button */}
+            <button
+              onClick={() => {
+                if (latestProof) {
+                  setForgePhase('ignite');
+                  setShowForgeModal(true);
+                  setTimeout(() => setForgePhase('forge'), 800);
+                  setTimeout(() => setForgePhase('temper'), 2000);
+                  setTimeout(() => setForgePhase('complete'), 3500);
+                }
+              }}
+              style={{
+                position: "absolute",
+                bottom: zkBladesBottom,
+                left: 16,
+                padding: "12px 20px",
+                borderRadius: 8,
+                background: latestProof
+                  ? "linear-gradient(135deg, #ffd70050, #ff660040)"
+                  : "linear-gradient(135deg, #33333330, #22222220)",
+                border: latestProof ? "1px solid #ffd700" : "1px solid #444",
+                color: latestProof ? "#ffd700" : "#666",
+                fontSize: 12,
+                cursor: latestProof ? "pointer" : "default",
+                fontFamily: "'JetBrains Mono', monospace",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                transition: "all 0.3s",
+                boxShadow: latestProof ? "0 0 20px rgba(255, 215, 0, 0.3)" : "none",
+                opacity: latestProof ? 1 : 0.5,
+                zIndex: 100,
+              }}
+            >
+              <span>⚔️</span> ZK Blades
+            </button>
+          </>
+        );
+      })()}
+
+      {/* Constellations Button - Glows when proofs exist */}
+      {(() => {
+        const hasProofs = savedConstellations.some(c => c.proof);
+        return (
+          <button
+            onClick={() => setShowMyConstellations(true)}
+            style={{
+              position: "absolute",
+              bottom: 70,
+              left: 16,
+              padding: "10px 16px",
+              borderRadius: 8,
+              background: hasProofs
+                ? "linear-gradient(135deg, #7b68ee40, #9b59b630)"
+                : "rgba(123, 104, 238, 0.15)",
+              border: `1px solid ${hasProofs ? '#9b59b6' : '#7b68ee'}`,
+              color: hasProofs ? "#c9a0dc" : "#7b68ee",
+              fontSize: 12,
+              cursor: "pointer",
+              fontFamily: "'JetBrains Mono', monospace",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              transition: "all 0.3s",
+              boxShadow: hasProofs ? "0 0 15px rgba(155, 89, 182, 0.3)" : "none",
+              zIndex: 100,
+            }}
+          >
+            <span>🌌</span> Constellations
+          </button>
+        );
+      })()}
 
       {/* Share Knowledge Button - Bottom Left */}
       <a
@@ -2026,28 +2435,28 @@ export default function SpellWeb() {
           position: "absolute",
           bottom: 16,
           left: 16,
-          padding: "12px 20px",
+          padding: "10px 16px",
           borderRadius: 8,
-          background: `linear-gradient(135deg, #7b68ee30, #e9456030)`,
-          border: `1px solid #7b68ee`,
-          color: "#fff",
+          background: `linear-gradient(135deg, #7b68ee20, #e9456020)`,
+          border: `1px solid #7b68ee80`,
+          color: "#aaa",
           fontSize: 12,
           fontFamily: "'JetBrains Mono', monospace",
           textDecoration: "none",
           display: "flex",
           alignItems: "center",
-          gap: 10,
+          gap: 8,
           backdropFilter: "blur(8px)",
           zIndex: 50,
           transition: "all 0.2s",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = `linear-gradient(135deg, #7b68ee50, #e9456050)`;
-          e.currentTarget.style.transform = "translateY(-2px)";
+          e.currentTarget.style.background = `linear-gradient(135deg, #7b68ee40, #e9456040)`;
+          e.currentTarget.style.color = "#fff";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = `linear-gradient(135deg, #7b68ee30, #e9456030)`;
-          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.background = `linear-gradient(135deg, #7b68ee20, #e9456020)`;
+          e.currentTarget.style.color = "#aaa";
         }}
       >
         <span>🔮</span> Share Knowledge
@@ -2067,7 +2476,7 @@ export default function SpellWeb() {
             alignItems: "flex-start",
             justifyContent: "center",
             paddingTop: 120,
-            zIndex: 200,
+            zIndex: 300,
           }}
           onClick={handleCancelConnect}
         >
@@ -2226,7 +2635,7 @@ export default function SpellWeb() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 200,
+            zIndex: 300,
           }}
           onClick={() => setShowClearMapModal(false)}
         >
@@ -2306,7 +2715,7 @@ export default function SpellWeb() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 200,
+            zIndex: 300,
           }}
           onClick={handleCancelClosePortal}
         >
@@ -2519,7 +2928,7 @@ export default function SpellWeb() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 200,
+            zIndex: 300,
           }}
           onClick={() => setShowMyConstellations(false)}
         >
@@ -2531,7 +2940,7 @@ export default function SpellWeb() {
               padding: 24,
               maxWidth: 500,
               width: "90%",
-              maxHeight: "80vh",
+              maxHeight: "70vh",
               overflow: "auto",
             }}
             onClick={(e) => e.stopPropagation()}
@@ -2570,6 +2979,31 @@ export default function SpellWeb() {
                     {saved.inscribedSpell && (
                       <div style={{ fontSize: 20, marginBottom: 8, letterSpacing: 4, color: "#ffd700" }}>
                         {saved.inscribedSpell}
+                      </div>
+                    )}
+                    {saved.proof && (
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        marginBottom: 8,
+                        padding: "6px 10px",
+                        background: "rgba(255, 107, 107, 0.1)",
+                        borderRadius: 6,
+                        fontSize: 11,
+                      }}>
+                        <span>🔥</span>
+                        <span style={{ color: saved.proof.chargeLevel === 'inferno' ? '#ff6b6b' : saved.proof.chargeLevel === 'blaze' ? '#ffd700' : '#888' }}>
+                          {saved.proof.chargeLevel.toUpperCase()}
+                        </span>
+                        <span style={{ color: THEME.textDim }}>•</span>
+                        <span style={{ color: THEME.textDim }}>{saved.proof.lapCount} laps</span>
+                        <span style={{ color: THEME.textDim }}>•</span>
+                        <span style={{ color: THEME.textDim }}>{saved.proof.spellsCast || 0} spells</span>
+                        <span style={{ color: THEME.textDim }}>•</span>
+                        <span style={{ color: "#9b59b6", fontFamily: "monospace", fontSize: 9 }}>
+                          {saved.proof.signature}
+                        </span>
                       </div>
                     )}
                     <div style={{ fontSize: 14, marginBottom: 8, color: THEME.textDim }}>
@@ -2616,20 +3050,31 @@ export default function SpellWeb() {
                       >
                         ✏️ Edit
                       </button>
-                      <button
-                        onClick={() => handleExportConstellation(saved)}
-                        style={{
-                          padding: "6px 12px",
-                          borderRadius: 4,
-                          background: "transparent",
-                          border: `1px solid ${THEME.panelBorder}`,
-                          color: THEME.text,
-                          fontSize: 11,
-                          cursor: "pointer",
-                        }}
-                      >
-                        📄 Export .md
-                      </button>
+                      {(() => {
+                        // Export only enabled when blade is forged
+                        const hasForgedBlade = saved.proof
+                          ? forgedBlades.some(b => b.proof.signature === saved.proof?.signature)
+                          : false;
+                        return (
+                          <button
+                            onClick={() => hasForgedBlade && handleExportConstellation(saved)}
+                            disabled={!hasForgedBlade}
+                            title={hasForgedBlade ? "Export constellation with blade" : "Forge a blade to enable export"}
+                            style={{
+                              padding: "6px 12px",
+                              borderRadius: 4,
+                              background: hasForgedBlade ? "#50c87820" : "transparent",
+                              border: `1px solid ${hasForgedBlade ? "#50c878" : THEME.panelBorder}`,
+                              color: hasForgedBlade ? "#50c878" : THEME.textDim,
+                              fontSize: 11,
+                              cursor: hasForgedBlade ? "pointer" : "not-allowed",
+                              opacity: hasForgedBlade ? 1 : 0.5,
+                            }}
+                          >
+                            📄 Export .md
+                          </button>
+                        );
+                      })()}
                     </div>
                   </div>
                 ))}
@@ -2737,6 +3182,91 @@ export default function SpellWeb() {
         }}
       >
         <svg ref={svgRef} width="100%" height="100%" style={{ display: "block" }} />
+
+        {/* Spell Ceremony - Floating panel with orbs traveling the constellation circuit */}
+        <SpellCeremony
+          isActive={true}
+          isCasting={incantationActive}
+          circuitNodes={constellation.map(mark => {
+            // Get the simulation node with x/y position
+            const simNode = nodeDataRef.current.find(n => n.id === mark.nodeId);
+            const staticNode = NODES.find(n => n.id === mark.nodeId);
+            if (!simNode || !staticNode) return null;
+            return {
+              id: mark.nodeId,
+              x: simNode.x,
+              y: simNode.y,
+              emoji: mark.emoji || staticNode.emoji,
+              emojiSpell: staticNode.emojiSpell,
+              label: staticNode.label,
+              proverb: staticNode.proverb,
+            };
+          }).filter(Boolean) as Array<{id: string; x: number; y: number; emoji?: string; emojiSpell?: string; label: string; proverb?: string}>}
+          onProofGenerated={handleProofGenerated}
+          onToggleEvoke={() => setIncantationActive(i => !i)}
+          onClearConstellation={() => {
+            setConstellation([]);
+            setConstellationConnections([]);
+            setIncantationActive(false);
+            setActiveConstellationId(null);
+          }}
+          onShine={() => {
+            // Reset everything to fresh state - close all modals and clear all state
+            setConstellation([]);
+            setConstellationConnections([]);
+            setCastingSpells(false);
+            setIncantationActive(false);
+            setActiveConstellationId(null);
+            setSelectedNode(null);
+            setConnectionMode({ active: false, sourceNode: null });
+            setConnectTarget(null);
+            setWaypoint({ active: false, path: [] });
+            _setNavigator({ active: false, currentNode: null, path: [], pendingMark: false });
+            // Close all modals
+            setShowClosePortalModal(false);
+            setShowMyConstellations(false);
+            setShowMarkModal(false);
+            setShowConnectModal(false);
+            setShowClearMapModal(false);
+          }}
+          onSavePath={() => {
+            if (constellation.length > 0 && !activeConstellationId) {
+              // Quick save current path
+              const connections: ConstellationConnection[] = [];
+              for (let i = 0; i < constellation.length - 1; i++) {
+                connections.push({
+                  sourceId: constellation[i].nodeId,
+                  targetId: constellation[i + 1].nodeId,
+                  note: '',
+                });
+              }
+              const newId = `constellation-${Date.now()}`;
+              const newConstellation: SavedConstellation = {
+                id: newId,
+                name: `Path ${savedConstellations.length + 1}`,
+                marks: constellation,
+                connections,
+                createdAt: new Date().toISOString(),
+              };
+              setSavedConstellations(prev => [...prev, newConstellation]);
+              setActiveConstellationId(newId);
+            }
+          }}
+          onConnect={() => {
+            if (selectedNode) {
+              setConnectionMode({ active: true, sourceNode: selectedNode });
+            }
+          }}
+          onStartWaypoint={handleStartWaypoint}
+          onClosePortal={handleClosePortal}
+          canStartWaypoint={!waypoint.active && !!selectedNode}
+          canClosePortal={waypoint.active && waypoint.path.length > 0}
+          canConnect={!!selectedNode && !connectionMode.active}
+          canSave={constellation.length > 0 && !activeConstellationId && !bladeTraceActive}
+          waypointActive={waypoint.active}
+          orbsAtHome={orbsAtHome}
+          onToggleOrbsHome={() => setOrbsAtHome(h => !h)}
+        />
       </div>
 
       {/* Node Inspector */}
@@ -2746,10 +3276,7 @@ export default function SpellWeb() {
           edges={EDGES}
           onClose={() => setSelectedNode(null)}
           onNavigate={navigateToNode}
-          onConnect={() => handleStartConnect(selectedNode)}
-          onCastSpell={() => handleMarkForConstellation()}
           onAddToPath={() => handleWaypointAddNode(selectedNode)}
-          isInConstellation={constellationNodeIds.has(selectedNode.id)}
           isWaypointActive={waypoint.active}
           isInPath={waypoint.path.includes(selectedNode.id)}
           // Mobile action bar props
@@ -2765,6 +3292,776 @@ export default function SpellWeb() {
         />
       )}
 
+      {/* Wandering Orbs - Float through graph when not evoking and not at home */}
+      {!incantationActive && !orbsAtHome && (
+        <WanderingOrbs
+          width={dimensions.w}
+          height={dimensions.h}
+          isEvoking={incantationActive}
+          waypointNodes={
+            // When tracing a blade, scale constellation to fit above ceremony panel
+            bladeTraceActive && activeBlade?.constellationMarks
+              ? (() => {
+                  // Get raw node positions
+                  const rawNodes = activeBlade.constellationMarks.map(mark => {
+                    const node = nodeDataRef.current.find(n => n.id === mark.nodeId);
+                    return node ? { x: node.x!, y: node.y!, id: mark.nodeId, emoji: mark.emoji } : null;
+                  }).filter(Boolean) as Array<{ x: number; y: number; id: string; emoji?: string }>;
+
+                  if (rawNodes.length === 0) return rawNodes;
+
+                  // Calculate bounding box
+                  const minX = Math.min(...rawNodes.map(n => n.x));
+                  const maxX = Math.max(...rawNodes.map(n => n.x));
+                  const minY = Math.min(...rawNodes.map(n => n.y));
+                  const maxY = Math.max(...rawNodes.map(n => n.y));
+                  const width = maxX - minX || 1;
+                  const height = maxY - minY || 1;
+
+                  // Target area: center of upper-left quadrant
+                  const targetCenterX = dimensions.w / 4;
+                  const targetCenterY = dimensions.h / 3;
+                  const targetSize = 180; // Max size of trace area
+                  const scale = Math.min(targetSize / width, targetSize / height, 1);
+
+                  // Scale and center
+                  const sourceCenterX = (minX + maxX) / 2;
+                  const sourceCenterY = (minY + maxY) / 2;
+
+                  return rawNodes.map(n => ({
+                    ...n,
+                    x: targetCenterX + (n.x - sourceCenterX) * scale,
+                    y: targetCenterY + (n.y - sourceCenterY) * scale,
+                  }));
+                })()
+              : waypoint.path.map(id => {
+                  const node = nodeDataRef.current.find(n => n.id === id);
+                  return node ? { x: node.x, y: node.y, id } : null;
+                }).filter(Boolean) as Array<{ x: number; y: number; id: string }>
+          }
+          ceremonyPosition={{ x: dimensions.w / 2, y: dimensions.h - 150 }}
+          isTracing={bladeTraceActive && !!activeBlade}
+          traceColor={
+            activeBlade?.tier === 'dragon' ? '#ffd700' :
+            activeBlade?.tier === 'heavy' ? '#c0c0c0' : '#87ceeb'
+          }
+        />
+      )}
+
+      {/* Constellation Cut Overlay - Shows sword cutting through actual graph */}
+      {showForgeModal && forgePhase === 'manifesting' && (() => {
+        // Get constellation node positions
+        const cutNodes = constellation.map(mark => {
+          const node = nodeDataRef.current.find(n => n.id === mark.nodeId);
+          return node ? { x: node.x, y: node.y, id: mark.nodeId, emoji: mark.emoji } : null;
+        }).filter(Boolean) as Array<{ x: number; y: number; id: string; emoji: string }>;
+
+        if (cutNodes.length < 2) return null;
+
+        const tierColors = {
+          light: '#87ceeb',
+          heavy: '#c0c0c0',
+          dragon: '#ffd700',
+        };
+        const tierColor = tierColors[latestProof?.bladeTier || 'light'];
+
+        return (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000,
+            pointerEvents: 'none',
+          }}>
+            <svg
+              width={dimensions.w}
+              height={dimensions.h}
+              style={{ position: 'absolute', top: 0, left: 0 }}
+            >
+              <defs>
+                <linearGradient id="cutGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor={tierColor} stopOpacity="0" />
+                  <stop offset="50%" stopColor={tierColor} stopOpacity="1" />
+                  <stop offset="100%" stopColor={tierColor} stopOpacity="0" />
+                </linearGradient>
+                <filter id="cutGlow">
+                  <feGaussianBlur stdDeviation="4" result="blur"/>
+                  <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+
+              {/* Draw constellation path being "cut" */}
+              <g filter="url(#cutGlow)">
+                {cutNodes.map((node, i) => {
+                  if (i === 0) return null;
+                  const prev = cutNodes[i - 1];
+                  return (
+                    <line
+                      key={`cut-${i}`}
+                      x1={prev.x}
+                      y1={prev.y}
+                      x2={node.x}
+                      y2={node.y}
+                      stroke={tierColor}
+                      strokeWidth="3"
+                      strokeDasharray="1000"
+                      strokeDashoffset="1000"
+                      opacity="0.8"
+                      style={{
+                        animation: `cutLine 0.5s ease-out ${i * 0.3}s forwards`,
+                      }}
+                    />
+                  );
+                })}
+                {/* Close the loop */}
+                {cutNodes.length > 2 && (
+                  <line
+                    x1={cutNodes[cutNodes.length - 1].x}
+                    y1={cutNodes[cutNodes.length - 1].y}
+                    x2={cutNodes[0].x}
+                    y2={cutNodes[0].y}
+                    stroke={tierColor}
+                    strokeWidth="3"
+                    strokeDasharray="1000"
+                    strokeDashoffset="1000"
+                    opacity="0.8"
+                    style={{
+                      animation: `cutLine 0.5s ease-out ${cutNodes.length * 0.3}s forwards`,
+                    }}
+                  />
+                )}
+              </g>
+
+              {/* Node burst effects */}
+              {cutNodes.map((node, i) => (
+                <g key={`burst-${i}`}>
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r="5"
+                    fill={tierColor}
+                    opacity="0"
+                    style={{
+                      animation: `nodeBurst 0.6s ease-out ${i * 0.3}s forwards`,
+                    }}
+                  />
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r="20"
+                    fill="none"
+                    stroke={tierColor}
+                    strokeWidth="2"
+                    opacity="0"
+                    style={{
+                      animation: `nodeRing 0.8s ease-out ${i * 0.3}s forwards`,
+                    }}
+                  />
+                  <text
+                    x={node.x}
+                    y={node.y - 30}
+                    textAnchor="middle"
+                    fontSize="20"
+                    opacity="0"
+                    style={{
+                      animation: `emojiFloat 1s ease-out ${i * 0.3}s forwards`,
+                    }}
+                  >
+                    {node.emoji}
+                  </text>
+                </g>
+              ))}
+
+              {/* Animated sword following the path */}
+              <text
+                fontSize="32"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                filter="url(#cutGlow)"
+                style={{
+                  animation: `swordTrace ${cutNodes.length * 0.3 + 0.5}s ease-out forwards`,
+                }}
+              >
+                <animateMotion
+                  dur={`${cutNodes.length * 0.3 + 0.5}s`}
+                  fill="freeze"
+                  path={`M ${cutNodes.map(n => `${n.x},${n.y}`).join(' L ')} L ${cutNodes[0].x},${cutNodes[0].y}`}
+                />
+                ⚔️
+              </text>
+            </svg>
+
+            {/* Blade name reveal after animation */}
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center',
+              opacity: 0,
+              animation: `fadeIn 1s ease-out ${cutNodes.length * 0.3 + 1}s forwards`,
+            }}>
+              <div style={{
+                fontSize: 48,
+                marginBottom: 8,
+              }}>
+                {bladeEmoji}
+              </div>
+              <div style={{
+                fontSize: 36,
+                fontFamily: "'Cormorant Garamond', serif",
+                fontWeight: 'bold',
+                color: tierColor,
+                letterSpacing: 4,
+                textTransform: 'uppercase',
+                textShadow: `0 0 20px ${tierColor}, 0 0 40px #4a9eff`,
+              }}>
+                {bladeName}
+              </div>
+              <div style={{
+                marginTop: 12,
+                fontSize: 14,
+                color: '#888',
+                fontFamily: "'JetBrains Mono', monospace",
+              }}>
+                Forged in the 64-Tetrahedra Lattice
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Forge ZK Blades Modal */}
+      {showForgeModal && latestProof && (() => {
+        const tierColors = {
+          light: { primary: '#87ceeb', glow: 'rgba(135, 206, 235, 0.3)', icon: '🗡️', name: 'Light' },
+          heavy: { primary: '#c0c0c0', glow: 'rgba(192, 192, 192, 0.4)', icon: '⚔️', name: 'Heavy' },
+          dragon: { primary: '#ffd700', glow: 'rgba(255, 215, 0, 0.5)', icon: '🐉', name: 'Dragon' },
+        };
+        const tier = latestProof.bladeTier || 'light';
+        const colors = tierColors[tier];
+        const dims = latestProof.bladeDimensions || { protection: false, delegation: false, memory: false, connection: false, computation: true, value: false };
+        const stratum = latestProof.bladeStratum || 1;
+        const hex = latestProof.bladeHex || '10';
+
+        const dimensionLabels = [
+          { key: 'protection', label: 'Protection', desc: 'Boundaries forged', icon: '🛡️' },
+          { key: 'delegation', label: 'Delegation', desc: 'Agency transferred', icon: '🤝' },
+          { key: 'memory', label: 'Memory', desc: 'State accumulated', icon: '📜' },
+          { key: 'connection', label: 'Connection', desc: 'Multi-party coordination', icon: '🔗' },
+          { key: 'computation', label: 'Computation', desc: 'ZK proof active', icon: '⚡' },
+          { key: 'value', label: 'Value', desc: 'Economic flow', icon: '💎' },
+        ];
+
+        const phaseMessages: Record<string, { text: string; sub: string }> = {
+          ignite: { text: 'Igniting the Forge...', sub: 'Gathering proof elements from the lattice' },
+          forge: { text: 'Forging the Blade...', sub: 'Tempering dimensions in the toroidal field' },
+          temper: { text: 'Tempering Complete', sub: 'Inscribing the maker\'s mark' },
+          complete: { text: `${colors.name} Blade`, sub: 'Forged from the 64-Tetrahedra Lattice' },
+          naming: { text: 'Name Your Blade', sub: 'Inscribe its identity into the lattice' },
+          manifesting: { text: bladeName || 'Blade', sub: 'The blade manifests...' },
+        };
+
+        const isAnimating = forgePhase === 'ignite' || forgePhase === 'forge';
+        const showDimensions = ['forge', 'temper', 'complete', 'naming'].includes(forgePhase);
+        const showStats = ['temper', 'complete', 'naming'].includes(forgePhase);
+        const showSignature = forgePhase === 'complete';
+        const isNaming = forgePhase === 'naming';
+        const isManifesting = forgePhase === 'manifesting';
+
+        return (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: forgePhase === 'ignite'
+                ? "radial-gradient(circle at center, #1a0a00 0%, #000 100%)"
+                : "rgba(0,0,0,0.95)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 300,
+              transition: "background 1s ease",
+            }}
+            onClick={() => !isAnimating && setShowForgeModal(false)}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: "linear-gradient(135deg, #0a0a15, #1a1a2e)",
+                borderRadius: 20,
+                padding: 32,
+                maxWidth: 550,
+                width: "95%",
+                border: `2px solid ${isAnimating ? '#ff6600' : colors.primary}`,
+                boxShadow: isAnimating
+                  ? `0 0 100px rgba(255, 102, 0, 0.6), inset 0 0 60px rgba(255, 102, 0, 0.1)`
+                  : `0 0 80px ${colors.glow}, inset 0 0 40px rgba(0,0,0,0.5)`,
+                transition: "all 0.5s ease",
+              }}
+            >
+              {/* Header with Blade Tier */}
+              <div style={{ textAlign: "center", marginBottom: 24 }}>
+                <div style={{
+                  fontSize: 72,
+                  marginBottom: 8,
+                  filter: showSignature
+                    ? `drop-shadow(0 0 15px ${colors.primary}80) drop-shadow(0 0 30px #4a9eff60)`
+                    : `drop-shadow(0 0 ${isAnimating ? '15' : '10'}px ${isAnimating ? '#ff660080' : colors.primary + '80'})`,
+                  animation: isAnimating
+                    ? 'pulse 1s ease-in-out infinite'
+                    : showSignature
+                      ? 'bladeForged 2s ease-in-out infinite'
+                      : 'none',
+                  transform: showSignature ? 'scale(1.1)' : 'scale(1)',
+                  transition: 'transform 0.5s ease',
+                }}>
+                  {forgePhase === 'ignite' ? '🔥' : forgePhase === 'forge' ? '⚒️' : colors.icon}
+                </div>
+                <h2 style={{
+                  color: isAnimating ? '#ff6600' : colors.primary,
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: 32,
+                  marginBottom: 4,
+                  textTransform: 'uppercase',
+                  letterSpacing: 6,
+                  textShadow: showSignature
+                    ? `0 0 30px ${colors.primary}, 0 0 60px #4a9eff`
+                    : `0 0 20px ${isAnimating ? 'rgba(255, 102, 0, 0.5)' : colors.glow}`,
+                  transition: "all 0.5s ease",
+                  animation: showSignature ? 'textGlow 2s ease-in-out infinite' : 'none',
+                }}>
+                  {phaseMessages[forgePhase].text}
+                </h2>
+                <p style={{
+                  color: showSignature ? colors.primary : "#888",
+                  fontSize: 11,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  opacity: 0.8,
+                  transition: "color 0.5s ease",
+                }}>
+                  {phaseMessages[forgePhase].sub}
+                </p>
+              </div>
+
+              {/* Blade Dimensions Grid - Animated reveal */}
+              <div style={{
+                background: "rgba(0, 0, 0, 0.4)",
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 20,
+                border: `1px solid ${showDimensions ? colors.primary + '40' : '#222'}`,
+                opacity: showDimensions ? 1 : 0.3,
+                transition: "all 0.5s ease",
+              }}>
+                <div style={{ color: "#666", fontSize: 10, marginBottom: 12, textAlign: "center", letterSpacing: 2 }}>
+                  BLADE DIMENSIONS • STRATUM {stratum}/6 • 0x{hex}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                  {dimensionLabels.map(({ key, label, desc, icon }, idx) => {
+                    const active = dims[key as keyof typeof dims];
+                    const revealed = showDimensions && (forgePhase === 'complete' || idx <= (forgePhase === 'forge' ? 3 : 6));
+                    return (
+                      <div
+                        key={key}
+                        title={desc}
+                        style={{
+                          padding: 10,
+                          borderRadius: 8,
+                          background: active && revealed ? `${colors.primary}20` : "rgba(30, 30, 40, 0.5)",
+                          border: `1px solid ${active && revealed ? colors.primary : '#333'}`,
+                          textAlign: "center",
+                          opacity: revealed ? (active ? 1 : 0.4) : 0.2,
+                          transition: "all 0.3s ease",
+                          transitionDelay: `${idx * 100}ms`,
+                        }}
+                      >
+                        <div style={{ fontSize: 18, marginBottom: 4 }}>{icon}</div>
+                        <div style={{ color: active && revealed ? colors.primary : "#555", fontSize: 10, fontWeight: "bold" }}>
+                          {label}
+                        </div>
+                        <div style={{ color: "#444", fontSize: 8 }}>{active && revealed ? '●' : '○'}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Stats Grid - Fades in during temper phase */}
+              <div style={{
+                background: "rgba(0, 0, 0, 0.3)",
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 20,
+                border: `1px solid ${colors.primary}30`,
+                opacity: showStats ? 1 : 0.2,
+                transition: "all 0.5s ease",
+              }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: 10 }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ color: "#555", fontSize: 9 }}>LAPS</div>
+                    <div style={{ color: colors.primary, fontSize: 18, fontWeight: "bold" }}>{latestProof.lapCount}</div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ color: "#555", fontSize: 9 }}>SPELLS</div>
+                    <div style={{ color: "#9b59b6", fontSize: 18, fontWeight: "bold" }}>{latestProof.spellsCast || 0}</div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ color: "#555", fontSize: 9 }}>CHARGE</div>
+                    <div style={{ color: latestProof.chargeLevel === 'inferno' ? '#ff6600' : colors.primary, fontSize: 12, fontWeight: "bold", textTransform: "uppercase" }}>
+                      {latestProof.chargeLevel}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ color: "#555", fontSize: 9 }}>NODES</div>
+                    <div style={{ color: "#fff", fontSize: 18, fontWeight: "bold" }}>{latestProof.nodeCount}</div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ color: "#555", fontSize: 9 }}>TIME</div>
+                    <div style={{ color: "#fff", fontSize: 16 }}>{Math.round(latestProof.duration / 1000)}s</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Proof Explanation - Shows when complete */}
+              <div style={{
+                background: `linear-gradient(135deg, ${colors.primary}10, #4a9eff08)`,
+                borderRadius: 10,
+                padding: 14,
+                marginBottom: 16,
+                border: `1px solid ${colors.primary}30`,
+                opacity: showSignature ? 1 : 0,
+                maxHeight: showSignature ? 200 : 0,
+                overflow: 'hidden',
+                transition: "all 0.5s ease",
+              }}>
+                <p style={{
+                  color: "#a0a0b0",
+                  fontSize: 11,
+                  lineHeight: 1.6,
+                  fontFamily: "'IBM Plex Sans', sans-serif",
+                  margin: 0,
+                  fontStyle: 'italic',
+                }}>
+                  This blade is proof of your attention—a witness to time spent traversing
+                  a constellation of knowledge. The forge doesn't care how you struck the metal.
+                  It only cares what blade you hold.
+                </p>
+                <p style={{
+                  color: "#666",
+                  fontSize: 10,
+                  marginTop: 10,
+                  marginBottom: 0,
+                  fontFamily: "'JetBrains Mono', monospace",
+                }}>
+                  Save it to preserve the record, or let it exist only as a blade proof—your choice on building within the gap.
+                </p>
+              </div>
+
+              {/* Proof Signature - Only shows when complete */}
+              <div style={{
+                background: "rgba(0, 0, 0, 0.4)",
+                borderRadius: 8,
+                padding: 12,
+                marginBottom: 16,
+                fontFamily: "'JetBrains Mono', monospace",
+                opacity: showSignature ? 1 : 0,
+                maxHeight: showSignature ? 100 : 0,
+                overflow: 'hidden',
+                transition: "all 0.5s ease",
+              }}>
+                <div style={{ color: "#555", fontSize: 9, marginBottom: 6 }}>PROOF SIGNATURE</div>
+                <div style={{ color: colors.primary, fontSize: 12, wordBreak: "break-all" }}>
+                  {latestProof.signature}
+                </div>
+                <div style={{ color: "#333", fontSize: 9, marginTop: 6 }}>
+                  Hash: {latestProof.constellationHash}
+                </div>
+              </div>
+
+              {/* Actions - Only enabled when complete */}
+              <div style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+                opacity: showSignature ? 1 : 0.3,
+                transition: "opacity 0.5s ease"
+              }}>
+                {/* Copy proof action */}
+                <button
+                  onClick={() => {
+                    if (showSignature) window.navigator.clipboard.writeText(JSON.stringify(latestProof, null, 2));
+                  }}
+                  disabled={!showSignature}
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: 8,
+                    background: "rgba(0, 0, 0, 0.3)",
+                    border: `1px solid ${colors.primary}40`,
+                    color: colors.primary,
+                    fontSize: 10,
+                    cursor: showSignature ? "pointer" : "default",
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}
+                >
+                  📋 Copy Proof
+                </button>
+                <button
+                  onClick={() => {
+                    if (showSignature) {
+                      setBladeName('');
+                      setBladeEmoji('');
+                      setForgePhase('naming');
+                    }
+                  }}
+                  disabled={!showSignature}
+                  style={{
+                    flex: 1,
+                    padding: "14px 20px",
+                    borderRadius: 10,
+                    background: showSignature
+                      ? `linear-gradient(135deg, ${colors.primary}50, #4a9eff30, ${colors.primary}30)`
+                      : "rgba(50, 50, 60, 0.3)",
+                    border: `2px solid ${showSignature ? colors.primary : '#444'}`,
+                    color: showSignature ? '#fff' : "#666",
+                    fontSize: 13,
+                    cursor: showSignature ? "pointer" : "default",
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontWeight: "bold",
+                    letterSpacing: 2,
+                    textTransform: 'uppercase',
+                    boxShadow: showSignature ? `0 0 15px ${colors.glow}80, 0 0 30px #4a9eff30` : 'none',
+                    transition: "all 0.5s ease",
+                    animation: showSignature ? 'buttonPulse 2s ease-in-out infinite' : 'none',
+                  }}
+                >
+                  {showSignature ? `${colors.icon} Claim Blade` : '⏳ Forging...'}
+                </button>
+              </div>
+
+              {/* Naming Phase */}
+              {isNaming && (() => {
+                const bladeEmojis = ['⚔️', '🗡️', '🐉', '🔥', '⚡', '💎', '🌟', '✨', '🛡️', '🌙', '☀️', '🔮', '👁️', '🦅', '🐺', '🦁'];
+                const alreadyForged = forgedBlades.some(b => b.proof.signature === latestProof?.signature);
+                const canManifest = bladeName.trim() && bladeEmoji && !alreadyForged;
+
+                const handleManifest = () => {
+                  if (canManifest && latestProof) {
+                    // Save blade to inventory with constellation data
+                    const newBlade: ForgedBlade = {
+                      id: `blade-${Date.now()}`,
+                      name: bladeName.trim(),
+                      emoji: bladeEmoji,
+                      tier: tier,
+                      stratum: stratum,
+                      proof: latestProof,
+                      forgedAt: new Date().toISOString(),
+                      constellationNodes: latestProof.nodeCount,
+                      constellationMarks: [...constellation],
+                      constellationConnections: [...constellationConnections],
+                      // Witness fields (Promise Theory bilateral exchange)
+                      ...(witnessMode?.active ? {
+                        isWitness: true,
+                        witnessOf: witnessMode.constellationHash,
+                        witnessedFrom: witnessMode.witnessedFrom,
+                      } : {}),
+                    };
+                    setForgedBlades(prev => [...prev, newBlade]);
+                    setForgePhase('manifesting');
+                    // Clear witness mode and proof
+                    setTimeout(() => {
+                      setShowForgeModal(false);
+                      setLatestProof(null);
+                      setWitnessMode(null); // Clear witness mode after forging
+                    }, 4000);
+                  }
+                };
+
+                return (
+                  <div style={{
+                    marginTop: 20,
+                    padding: 20,
+                    background: `linear-gradient(135deg, ${colors.primary}15, #4a9eff10)`,
+                    borderRadius: 12,
+                    border: `2px solid ${colors.primary}`,
+                    animation: 'fadeIn 0.5s ease',
+                  }}>
+                    {/* Emoji Selection */}
+                    <label style={{
+                      display: 'block',
+                      color: colors.primary,
+                      fontSize: 11,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      marginBottom: 10,
+                      letterSpacing: 2,
+                      textTransform: 'uppercase',
+                    }}>
+                      Choose blade sigil
+                    </label>
+                    <div style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 8,
+                      justifyContent: 'center',
+                      marginBottom: 16,
+                    }}>
+                      {bladeEmojis.map(emoji => (
+                        <button
+                          key={emoji}
+                          onClick={() => setBladeEmoji(emoji)}
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 8,
+                            background: bladeEmoji === emoji
+                              ? `linear-gradient(135deg, ${colors.primary}50, #4a9eff30)`
+                              : 'rgba(0, 0, 0, 0.3)',
+                            border: `2px solid ${bladeEmoji === emoji ? colors.primary : '#333'}`,
+                            fontSize: 22,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            transform: bladeEmoji === emoji ? 'scale(1.1)' : 'scale(1)',
+                            boxShadow: bladeEmoji === emoji ? `0 0 15px ${colors.glow}` : 'none',
+                          }}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Name Input */}
+                    <label style={{
+                      display: 'block',
+                      color: colors.primary,
+                      fontSize: 11,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      marginBottom: 10,
+                      letterSpacing: 2,
+                      textTransform: 'uppercase',
+                    }}>
+                      Inscribe the blade's name
+                    </label>
+                    <input
+                      type="text"
+                      value={bladeName}
+                      onChange={(e) => setBladeName(e.target.value)}
+                      placeholder="Enter blade name..."
+                      style={{
+                        width: '100%',
+                        padding: '14px 18px',
+                        borderRadius: 8,
+                        background: 'rgba(0, 0, 0, 0.4)',
+                        border: `1px solid ${colors.primary}60`,
+                        color: '#fff',
+                        fontSize: 18,
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                        letterSpacing: 2,
+                        outline: 'none',
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && canManifest) {
+                          handleManifest();
+                        }
+                      }}
+                    />
+                    {alreadyForged && (
+                      <div style={{
+                        marginBottom: 12,
+                        padding: '10px 14px',
+                        borderRadius: 8,
+                        background: 'rgba(255, 100, 100, 0.1)',
+                        border: '1px solid rgba(255, 100, 100, 0.4)',
+                        color: '#ff8888',
+                        fontSize: 12,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        textAlign: 'center',
+                      }}>
+                        ⚠️ This proof has already been forged into a blade
+                      </div>
+                    )}
+                    <button
+                      onClick={handleManifest}
+                      disabled={!canManifest}
+                      style={{
+                        width: '100%',
+                        marginTop: 14,
+                        padding: '14px 20px',
+                        borderRadius: 10,
+                        background: canManifest
+                          ? `linear-gradient(135deg, ${colors.primary}60, #4a9eff40)`
+                          : 'rgba(50, 50, 60, 0.3)',
+                        border: `2px solid ${canManifest ? colors.primary : '#444'}`,
+                        color: canManifest ? '#fff' : '#666',
+                        fontSize: 14,
+                        cursor: canManifest ? 'pointer' : 'default',
+                        fontFamily: "'Cormorant Gararaph', serif",
+                        fontWeight: 'bold',
+                        letterSpacing: 3,
+                        textTransform: 'uppercase',
+                        transition: 'all 0.3s ease',
+                      }}
+                    >
+                      {bladeEmoji || colors.icon} Manifest Blade
+                    </button>
+                  </div>
+                );
+              })()}
+
+              {/* Manifesting Phase - Semi-transparent while graph overlay shows cut animation */}
+              {isManifesting && (
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(0, 0, 0, 0.4)',
+                  borderRadius: 20,
+                  animation: 'fadeIn 0.5s ease',
+                }}>
+                  <div style={{
+                    textAlign: 'center',
+                    padding: 20,
+                  }}>
+                    <div style={{
+                      fontSize: 14,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      color: colors.primary,
+                      letterSpacing: 2,
+                      textTransform: 'uppercase',
+                      marginBottom: 10,
+                    }}>
+                      Inscribing constellation...
+                    </div>
+                    <div style={{
+                      fontSize: 11,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      color: '#666',
+                    }}>
+                      {colors.name} Blade • Stratum {stratum}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Google Fonts */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap');
@@ -2775,6 +4072,74 @@ export default function SpellWeb() {
         ::-webkit-scrollbar-thumb:hover { background: ${THEME.textDim}; }
         input::placeholder { color: ${THEME.textDim}; }
         textarea::placeholder { color: ${THEME.textDim}; }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        @keyframes bladeForged {
+          0%, 100% {
+            filter: drop-shadow(0 0 15px #ffd70080) drop-shadow(0 0 30px #4a9eff60);
+            transform: scale(1.05);
+          }
+          50% {
+            filter: drop-shadow(0 0 25px #ffd70090) drop-shadow(0 0 50px #4a9eff80);
+            transform: scale(1.08);
+          }
+        }
+        @keyframes textGlow {
+          0%, 100% { text-shadow: 0 0 15px currentColor, 0 0 30px #4a9eff60; }
+          50% { text-shadow: 0 0 20px currentColor, 0 0 40px #4a9eff80; }
+        }
+        @keyframes buttonPulse {
+          0%, 100% { box-shadow: 0 0 10px currentColor, 0 0 20px #4a9eff30; }
+          50% { box-shadow: 0 0 15px currentColor, 0 0 30px #4a9eff50; }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes energyPulse {
+          0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.5; }
+          50% { transform: scale(1.1) rotate(180deg); opacity: 0.8; }
+        }
+        @keyframes bladeManifest {
+          0% { opacity: 0; transform: translateY(50px) scale(0.5); }
+          30% { opacity: 1; transform: translateY(0) scale(1.1); }
+          50% { transform: translateY(0) scale(1); }
+          100% { transform: translateY(0) scale(1); }
+        }
+        @keyframes textReveal {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes nodeGlow {
+          0%, 100% { opacity: 0.6; r: 3; }
+          50% { opacity: 1; r: 4; }
+        }
+        @keyframes cutLine {
+          from { stroke-dashoffset: 1000; opacity: 0; }
+          to { stroke-dashoffset: 0; opacity: 0.9; }
+        }
+        @keyframes nodeBurst {
+          0% { r: 5; opacity: 0; }
+          30% { r: 25; opacity: 1; }
+          100% { r: 40; opacity: 0; }
+        }
+        @keyframes nodeRing {
+          0% { r: 10; opacity: 0; stroke-width: 4; }
+          50% { opacity: 0.8; }
+          100% { r: 50; opacity: 0; stroke-width: 1; }
+        }
+        @keyframes emojiFloat {
+          0% { opacity: 0; transform: translateY(0); }
+          30% { opacity: 1; }
+          100% { opacity: 0; transform: translateY(-40px); }
+        }
+        @keyframes swordTrace {
+          0% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { opacity: 0; }
+        }
       `}</style>
     </div>
   );

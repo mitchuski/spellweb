@@ -1,8 +1,8 @@
 {
   "name": "spellweb",
   "private": true,
-  "version": "1.0.0",
-  "description": "Knowledge graph explorer for the agentprivacy dual-agent architecture",
+  "version": "2.0.0",
+  "description": "Knowledge graph explorer for the agentprivacy V5 dual-agent architecture with holographic bound integration",
   "type": "module",
   "scripts": {
     "dev": "vite",

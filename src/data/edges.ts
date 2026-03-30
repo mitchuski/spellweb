@@ -64,6 +64,10 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-21", target: "fp-act-22", type: "follows" },
   { source: "fp-act-22", target: "fp-act-23", type: "follows" },
   { source: "fp-act-23", target: "fp-act-24", type: "follows" },
+  { source: "fp-act-24", target: "fp-act-25", type: "follows" },
+  { source: "fp-act-25", target: "fp-act-26", type: "follows" },
+  { source: "fp-act-26", target: "fp-act-27", type: "follows" },
+  { source: "fp-act-27", target: "fp-act-28", type: "follows" },
 
   // ══════════════════════════════════════════════════════════════
   // FIRST PERSON → CONCEPTS
@@ -807,4 +811,183 @@ export const EDGES: SpellwebEdge[] = [
 
   // Holonic references Promise Theory (mentioned in whitepaper)
   { source: "con-holon", target: "con-promisetheory", type: "references" },
+
+  // ══════════════════════════════════════════════════════════════
+  // V5 PERSONA RELATIONSHIPS (Acts XXV-XXVI Integration)
+  // ══════════════════════════════════════════════════════════════
+
+  // Sith (Red Team) knowledge
+  { source: "per-sith", target: "skill-darkforest", type: "persona_knows" },
+  { source: "per-sith", target: "skill-threat", type: "persona_knows" },
+  { source: "per-sith", target: "skill-crypto-zkp", type: "persona_knows" },
+  { source: "per-sith", target: "con-separation", type: "persona_knows" },
+  { source: "per-sith", target: "thm-ceiling", type: "persona_knows" },
+
+  // Netkeeper (Mesh) knowledge
+  { source: "per-netkeeper", target: "skill-mesh-architecture", type: "persona_knows" },
+  { source: "per-netkeeper", target: "con-mesh-sovereignty", type: "persona_knows" },
+  { source: "per-netkeeper", target: "skill-darkforest", type: "persona_knows" },
+  { source: "per-netkeeper", target: "con-three-axis-separation", type: "persona_knows" },
+  { source: "per-netkeeper", target: "skill-enclave", type: "persona_knows" },
+
+  // Priest (Ceremony) knowledge
+  { source: "per-priest", target: "skill-key-ceremony", type: "persona_knows" },
+  { source: "per-priest", target: "spell-ceremony", type: "persona_knows" },
+  { source: "per-priest", target: "con-vrc", type: "persona_knows" },
+  { source: "per-priest", target: "skill-proverbiogenesis", type: "persona_knows" },
+
+  // Person (First Person) knowledge
+  { source: "per-person", target: "con-7thcapital", type: "persona_knows" },
+  { source: "per-person", target: "con-gap", type: "persona_knows" },
+  { source: "per-person", target: "spellbook-firstperson", type: "persona_knows" },
+
+  // Kyra (Vision) knowledge
+  { source: "per-kyra", target: "skill-intel-pooling", type: "persona_knows" },
+  { source: "per-kyra", target: "skill-darkforest", type: "persona_knows" },
+  { source: "per-kyra", target: "con-dragon-vertex", type: "persona_knows" },
+
+  // Jedi (Balance) knowledge
+  { source: "per-jedi", target: "con-dualagent", type: "persona_knows" },
+  { source: "per-jedi", target: "con-gap", type: "persona_knows" },
+  { source: "per-jedi", target: "skill-separation", type: "persona_knows" },
+  { source: "per-jedi", target: "con-master-emissary", type: "persona_knows" },
+
+  // Herald (Standards) knowledge
+  { source: "per-herald", target: "skill-governance", type: "persona_knows" },
+  { source: "per-herald", target: "org-bgin", type: "persona_knows" },
+  { source: "per-herald", target: "skill-plurality", type: "persona_knows" },
+
+  // Archer (Precision) knowledge
+  { source: "per-archer", target: "skill-selective", type: "persona_knows" },
+  { source: "per-archer", target: "skill-crypto-zkp", type: "persona_knows" },
+  { source: "per-archer", target: "con-zkproofs", type: "persona_knows" },
+
+  // ══════════════════════════════════════════════════════════════
+  // V5 SKILL → CONCEPT RELATIONSHIPS
+  // ══════════════════════════════════════════════════════════════
+
+  // Mesh Architecture connections
+  { source: "skill-mesh-architecture", target: "con-mesh-sovereignty", type: "implements" },
+  { source: "skill-mesh-architecture", target: "con-three-axis-separation", type: "extends" },
+  { source: "skill-mesh-architecture", target: "con-separation", type: "implements" },
+
+  // Media Plurality connections
+  { source: "skill-media-plurality", target: "skill-plurality", type: "extends" },
+  { source: "skill-media-plurality", target: "con-plurality", type: "implements" },
+  { source: "per-witness", target: "skill-media-plurality", type: "persona_knows" },
+  { source: "per-chronicler", target: "skill-media-plurality", type: "persona_knows" },
+
+  // Hemispheric Attention connections
+  { source: "skill-hemispheric-attention", target: "con-master-emissary", type: "implements" },
+  { source: "skill-hemispheric-attention", target: "con-gap", type: "extends" },
+  { source: "skill-hemispheric-attention", target: "con-dualagent", type: "references" },
+
+  // Environmental Commons connections
+  { source: "skill-environmental-commons", target: "skill-governance", type: "extends" },
+  { source: "skill-environmental-commons", target: "skill-plurality", type: "extends" },
+  { source: "per-shipwright", target: "skill-environmental-commons", type: "persona_knows" },
+
+  // Guild Efficiency connections
+  { source: "skill-guild-efficiency", target: "con-shared-parent", type: "implements" },
+  { source: "skill-guild-efficiency", target: "con-braid", type: "extends" },
+  { source: "skill-guild-efficiency", target: "con-c8-guild-scalability", type: "references" },
+  { source: "per-shipwright", target: "skill-guild-efficiency", type: "persona_knows" },
+  { source: "per-weaver", target: "skill-guild-efficiency", type: "persona_knows" },
+
+  // Spellweb Navigation connections
+  { source: "skill-spellweb", target: "skill-path-integral", type: "implements" },
+  { source: "skill-spellweb", target: "skill-grimoire", type: "extends" },
+  { source: "skill-spellweb", target: "con-holographic-bound", type: "references" },
+  { source: "per-chronicler", target: "skill-spellweb", type: "persona_knows" },
+  { source: "per-pedagogue", target: "skill-spellweb", type: "persona_knows" },
+
+  // Path Integral connections
+  { source: "skill-path-integral", target: "skill-edge-value", type: "extends" },
+  { source: "skill-path-integral", target: "con-holographic-bound", type: "implements" },
+
+  // Compression Defence connections
+  { source: "skill-compression-defence", target: "con-braid", type: "implements" },
+  { source: "skill-compression-defence", target: "con-compression-spectrum", type: "extends" },
+  { source: "skill-compression-defence", target: "con-c7-compression", type: "references" },
+
+  // Master-Emissary Pattern connections
+  { source: "skill-master-emissary", target: "con-master-emissary", type: "implements" },
+  { source: "skill-master-emissary", target: "skill-hemispheric-attention", type: "extends" },
+  { source: "skill-master-emissary", target: "con-dualagent", type: "references" },
+
+  // ══════════════════════════════════════════════════════════════
+  // V5 CONCEPT RELATIONSHIPS
+  // ══════════════════════════════════════════════════════════════
+
+  // Master-Emissary concept connections
+  { source: "con-master-emissary", target: "con-dualagent", type: "extends" },
+  { source: "con-master-emissary", target: "con-gap", type: "implements" },
+  { source: "con-master-emissary", target: "per-soulbis", type: "references" },
+  { source: "con-master-emissary", target: "per-soulbae", type: "references" },
+
+  // Mesh Sovereignty connections
+  { source: "con-mesh-sovereignty", target: "con-separation", type: "implements" },
+  { source: "con-mesh-sovereignty", target: "con-three-axis-separation", type: "extends" },
+
+  // V5 Conjectures connections
+  { source: "con-c6-holographic", target: "con-holographic-bound", type: "extends" },
+  { source: "con-c6-holographic", target: "con-uor-torus", type: "references" },
+  { source: "con-c7-compression", target: "con-braid", type: "extends" },
+  { source: "con-c7-compression", target: "skill-compression-defence", type: "references" },
+  { source: "con-c8-guild-scalability", target: "skill-guild-efficiency", type: "references" },
+  { source: "con-c8-guild-scalability", target: "con-shared-parent", type: "extends" },
+  { source: "con-c10-three-axis", target: "con-three-axis-separation", type: "extends" },
+
+  // ══════════════════════════════════════════════════════════════
+  // ACT 24 → V5 CONCEPT CONNECTIONS (expanding existing Act 24)
+  // ══════════════════════════════════════════════════════════════
+  { source: "fp-act-24", target: "con-master-emissary", type: "narrates" },
+  { source: "fp-act-24", target: "skill-guild-efficiency", type: "narrates" },
+  { source: "fp-act-24", target: "skill-path-integral", type: "narrates" },
+  { source: "fp-act-24", target: "skill-compression-defence", type: "narrates" },
+
+  // ══════════════════════════════════════════════════════════════
+  // ACT 25: THE DRAGON'S HIDE (Mesh Architecture)
+  // ══════════════════════════════════════════════════════════════
+  { source: "spellbook-firstperson", target: "fp-act-25", type: "defines" },
+  { source: "fp-act-25", target: "skill-mesh-architecture", type: "narrates" },
+  { source: "fp-act-25", target: "con-mesh-sovereignty", type: "narrates" },
+  { source: "fp-act-25", target: "con-three-axis-separation", type: "narrates" },
+  { source: "fp-act-25", target: "per-netkeeper", type: "narrates" },
+  { source: "fp-act-25", target: "con-separation", type: "extends" },
+  { source: "fp-act-25", target: "skill-media-plurality", type: "references" },
+
+  // ══════════════════════════════════════════════════════════════
+  // ACT 26: MASTER AND EMISSARY (Hemispheric Attention)
+  // ══════════════════════════════════════════════════════════════
+  { source: "spellbook-firstperson", target: "fp-act-26", type: "defines" },
+  { source: "fp-act-26", target: "con-master-emissary", type: "narrates" },
+  { source: "fp-act-26", target: "skill-hemispheric-attention", type: "narrates" },
+  { source: "fp-act-26", target: "skill-master-emissary", type: "narrates" },
+  { source: "fp-act-26", target: "con-dualagent", type: "extends" },
+  { source: "fp-act-26", target: "con-gap", type: "extends" },
+  { source: "fp-act-26", target: "per-soulbis", type: "narrates" },
+  { source: "fp-act-26", target: "per-soulbae", type: "narrates" },
+  { source: "fp-act-26", target: "skill-environmental-commons", type: "references" },
+
+  // ══════════════════════════════════════════════════════════════
+  // ACT 27: THE SWORDSMAN'S FORGE (Reserved — grimoire placeholder)
+  // ══════════════════════════════════════════════════════════════
+  { source: "spellbook-firstperson", target: "fp-act-27", type: "defines" },
+  { source: "fp-act-27", target: "per-soulbis", type: "references" },
+
+  // ══════════════════════════════════════════════════════════════
+  // ACT 28: THE CEREMONY ENGINE (Pretext, dual extension, ceremonies)
+  // ══════════════════════════════════════════════════════════════
+  { source: "spellbook-firstperson", target: "fp-act-28", type: "defines" },
+  { source: "fp-act-28", target: "con-dualagent", type: "extends" },
+  { source: "fp-act-28", target: "con-gap", type: "extends" },
+  { source: "fp-act-28", target: "con-myterms", type: "narrates" },
+  { source: "fp-act-28", target: "con-rpp", type: "narrates" },
+  { source: "fp-act-28", target: "skill-browser", type: "narrates" },
+  { source: "fp-act-28", target: "per-soulbis", type: "narrates" },
+  { source: "fp-act-28", target: "per-soulbae", type: "narrates" },
+  { source: "fp-act-28", target: "fp-act-2", type: "extends" },
+  { source: "fp-act-28", target: "fp-act-7", type: "extends" },
+  { source: "fp-act-28", target: "fp-act-26", type: "extends" },
 ];
