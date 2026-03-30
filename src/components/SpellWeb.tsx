@@ -1291,13 +1291,9 @@ export default function SpellWeb() {
     setShowMyConstellations(false);
   }, []);
 
-  // Legacy navigator handlers (kept for compatibility but redirected to waypoint)
-  const handleStartNavigator = useCallback(() => {
-    handleStartWaypoint();
-  }, [handleStartWaypoint]);
-
+  // Navigator handlers (used for waypoint navigation flow)
   const handleNavigatorMarkConfirm = useCallback(() => {
-    // Legacy - not used in new flow
+    // Confirm mark - handled by waypoint flow now
   }, []);
 
   const handleNavigatorStep = useCallback((nextNode: SpellwebNode) => {
@@ -1315,6 +1311,108 @@ export default function SpellWeb() {
   const handleNavigatorCancel = useCallback(() => {
     handleCancelWaypoint();
   }, [handleCancelWaypoint]);
+
+  // Handle witness blade file import
+  const handleWitnessBladeFile = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const content = evt.target?.result as string;
+      if (!content) return;
+
+      // Parse blade info
+      const bladeMatch = content.match(/\*\*(.+?) (.+?)\*\*/);
+      const tierMatch = content.match(/\*\*Tier:\*\* (\w+)/i);
+      const stratumMatch = content.match(/\*\*Stratum:\*\* (\d+)/i);
+
+      // Parse proof
+      const chargeMatch = content.match(/\*\*Charge Level:\*\* (\w+)/i);
+      const lapsMatch = content.match(/\*\*Laps:\*\* (\d+)/);
+      const durationMatch = content.match(/\*\*Duration:\*\* (\d+)s/);
+      const spellsCastMatch = content.match(/\*\*Spells Cast:\*\* (\d+)/);
+      const signatureMatch = content.match(/Signature: (SPELL-[\w-]+)/);
+      const hashMatch = content.match(/Hash: ([a-f0-9]+)/);
+      const hexMatch = content.match(/Hex: ([01]+)/);
+
+      // Parse dimensions
+      const dimProtection = content.includes('Protection | ✅');
+      const dimDelegation = content.includes('Delegation | ✅');
+      const dimMemory = content.includes('Memory | ✅');
+      const dimConnection = content.includes('Connection | ✅');
+      const dimComputation = content.includes('Computation | ✅');
+      const dimValue = content.includes('Value | ✅');
+
+      // Parse path
+      const pathMatches = content.matchAll(/^\d+\.\s+(.+?)\s+\*\*(.+?)\*\*/gm);
+      const marks: ConstellationMark[] = [];
+      for (const match of pathMatches) {
+        const emoji = match[1].trim();
+        const label = match[2].trim();
+        const node = NODES.find(n => n.label === label);
+        marks.push({
+          nodeId: node?.id || `imported-${marks.length}`,
+          nodeLabel: label,
+          emoji,
+          note: "",
+        });
+      }
+
+      if (marks.length === 0) {
+        alert("Could not parse constellation path from file");
+        return;
+      }
+
+      // Build connections
+      const connections: ConstellationConnection[] = [];
+      for (let i = 0; i < marks.length - 1; i++) {
+        connections.push({
+          sourceId: marks[i].nodeId,
+          targetId: marks[i + 1].nodeId,
+          note: "",
+        });
+      }
+
+      // Create proof if we have the data
+      const proof: SpellProof | undefined = signatureMatch && hashMatch ? {
+        signature: signatureMatch[1],
+        constellationHash: hashMatch[1],
+        bladeHex: hexMatch?.[1] || "",
+        lapCount: parseInt(lapsMatch?.[1] || "0"),
+        duration: parseInt(durationMatch?.[1] || "0") * 1000,
+        startedAt: 0,
+        completedAt: 0,
+        nodeCount: marks.length,
+        chargeLevel: (chargeMatch?.[1]?.toLowerCase() || "ember") as 'ember' | 'blaze' | 'inferno',
+        spellsCast: parseInt(spellsCastMatch?.[1] || "0"),
+        bladeDimensions: {
+          protection: dimProtection,
+          delegation: dimDelegation,
+          memory: dimMemory,
+          connection: dimConnection,
+          computation: dimComputation,
+          value: dimValue,
+        },
+        bladeStratum: parseInt(stratumMatch?.[1] || "0"),
+        bladeTier: (tierMatch?.[1]?.toLowerCase() || "light") as 'light' | 'heavy' | 'dragon',
+      } : undefined;
+
+      // Set up witness mode
+      const witnessHash = proof?.constellationHash || hashMatch?.[1] || `imported-${Date.now()}`;
+      const creatorName = bladeMatch ? `${bladeMatch[1]} ${bladeMatch[2]}` : file.name.replace('.md', '');
+
+      setWitnessMode({
+        active: true,
+        constellationHash: witnessHash,
+        witnessedFrom: creatorName,
+      });
+
+      // Load constellation for tracing
+      setConstellation(marks);
+      setConstellationConnections(connections);
+      setCastingSpells(true);
+      setMobileFiltersOpen(false);
+    };
+    reader.readAsText(file);
+  }, []);
 
   const handleConfirmMark = useCallback(() => {
     if (selectedNode && (markEmoji.trim() || markNote.trim())) {
@@ -1364,6 +1462,23 @@ export default function SpellWeb() {
         onToggleType={toggleType}
         onToggleSpellbook={toggleSpellbook}
         isOpen={mobileFiltersOpen}
+        // Mobile action props
+        onOpenConstellations={() => { setShowMyConstellations(true); setMobileFiltersOpen(false); }}
+        onOpenZKBlades={() => {
+          if (latestProof) {
+            setForgePhase('ignite');
+            setShowForgeModal(true);
+            setTimeout(() => setForgePhase('forge'), 800);
+            setTimeout(() => setForgePhase('temper'), 2000);
+            setTimeout(() => setForgePhase('complete'), 3500);
+            setMobileFiltersOpen(false);
+          }
+        }}
+        onWitnessBlade={handleWitnessBladeFile}
+        hasLatestProof={!!latestProof}
+        constellationCount={savedConstellations.length}
+        forgedBladesCount={forgedBlades.filter(b => !b.isWitness).length}
+        witnessBladesCount={forgedBlades.filter(b => b.isWitness).length}
       />
 
       {/* Mobile Menu Toggle Button */}
@@ -1876,6 +1991,7 @@ export default function SpellWeb() {
           <>
             {/* Witness Blade Import Button - Top of stack */}
             <label
+              className="mobile-hide"
               style={{
                 position: "absolute",
                 bottom: witnessButtonBottom,
@@ -1902,104 +2018,7 @@ export default function SpellWeb() {
                 style={{ display: "none" }}
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (!file) return;
-                  const reader = new FileReader();
-                  reader.onload = (evt) => {
-                    const content = evt.target?.result as string;
-                    if (!content) return;
-
-                    // Parse blade info
-                    const bladeMatch = content.match(/\*\*(.+?) (.+?)\*\*/);
-                    const tierMatch = content.match(/\*\*Tier:\*\* (\w+)/i);
-                    const stratumMatch = content.match(/\*\*Stratum:\*\* (\d+)/i);
-
-                    // Parse proof
-                    const chargeMatch = content.match(/\*\*Charge Level:\*\* (\w+)/i);
-                    const lapsMatch = content.match(/\*\*Laps:\*\* (\d+)/);
-                    const durationMatch = content.match(/\*\*Duration:\*\* (\d+)s/);
-                    const spellsCastMatch = content.match(/\*\*Spells Cast:\*\* (\d+)/);
-                    const signatureMatch = content.match(/Signature: (SPELL-[\w-]+)/);
-                    const hashMatch = content.match(/Hash: ([a-f0-9]+)/);
-                    const hexMatch = content.match(/Hex: ([01]+)/);
-
-                    // Parse dimensions
-                    const dimProtection = content.includes('Protection | ✅');
-                    const dimDelegation = content.includes('Delegation | ✅');
-                    const dimMemory = content.includes('Memory | ✅');
-                    const dimConnection = content.includes('Connection | ✅');
-                    const dimComputation = content.includes('Computation | ✅');
-                    const dimValue = content.includes('Value | ✅');
-
-                    // Parse path
-                    const pathMatches = content.matchAll(/^\d+\.\s+(.+?)\s+\*\*(.+?)\*\*/gm);
-                    const marks: ConstellationMark[] = [];
-                    for (const match of pathMatches) {
-                      const emoji = match[1].trim();
-                      const label = match[2].trim();
-                      const node = NODES.find(n => n.label === label);
-                      marks.push({
-                        nodeId: node?.id || `imported-${marks.length}`,
-                        nodeLabel: label,
-                        emoji,
-                        note: "",
-                      });
-                    }
-
-                    if (marks.length === 0) {
-                      alert("Could not parse constellation path from file");
-                      return;
-                    }
-
-                    // Build connections
-                    const connections: ConstellationConnection[] = [];
-                    for (let i = 0; i < marks.length - 1; i++) {
-                      connections.push({
-                        sourceId: marks[i].nodeId,
-                        targetId: marks[i + 1].nodeId,
-                        note: "",
-                      });
-                    }
-
-                    // Create proof if we have the data
-                    const proof: SpellProof | undefined = signatureMatch && hashMatch ? {
-                      signature: signatureMatch[1],
-                      constellationHash: hashMatch[1],
-                      bladeHex: hexMatch?.[1] || "",
-                      lapCount: parseInt(lapsMatch?.[1] || "0"),
-                      duration: parseInt(durationMatch?.[1] || "0") * 1000,
-                      startedAt: 0,
-                      completedAt: 0,
-                      nodeCount: marks.length,
-                      chargeLevel: (chargeMatch?.[1]?.toLowerCase() || "ember") as 'ember' | 'blaze' | 'inferno',
-                      spellsCast: parseInt(spellsCastMatch?.[1] || "0"),
-                      bladeDimensions: {
-                        protection: dimProtection,
-                        delegation: dimDelegation,
-                        memory: dimMemory,
-                        connection: dimConnection,
-                        computation: dimComputation,
-                        value: dimValue,
-                      },
-                      bladeStratum: parseInt(stratumMatch?.[1] || "0"),
-                      bladeTier: (tierMatch?.[1]?.toLowerCase() || "light") as 'light' | 'heavy' | 'dragon',
-                    } : undefined;
-
-                    // Set up witness mode
-                    const witnessHash = proof?.constellationHash || hashMatch?.[1] || `imported-${Date.now()}`;
-                    const creatorName = bladeMatch ? `${bladeMatch[1]} ${bladeMatch[2]}` : file.name.replace('.md', '');
-
-                    setWitnessMode({
-                      active: true,
-                      constellationHash: witnessHash,
-                      witnessedFrom: creatorName,
-                    });
-
-                    // Load constellation for tracing
-                    setConstellation(marks);
-                    setConstellationConnections(connections);
-                    setCastingSpells(true);
-                  };
-                  reader.readAsText(file);
+                  if (file) handleWitnessBladeFile(file);
                   e.target.value = "";
                 }}
               />
@@ -2008,6 +2027,7 @@ export default function SpellWeb() {
             {/* Witness Blades Inventory (blue, round) */}
             {witnessBlades.length > 0 && (
               <div
+                className="mobile-hide"
                 style={{
                   position: "absolute",
                   bottom: witnessInventoryBottom,
@@ -2179,6 +2199,7 @@ export default function SpellWeb() {
             {/* Own Forged Blades Inventory (gold/tier, square) */}
             {ownBlades.length > 0 && (
               <div
+                className="mobile-hide"
                 style={{
                   position: "absolute",
                   bottom: ownInventoryBottom,
@@ -2355,6 +2376,7 @@ export default function SpellWeb() {
 
             {/* Forge ZK Blades Button */}
             <button
+              className="mobile-hide"
               onClick={() => {
                 if (latestProof) {
                   setForgePhase('ignite');
@@ -2398,6 +2420,7 @@ export default function SpellWeb() {
         const hasProofs = savedConstellations.some(c => c.proof);
         return (
           <button
+            className="mobile-hide"
             onClick={() => setShowMyConstellations(true)}
             style={{
               position: "absolute",
@@ -2428,6 +2451,7 @@ export default function SpellWeb() {
 
       {/* Share Knowledge Button - Bottom Left */}
       <a
+        className="mobile-hide"
         href="https://agentprivacy.ai/evoke"
         target="_blank"
         rel="noopener noreferrer"
@@ -3279,16 +3303,6 @@ export default function SpellWeb() {
           onAddToPath={() => handleWaypointAddNode(selectedNode)}
           isWaypointActive={waypoint.active}
           isInPath={waypoint.path.includes(selectedNode.id)}
-          // Mobile action bar props
-          onToggleConstellation={() => setCastingSpells(c => !c)}
-          onStartWaypoint={handleStartNavigator}
-          onClosePortal={handleClosePortal}
-          onToggleEvoke={() => setIncantationActive(i => !i)}
-          constellationCount={constellation.length}
-          castingSpells={castingSpells}
-          incantationActive={incantationActive}
-          canStartWaypoint={!waypoint.active}
-          canClosePortal={waypoint.active && waypoint.path.length > 0}
         />
       )}
 

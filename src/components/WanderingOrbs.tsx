@@ -103,16 +103,15 @@ export function WanderingOrbs({
         // TRACE MODE: Follow constellation path and draw cuts
         returningRef.current = false;
 
-        // Reset to upper-left position when tracing starts
+        // Initialize tracing from current position when it starts
         if (!wasTracingRef.current) {
           wasTracingRef.current = true;
-          traceIndexRef.current = -1; // Start at -1 to indicate "coming from start position"
+          traceIndexRef.current = -1; // Start at -1 to indicate "coming from current position"
           traceProgressRef.current = 0;
           cutSegmentsRef.current = [];
           lastReachedNodeRef.current = null;
-          // Start from upper-left area
-          center.x = 180;
-          center.y = 180;
+          // Keep current position - orbs will smoothly travel to first node
+          // (center.x and center.y already have the current orb position)
         }
 
         let currentIndex = traceIndexRef.current;
@@ -135,7 +134,11 @@ export function WanderingOrbs({
         traceProgressRef.current += TRACE_SPEED;
 
         if (traceProgressRef.current >= 1) {
-          // Reached the next node - add cut segment (only for actual constellation nodes)
+          // Reached the next node - snap to exact position
+          center.x = nextNode.x;
+          center.y = nextNode.y;
+
+          // Add cut segment (only for actual constellation nodes)
           if (currentIndex >= 0) {
             const prevNode = waypointNodes[currentIndex];
             cutSegmentsRef.current.push({
@@ -158,12 +161,12 @@ export function WanderingOrbs({
           // Move to next segment
           traceIndexRef.current = nextIndex;
           traceProgressRef.current = 0;
+        } else {
+          // Interpolate position smoothly between nodes
+          const t = traceProgressRef.current;
+          center.x = currentNode.x + (nextNode.x - currentNode.x) * t;
+          center.y = currentNode.y + (nextNode.y - currentNode.y) * t;
         }
-
-        // Interpolate position
-        const t = traceProgressRef.current;
-        center.x = currentNode.x + (nextNode.x - currentNode.x) * t;
-        center.y = currentNode.y + (nextNode.y - currentNode.y) * t;
 
         // Fade out old cut segments
         cutSegmentsRef.current = cutSegmentsRef.current

@@ -9,6 +9,14 @@ interface GraphFiltersProps {
   onToggleType: (type: keyof TypeFilterState) => void;
   onToggleSpellbook: (spellbook: keyof SpellbookFilterState) => void;
   isOpen?: boolean;
+  // Mobile action props
+  onOpenConstellations?: () => void;
+  onOpenZKBlades?: () => void;
+  onWitnessBlade?: (file: File) => void;
+  hasLatestProof?: boolean;
+  constellationCount?: number;
+  forgedBladesCount?: number;
+  witnessBladesCount?: number;
 }
 
 const LAYER_BUTTONS = [
@@ -35,7 +43,10 @@ const SPELLBOOK_BUTTONS = [
   { key: "plurality" as const, label: "⿻ Plurality", color: "#7b68ee" },
 ];
 
-export function GraphFilters({ filters, typeFilters, spellbookFilters, onToggleLayer, onToggleType, onToggleSpellbook, isOpen = true }: GraphFiltersProps) {
+export function GraphFilters({
+  filters, typeFilters, spellbookFilters, onToggleLayer, onToggleType, onToggleSpellbook, isOpen = true,
+  onOpenConstellations, onOpenZKBlades, onWitnessBlade, hasLatestProof, constellationCount = 0, forgedBladesCount = 0, witnessBladesCount = 0,
+}: GraphFiltersProps) {
   return (
     <div
       className={`filters-panel ${isOpen ? 'filters-open' : ''}`}
@@ -179,6 +190,137 @@ export function GraphFilters({ filters, typeFilters, spellbookFilters, onToggleL
           <span style={{ opacity: spellbookFilters[s.key] ? 1 : 0.4 }}>{s.label}</span>
         </button>
       ))}
+
+      {/* Mobile Actions - Only shown on mobile via CSS */}
+      <div className="mobile-actions-section">
+        <div
+          style={{
+            fontSize: 9,
+            letterSpacing: 2,
+            color: THEME.textDim,
+            marginTop: 12,
+            marginBottom: 8,
+            fontFamily: "'JetBrains Mono', monospace",
+            borderTop: `1px solid ${THEME.panelBorder}`,
+            paddingTop: 12,
+          }}
+        >
+          ACTIONS
+        </div>
+
+        {/* Constellations */}
+        {onOpenConstellations && (
+          <button
+            onClick={onOpenConstellations}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              width: "100%",
+              padding: "6px 8px",
+              marginBottom: 4,
+              borderRadius: 4,
+              cursor: "pointer",
+              background: constellationCount > 0 ? "rgba(155, 89, 182, 0.15)" : "transparent",
+              border: `1px solid ${constellationCount > 0 ? '#9b59b6' : THEME.panelBorder}`,
+              color: constellationCount > 0 ? "#c9a0dc" : THEME.textDim,
+              fontSize: 11,
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              textAlign: "left",
+            }}
+          >
+            <span>🌌</span> Constellations {constellationCount > 0 && `(${constellationCount})`}
+          </button>
+        )}
+
+        {/* ZK Blades */}
+        {onOpenZKBlades && (
+          <button
+            onClick={onOpenZKBlades}
+            disabled={!hasLatestProof}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              width: "100%",
+              padding: "6px 8px",
+              marginBottom: 4,
+              borderRadius: 4,
+              cursor: hasLatestProof ? "pointer" : "default",
+              background: hasLatestProof ? "rgba(255, 215, 0, 0.15)" : "transparent",
+              border: `1px solid ${hasLatestProof ? '#ffd700' : THEME.panelBorder}`,
+              color: hasLatestProof ? "#ffd700" : THEME.textDim,
+              fontSize: 11,
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              textAlign: "left",
+              opacity: hasLatestProof ? 1 : 0.5,
+            }}
+          >
+            <span>⚔️</span> ZK Blades {forgedBladesCount > 0 && `(${forgedBladesCount})`}
+          </button>
+        )}
+
+        {/* Witness Blade */}
+        {onWitnessBlade && (
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              width: "100%",
+              padding: "6px 8px",
+              marginBottom: 4,
+              borderRadius: 4,
+              cursor: "pointer",
+              background: witnessBladesCount > 0 ? "rgba(59, 130, 246, 0.15)" : "transparent",
+              border: `1px solid ${witnessBladesCount > 0 ? '#3b82f6' : THEME.panelBorder}`,
+              color: witnessBladesCount > 0 ? "#3b82f6" : THEME.textDim,
+              fontSize: 11,
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              textAlign: "left",
+            }}
+          >
+            <span>👁️</span> Witness Blade {witnessBladesCount > 0 && `(${witnessBladesCount})`}
+            <input
+              type="file"
+              accept=".md"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file && onWitnessBlade) {
+                  onWitnessBlade(file);
+                }
+                e.target.value = "";
+              }}
+            />
+          </label>
+        )}
+
+        {/* Share Knowledge */}
+        <a
+          href="https://agentprivacy.ai/evoke"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            width: "100%",
+            padding: "6px 8px",
+            marginBottom: 4,
+            borderRadius: 4,
+            background: "transparent",
+            border: `1px solid ${THEME.panelBorder}`,
+            color: THEME.textDim,
+            fontSize: 11,
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            textAlign: "left",
+            textDecoration: "none",
+          }}
+        >
+          <span>🔮</span> Share Knowledge
+        </a>
+      </div>
     </div>
   );
 }

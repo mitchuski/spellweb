@@ -83,6 +83,9 @@ const WAITING_HEIGHT = 180;
 const EVOKE_WIDTH = 800;
 const EVOKE_HEIGHT = 500;
 
+// Mobile breakpoint
+const MOBILE_BREAKPOINT = 768;
+
 // ═══════════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════════
@@ -336,9 +339,26 @@ export function SpellCeremony({
   const animationRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
 
-  // Panel dimensions based on mode
-  const panelWidth = isCasting ? EVOKE_WIDTH : WAITING_WIDTH;
-  const panelHeight = isCasting ? EVOKE_HEIGHT : WAITING_HEIGHT;
+  // Responsive dimensions
+  const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobile = windowSize.width < MOBILE_BREAKPOINT;
+
+  // Panel dimensions - responsive on mobile
+  const panelWidth = isCasting
+    ? Math.min(windowSize.width - 32, EVOKE_WIDTH)
+    : Math.min(windowSize.width - 32, WAITING_WIDTH);
+  const panelHeight = isCasting
+    ? (isMobile ? Math.min(windowSize.height - 250, 400) : EVOKE_HEIGHT)
+    : WAITING_HEIGHT;
 
   // Orb state
   const swordsmanRef = useRef({ x: panelWidth / 2 - 40, y: panelHeight / 2, targetIndex: 0, progress: 0 });
@@ -368,11 +388,12 @@ export function SpellCeremony({
   const lastEmitOrbRef = useRef<'swordsman' | 'mage'>('mage'); // Alternate between orbs
   const spellsCastRef = useRef(0); // Count spell clicks for randomness
 
-  // Map constellation to panel coordinates
+  // Map constellation to panel coordinates (responsive)
   const mappedNodes = useMemo(() => {
     if (!isCasting) return [];
-    return mapConstellationToPanel(circuitNodes, EVOKE_WIDTH, EVOKE_HEIGHT, 60);
-  }, [circuitNodes, isCasting]);
+    const padding = isMobile ? 40 : 60;
+    return mapConstellationToPanel(circuitNodes, panelWidth, panelHeight, padding);
+  }, [circuitNodes, isCasting, panelWidth, panelHeight, isMobile]);
 
   // Track previous casting state and session initialization
   const wasCastingRef = useRef(false);
@@ -414,8 +435,9 @@ export function SpellCeremony({
       spellsCastRef.current = 0; // Reset spell click counter
     } else if (!isCasting && wasCastingRef.current) {
       // Stopping evoke - reset to waiting mode
-      swordsmanRef.current = { x: WAITING_WIDTH / 2 - 40, y: WAITING_HEIGHT / 2, targetIndex: 0, progress: 0 };
-      mageRef.current = { x: WAITING_WIDTH / 2 + 40, y: WAITING_HEIGHT / 2, targetIndex: 0, progress: 0 };
+      const waitW = Math.min(windowSize.width - 32, WAITING_WIDTH);
+      swordsmanRef.current = { x: waitW / 2 - 40, y: WAITING_HEIGHT / 2, targetIndex: 0, progress: 0 };
+      mageRef.current = { x: waitW / 2 + 40, y: WAITING_HEIGHT / 2, targetIndex: 0, progress: 0 };
       sessionInitializedRef.current = false;
       setCurrentSpell(null);
       particlesRef.current = [];
