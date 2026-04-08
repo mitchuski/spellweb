@@ -29,3 +29,9 @@ npm-debug.log*
 # External/vendored directories (not part of core spellweb)
 GitNexus-main/
 agentprivacy-docs-main/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
