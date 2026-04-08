@@ -133,6 +133,12 @@ interface SpellCeremonyProps {
   maxMana?: number;
   // Mobile minimize callback
   onMinimize?: () => void;
+  // Mobile ceremony presets - sun/moon constellation loading
+  onLoadSunConstellation?: () => void;
+  onLoadMoonConstellation?: () => void;
+  // Audio URLs for R2 narrations (played on long-press)
+  sunAudioUrl?: string;
+  moonAudioUrl?: string;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -528,6 +534,10 @@ export function SpellCeremony({
   manaPoints = 0,
   maxMana = 64,
   onMinimize,
+  onLoadSunConstellation,
+  onLoadMoonConstellation,
+  sunAudioUrl = 'https://voice.agentprivacy.ai/The_Emissary_Who_Forgot_the_Master.mp3',
+  moonAudioUrl = 'https://voice.agentprivacy.ai/The_Amnesia_Protocol.mp3',
 }: SpellCeremonyProps) {
   // hoveredNode is available via _hoveredNode if needed
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -572,6 +582,12 @@ export function SpellCeremony({
   // Commitment scheme - locks constellation at evoke start
   const commitmentRef = useRef<string>('');
   const commitmentNonceRef = useRef<string>('');
+
+  // Audio refs for R2 narrations (mobile long-press)
+  const sunAudioRef = useRef<HTMLAudioElement | null>(null);
+  const moonAudioRef = useRef<HTMLAudioElement | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const LONG_PRESS_DURATION = 500; // ms before audio starts
 
   // Mana system - depletes per lap (blade mana), not per click
   const [mana, setMana] = useState(100);
@@ -1352,8 +1368,8 @@ export function SpellCeremony({
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          gap: 8,
-          padding: '8px 14px',
+          gap: isMobile ? 6 : 8,
+          padding: isMobile ? '6px 10px' : '8px 14px',
           background: isCasting ? 'rgba(10, 10, 20, 0.95)' : 'rgba(10, 10, 20, 0.9)',
           borderRadius: 20,
           border: `1px solid ${isCasting ? GOLD + '50' : '#444'}`,
@@ -1361,6 +1377,63 @@ export function SpellCeremony({
           flexWrap: 'wrap',
         }}
       >
+        {/* MOBILE: Sun ceremony button (left of evoke) */}
+        {isMobile && onLoadSunConstellation && (
+          <button
+            onClick={() => {
+              if (longPressTimerRef.current) {
+                clearTimeout(longPressTimerRef.current);
+                longPressTimerRef.current = null;
+              }
+              onLoadSunConstellation();
+            }}
+            onTouchStart={() => {
+              longPressTimerRef.current = setTimeout(() => {
+                // Long press - play audio
+                if (!sunAudioRef.current) {
+                  sunAudioRef.current = new Audio(sunAudioUrl);
+                }
+                // Stop moon audio if playing
+                if (moonAudioRef.current) {
+                  moonAudioRef.current.pause();
+                  moonAudioRef.current.currentTime = 0;
+                }
+                sunAudioRef.current.play();
+                longPressTimerRef.current = null;
+              }, LONG_PRESS_DURATION);
+            }}
+            onTouchEnd={() => {
+              if (longPressTimerRef.current) {
+                clearTimeout(longPressTimerRef.current);
+                longPressTimerRef.current = null;
+              }
+            }}
+            onTouchCancel={() => {
+              if (longPressTimerRef.current) {
+                clearTimeout(longPressTimerRef.current);
+                longPressTimerRef.current = null;
+              }
+            }}
+            title="☀️ Sun Ceremony (hold for audio)"
+            style={{
+              padding: '10px 14px',
+              borderRadius: 18,
+              background: 'linear-gradient(135deg, #ffd70025, #ff8c0015)',
+              border: '1px solid #ffd70060',
+              color: '#ffd700',
+              fontSize: 18,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+              boxShadow: '0 0 10px rgba(255, 215, 0, 0.15)',
+            }}
+          >
+            ☀️
+          </button>
+        )}
+
         {/* Minimize button - on mobile, also hides panel entirely */}
         <button
           onClick={() => {
@@ -1381,7 +1454,7 @@ export function SpellCeremony({
             fontWeight: 600,
             cursor: 'pointer',
             fontFamily: '"JetBrains Mono", monospace',
-            display: 'flex',
+            display: isMobile ? 'none' : 'flex', // Hide on mobile
             alignItems: 'center',
             gap: 4,
             transition: 'all 0.2s',
@@ -1390,8 +1463,8 @@ export function SpellCeremony({
           <span style={{ fontSize: 10 }}>▼</span>
         </button>
 
-        {/* Sword [s] - Open blades modal */}
-        {onOpenBladesModal && (
+        {/* Sword [s] - Open blades modal - DESKTOP ONLY */}
+        {!isMobile && onOpenBladesModal && (
           <button
             onClick={onOpenBladesModal}
             title="Open Blades inventory [s to cycle]"
@@ -1415,8 +1488,8 @@ export function SpellCeremony({
           </button>
         )}
 
-        {/* Shine/Shadow toggle - simple lights on/off */}
-        {onShine && (
+        {/* Shine/Shadow toggle - simple lights on/off - DESKTOP ONLY */}
+        {!isMobile && onShine && (
           <button
             onClick={onShine}
             disabled={isCasting}
@@ -1453,8 +1526,8 @@ export function SpellCeremony({
           </button>
         )}
 
-        {/* Orbs Control - Bring home or send wandering */}
-        {onToggleOrbsHome && !isCasting && (
+        {/* Orbs Control - Bring home or send wandering - DESKTOP ONLY */}
+        {!isMobile && onToggleOrbsHome && !isCasting && (
           <button
             onClick={onToggleOrbsHome}
             style={{
@@ -1512,8 +1585,8 @@ export function SpellCeremony({
           </button>
         )}
 
-        {/* Save Path button - saves current path to library */}
-        {onSavePath && canSave && (
+        {/* Save Path button - saves current path to library - DESKTOP ONLY */}
+        {!isMobile && onSavePath && canSave && (
           <button
             onClick={onSavePath}
             title="Save this path to your Paths library"
@@ -1537,8 +1610,8 @@ export function SpellCeremony({
           </button>
         )}
 
-        {/* Connect button - start connection mode */}
-        {onConnect && (
+        {/* Connect button - start connection mode - DESKTOP ONLY */}
+        {!isMobile && onConnect && (
           <button
             onClick={onConnect}
             disabled={!canConnect}
@@ -1563,8 +1636,8 @@ export function SpellCeremony({
           </button>
         )}
 
-        {/* Waypoint / Close Portal */}
-        {canClosePortal && onClosePortal ? (
+        {/* Waypoint / Close Portal - DESKTOP ONLY */}
+        {!isMobile && (canClosePortal && onClosePortal ? (
           <button
             onClick={onClosePortal}
             style={{
@@ -1608,10 +1681,10 @@ export function SpellCeremony({
           >
             <span style={{ fontSize: 14 }}>🧭</span> {waypointActive ? 'Tracing...' : canStartWaypoint ? 'Waypoint' : 'Select node'}
           </button>
-        )}
+        ))}
 
-        {/* Mage [m] - Open mage spells menu */}
-        {onOpenMageMenu && (
+        {/* Mage [m] - Open mage spells menu - DESKTOP ONLY */}
+        {!isMobile && onOpenMageMenu && (
           <button
             onClick={onOpenMageMenu}
             title="Open Mage spells [m to cycle]"
@@ -1688,6 +1761,63 @@ export function SpellCeremony({
             }}
           >
             <span style={{ fontSize: 14 }}>🔥</span> {isCasting ? 'STOP EVOKE' : 'EVOKE'}
+          </button>
+        )}
+
+        {/* MOBILE: Moon ceremony button (right of evoke) */}
+        {isMobile && onLoadMoonConstellation && (
+          <button
+            onClick={() => {
+              if (longPressTimerRef.current) {
+                clearTimeout(longPressTimerRef.current);
+                longPressTimerRef.current = null;
+              }
+              onLoadMoonConstellation();
+            }}
+            onTouchStart={() => {
+              longPressTimerRef.current = setTimeout(() => {
+                // Long press - play audio
+                if (!moonAudioRef.current) {
+                  moonAudioRef.current = new Audio(moonAudioUrl);
+                }
+                // Stop sun audio if playing
+                if (sunAudioRef.current) {
+                  sunAudioRef.current.pause();
+                  sunAudioRef.current.currentTime = 0;
+                }
+                moonAudioRef.current.play();
+                longPressTimerRef.current = null;
+              }, LONG_PRESS_DURATION);
+            }}
+            onTouchEnd={() => {
+              if (longPressTimerRef.current) {
+                clearTimeout(longPressTimerRef.current);
+                longPressTimerRef.current = null;
+              }
+            }}
+            onTouchCancel={() => {
+              if (longPressTimerRef.current) {
+                clearTimeout(longPressTimerRef.current);
+                longPressTimerRef.current = null;
+              }
+            }}
+            title="🌙 Moon Ceremony (hold for audio)"
+            style={{
+              padding: '10px 14px',
+              borderRadius: 18,
+              background: 'linear-gradient(135deg, #7b68ee25, #9b59b615)',
+              border: '1px solid #7b68ee60',
+              color: '#7b68ee',
+              fontSize: 18,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+              boxShadow: '0 0 10px rgba(123, 104, 238, 0.15)',
+            }}
+          >
+            🌙
           </button>
         )}
       </div>

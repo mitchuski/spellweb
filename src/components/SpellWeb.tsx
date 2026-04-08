@@ -4175,6 +4175,54 @@ export default function SpellWeb() {
           }}
           onOpenMageMenu={() => setShowMageMenu(true)}
           onOpenBladesModal={() => setShowBladesModal(true)}
+          onLoadSunConstellation={() => {
+            const preset = CONSTELLATION_PRESETS[0];
+            const marks = preset.marks.map(m => {
+              const node = NODES.find(n => n.id === m.nodeId);
+              return {
+                nodeId: m.nodeId,
+                nodeLabel: node?.label || m.nodeId,
+                emoji: m.emoji || '✦',
+                note: m.note || '',
+                emojiSpell: m.emojiSpell,
+              };
+            });
+            setConstellation(marks);
+            setConstellationConnections(preset.connections.map(c => ({
+              sourceId: c.sourceId,
+              targetId: c.targetId,
+              note: c.note || '',
+            })));
+            setInscribedSpell(preset.inscribedSpell);
+            setConstellationReflection(preset.reflection || '');
+            setConstellationName(preset.name);
+            setCastingSpells(true);
+            setIsShineMode(true);
+          }}
+          onLoadMoonConstellation={() => {
+            const preset = CONSTELLATION_PRESETS[1];
+            const marks = preset.marks.map(m => {
+              const node = NODES.find(n => n.id === m.nodeId);
+              return {
+                nodeId: m.nodeId,
+                nodeLabel: node?.label || m.nodeId,
+                emoji: m.emoji || '✦',
+                note: m.note || '',
+                emojiSpell: m.emojiSpell,
+              };
+            });
+            setConstellation(marks);
+            setConstellationConnections(preset.connections.map(c => ({
+              sourceId: c.sourceId,
+              targetId: c.targetId,
+              note: c.note || '',
+            })));
+            setInscribedSpell(preset.inscribedSpell);
+            setConstellationReflection(preset.reflection || '');
+            setConstellationName(preset.name);
+            setCastingSpells(true);
+            setIsShineMode(true);
+          }}
         />
         )}
 
@@ -5541,10 +5589,12 @@ export default function SpellWeb() {
               onClick={e => e.stopPropagation()}
               style={{
                 background: "linear-gradient(135deg, #0a0a15, #1a1a2e)",
-                borderRadius: 20,
-                padding: 32,
+                borderRadius: window.innerWidth < 768 ? 16 : 20,
+                padding: window.innerWidth < 768 ? 16 : 32,
                 maxWidth: 550,
                 width: "95%",
+                maxHeight: window.innerWidth < 768 ? 'calc(100vh - 40px)' : 'calc(100vh - 80px)',
+                overflowY: 'auto',
                 border: `2px solid ${isAnimating ? '#ff6600' : colors.primary}`,
                 boxShadow: isAnimating
                   ? `0 0 100px rgba(255, 102, 0, 0.6), inset 0 0 60px rgba(255, 102, 0, 0.1)`
@@ -5553,9 +5603,9 @@ export default function SpellWeb() {
               }}
             >
               {/* Header with Blade Tier */}
-              <div style={{ textAlign: "center", marginBottom: 24 }}>
+              <div style={{ textAlign: "center", marginBottom: window.innerWidth < 768 ? 16 : 24 }}>
                 <div style={{
-                  fontSize: 72,
+                  fontSize: window.innerWidth < 768 ? 48 : 72,
                   marginBottom: 8,
                   filter: showSignature
                     ? `drop-shadow(0 0 15px ${colors.primary}80) drop-shadow(0 0 30px #4a9eff60)`
@@ -5573,7 +5623,7 @@ export default function SpellWeb() {
                 <h2 style={{
                   color: isAnimating ? '#ff6600' : colors.primary,
                   fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: 32,
+                  fontSize: window.innerWidth < 768 ? 22 : 32,
                   marginBottom: 4,
                   textTransform: 'uppercase',
                   letterSpacing: 6,
@@ -5600,8 +5650,8 @@ export default function SpellWeb() {
               <div style={{
                 background: "rgba(0, 0, 0, 0.4)",
                 borderRadius: 12,
-                padding: 16,
-                marginBottom: 20,
+                padding: window.innerWidth < 768 ? 10 : 16,
+                marginBottom: window.innerWidth < 768 ? 12 : 20,
                 border: `1px solid ${showDimensions ? colors.primary + '40' : '#222'}`,
                 opacity: showDimensions ? 1 : 0.3,
                 transition: "all 0.5s ease",
