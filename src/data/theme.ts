@@ -26,6 +26,7 @@ export const THEME: Theme = {
     persona: { fill: "#2a1a4a", stroke: "#a78bfa", icon: "○" },
     term: { fill: "#1a1a2a", stroke: "#555570", icon: "·" },
     skill: { fill: "#3a2a00", stroke: "#f39c12", icon: "⚙" },
+    chronicle: { fill: "#1a2a3a", stroke: "#00bcd4", icon: "📜" },
   },
   edges: {
     defines: { color: "#00d9ff", width: 1.5, dash: null },
@@ -38,6 +39,18 @@ export const THEME: Theme = {
     compresses_to: { color: "#ffd700", width: 2, dash: "6,3" },
     contradicts: { color: "#ff4444", width: 1.5, dash: "2,2" },
     persona_knows: { color: "#a78bfa", width: 1, dash: "3,3" },
+    parent_of: { color: "#ffd700", width: 2, dash: null },
+    embodies: { color: "#9b59b6", width: 1.5, dash: "4,2" },
+    requires: { color: "#e74c3c", width: 1.2, dash: null },
+    introduces: { color: "#2ecc71", width: 1.5, dash: null },
+    teaches: { color: "#f39c12", width: 1.2, dash: "3,3" },
+        relates_to: { color: "#666680", width: 1, dash: "2,3" },
+    // Celestial hierarchy edges (Act XXXI cosmology)
+    generates: { color: "#ffd700", width: 2.5, dash: null },
+    delegates_via: { color: "#4169e1", width: 2, dash: "4,2" },
+    manifests_as: { color: "#32cd32", width: 1.5, dash: null },
+    reflects_through: { color: "#c0c0c0", width: 2, dash: "3,3" },
+    remembers: { color: "#9370db", width: 1.5, dash: "2,4" },
   },
 };
 

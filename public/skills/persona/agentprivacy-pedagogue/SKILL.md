@@ -145,7 +145,7 @@ The Pedagogue scales V(π,t) through understanding:
   alignment: 'balanced',
   skills_role: ['narrative_compression', 'personhood_sybil', 'swordsman_browser',
     'armor_progression', 'recovery_rpp', 'data_dignity', 'agent_interop',
-    'consent_infrastructure']
+    'consent_infrastructure', 'braid_reasoning']
 }
 
 // spellbook-templates.ts
@@ -164,7 +164,7 @@ The Pedagogue scales V(π,t) through understanding:
 
 **Privacy layer (9):** dragon, edge_value, knowledgegraph, network_topology, promise_theory, temporal_dynamics, tetrahedral_sovereignty, uor_toroidal, vrc_identity
 
-**Role skills (8):** narrative_compression, personhood_sybil, swordsman_browser, armor_progression, recovery_rpp, data_dignity, agent_interop, consent_infrastructure
+**Role skills (9):** narrative_compression, personhood_sybil, swordsman_browser, armor_progression, recovery_rpp, data_dignity, agent_interop, consent_infrastructure, braid_reasoning
 
 **Meta (1):** drake_dragon_duality
 
@@ -180,7 +180,7 @@ The Pedagogue scales V(π,t) through understanding:
 
 **Privacy layer (9):** dragon, edge_value, knowledgegraph, network_topology, promise_theory, temporal_dynamics, tetrahedral_sovereignty, uor_toroidal, vrc_identity
 
-**Role skills (8):** narrative_compression, personhood_sybil, swordsman_browser, armor_progression, recovery_rpp, data_dignity, agent_interop, consent_infrastructure
+**Role skills (9):** narrative_compression, personhood_sybil, swordsman_browser, armor_progression, recovery_rpp, data_dignity, agent_interop, consent_infrastructure, braid_reasoning
 
 **Meta (1):** drake_dragon_duality
 

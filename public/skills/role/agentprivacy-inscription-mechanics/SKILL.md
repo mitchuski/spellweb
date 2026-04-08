@@ -14,7 +14,7 @@ metadata:
   version: "5.0"
   category: "role"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   equation_term: "A(τ) — inscriptions are how verified history accumulates; h(τ) — integrity through commitment"

@@ -10,7 +10,7 @@ metadata:
   version: "4.0"
   category: "role"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   target_context: "Credential system designers, reputation economists, SBT researchers, onchain identity architects, BGIN IKP contributors"

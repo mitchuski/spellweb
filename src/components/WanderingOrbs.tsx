@@ -18,6 +18,9 @@ interface WanderingOrbsProps {
   isTracing?: boolean; // Whether to trace the constellation path
   traceColor?: string; // Color for the cut lines
   onNodeReached?: (nodeId: string) => void; // Called when reaching a node
+  // Orbiting emojis for each orb
+  swordsmanOrbitEmojis?: string[]; // Emojis from equipped blade (up to 6)
+  mageOrbitEmojis?: string[]; // Emojis from mage's learned spells (up to 6)
 }
 
 const SWORDSMAN_COLOR = '#e74c3c';
@@ -42,6 +45,8 @@ export function WanderingOrbs({
   isTracing = false,
   traceColor = '#ffd700',
   onNodeReached,
+  swordsmanOrbitEmojis = [],
+  mageOrbitEmojis = [],
 }: WanderingOrbsProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
@@ -67,6 +72,9 @@ export function WanderingOrbs({
   const cutSegmentsRef = useRef<CutSegment[]>([]);
   const lastReachedNodeRef = useRef<string | null>(null);
   const wasTracingRef = useRef(false); // Track if we were tracing in previous frame
+
+  // Emoji orbiter angle (separate from main orbit)
+  const emojiOrbitAngleRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -128,6 +136,12 @@ export function WanderingOrbs({
           nextIndex = (currentIndex + 1) % waypointNodes.length;
           currentNode = waypointNodes[currentIndex];
           nextNode = waypointNodes[nextIndex];
+        }
+
+        // Guard against undefined nodes (can happen during resize/mobile)
+        if (!currentNode?.x || !nextNode?.x) {
+          animationRef.current = requestAnimationFrame(animate);
+          return;
         }
 
         // Progress along current segment
@@ -283,13 +297,40 @@ export function WanderingOrbs({
       drawOrb(ctx, swordsmanX, swordsmanY, '⚔️', SWORDSMAN_COLOR, '#ff6b6b', 14);
       drawOrb(ctx, mageX, mageY, '✦', MAGE_COLOR, '#a78bfa', 14);
 
+      // Update emoji orbit angle (slightly faster than main orbit)
+      emojiOrbitAngleRef.current += 0.0012 * 16;
+
+      // Draw swordsman's orbiting emojis (from equipped blade)
+      if (swordsmanOrbitEmojis.length > 0) {
+        const EMOJI_ORBIT_RADIUS = 28;
+        const emojiCount = swordsmanOrbitEmojis.length;
+        swordsmanOrbitEmojis.forEach((emoji, i) => {
+          const angle = emojiOrbitAngleRef.current + (i * (2 * Math.PI) / emojiCount);
+          const ex = swordsmanX + Math.cos(angle) * EMOJI_ORBIT_RADIUS;
+          const ey = swordsmanY + Math.sin(angle) * EMOJI_ORBIT_RADIUS * 0.7;
+          drawOrbiterEmoji(ctx, ex, ey, emoji, SWORDSMAN_COLOR);
+        });
+      }
+
+      // Draw mage's orbiting emojis (from learned spells)
+      if (mageOrbitEmojis.length > 0) {
+        const EMOJI_ORBIT_RADIUS = 28;
+        const emojiCount = mageOrbitEmojis.length;
+        mageOrbitEmojis.forEach((emoji, i) => {
+          const angle = -emojiOrbitAngleRef.current + (i * (2 * Math.PI) / emojiCount); // Opposite direction
+          const ex = mageX + Math.cos(angle) * EMOJI_ORBIT_RADIUS;
+          const ey = mageY + Math.sin(angle) * EMOJI_ORBIT_RADIUS * 0.7;
+          drawOrbiterEmoji(ctx, ex, ey, emoji, MAGE_COLOR);
+        });
+      }
+
       animationRef.current = requestAnimationFrame(animate);
     };
 
     animationRef.current = requestAnimationFrame(animate);
 
     return () => cancelAnimationFrame(animationRef.current);
-  }, [width, height, isEvoking, waypointNodes, ceremonyPosition, isTracing, traceColor, onNodeReached]);
+  }, [width, height, isEvoking, waypointNodes, ceremonyPosition, isTracing, traceColor, onNodeReached, swordsmanOrbitEmojis, mageOrbitEmojis]);
 
   // Don't render when orbs have returned to ceremony
   if (isEvoking && returningRef.current) {
@@ -314,6 +355,38 @@ export function WanderingOrbs({
       }}
     />
   );
+}
+
+function drawOrbiterEmoji(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number,
+  emoji: string,
+  orbColor: string
+) {
+  // Subtle glow
+  const gradient = ctx.createRadialGradient(x, y, 0, x, y, 12);
+  gradient.addColorStop(0, orbColor + '40');
+  gradient.addColorStop(1, orbColor + '00');
+  ctx.beginPath();
+  ctx.arc(x, y, 12, 0, Math.PI * 2);
+  ctx.fillStyle = gradient;
+  ctx.fill();
+
+  // Small background circle
+  ctx.beginPath();
+  ctx.arc(x, y, 8, 0, Math.PI * 2);
+  ctx.fillStyle = '#0a0a1580';
+  ctx.fill();
+  ctx.strokeStyle = orbColor + '60';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Emoji
+  ctx.fillStyle = '#fff';
+  ctx.font = '10px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(emoji, x, y);
 }
 
 function drawOrb(

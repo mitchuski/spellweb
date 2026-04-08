@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import * as d3 from "d3";
-import type { SpellwebNode, SpellwebEdge, FilterState, TypeFilterState, SpellbookFilterState } from '../types/graph';
+import type { SpellwebNode, SpellwebEdge, FilterState, TypeFilterState, SpellbookFilterState, SpellwebBladePayloadV1 } from '../types/graph';
+import { SPELLWEB_STORAGE_KEYS, encodeBladePayloadForUrl, DIMENSION_MAPPING, stratumToMoonPhase, getMoonPhaseInfo } from '../types/graph';
 import { NODES } from '../data/nodes';
 import { EDGES } from '../data/edges';
+import { CONSTELLATION_PRESETS } from '../data/presets';
 import { THEME, getNodeVisual, getNodeRadius, getEdgeStyle } from '../data/theme';
 import { Header } from './Header';
 import { GraphFilters } from './GraphFilters';
@@ -11,7 +13,18 @@ import { HoverTooltip } from './HoverTooltip';
 import { NodeInspector } from './NodeInspector';
 import { SpellCeremony, type SpellProof } from './SpellCeremony';
 import { WanderingOrbs } from './WanderingOrbs';
+import { SwordsmanImport } from './SwordsmanImport';
 
+import {
+  hasMageIdentity,
+  initializeMageIdentity,
+  signBlade,
+  getMageIdentity,
+  getSwordsmanLink,
+  saveSwordsmanLink,
+  exportMageKeyBackup,
+  type SwordsmanLink,
+} from '../lib/mageIdentity';
 // D3 simulation node type
 interface SimulationNode extends SpellwebNode {
   x: number;
@@ -35,6 +48,15 @@ interface ConnectionState {
   sourceNode: SpellwebNode | null;
 }
 
+// Helper to extract the first emoji from a string (handles multi-emoji strings)
+function getFirstEmoji(str: string | undefined): string {
+  if (!str) return '✦';
+  // Match emoji using Unicode ranges (emojis, symbols, etc.)
+  const emojiRegex = /[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu;
+  const matches = str.match(emojiRegex);
+  return matches && matches[0] ? matches[0] : str.charAt(0) || '✦';
+}
+
 export default function SpellWeb() {
   const svgRef = useRef<SVGSVGElement>(null);
   const simRef = useRef<d3.Simulation<SimulationNode, SimulationEdge> | null>(null);
@@ -55,6 +77,8 @@ export default function SpellWeb() {
   const [selectedEdgeType, setSelectedEdgeType] = useState<string>("narrates");
   const [castingSpells, setCastingSpells] = useState(false);
   const [incantationActive, setIncantationActive] = useState(false);
+  // Casting mode during evoke: 'constellation' (free, path spells) or 'mage' (costs mana, inventory spells)
+  const [castingMode, setCastingMode] = useState<'constellation' | 'mage'>('constellation');
 
   // Constellation - marked nodes with custom emoji/note
   interface ConstellationMark {
@@ -62,6 +86,7 @@ export default function SpellWeb() {
     nodeLabel: string;
     emoji: string;
     note: string;
+    emojiSpell?: string; // Optional spell sequence for ceremony paths
   }
   interface ConstellationConnection {
     sourceId: string;
@@ -102,13 +127,13 @@ export default function SpellWeb() {
   // User-created edges from "Connect from Here" - these persist as real graph edges
   const [userEdges, setUserEdges] = useState<SpellwebEdge[]>(() => {
     try {
-      const saved = localStorage.getItem('spellweb-user-edges');
+      const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.userEdges);
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
   const [savedConstellations, setSavedConstellations] = useState<SavedConstellation[]>(() => {
     try {
-      const saved = localStorage.getItem('spellweb-constellations');
+      const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.constellations);
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
@@ -116,7 +141,6 @@ export default function SpellWeb() {
   const [showMarkModal, setShowMarkModal] = useState(false);
   const [markEmoji, setMarkEmoji] = useState("");
   const [markNote, setMarkNote] = useState("");
-  const [showMyConstellations, setShowMyConstellations] = useState(false);
 
   // Waypoint mode - path building through the graph
   interface WaypointState {
@@ -134,39 +158,121 @@ export default function SpellWeb() {
   const [inscribedSpell, setInscribedSpell] = useState("");
   const [constellationReflection, setConstellationReflection] = useState("");
 
-  // Legacy navigator state (kept for compatibility)
-  interface NavigatorState {
-    active: boolean;
-    currentNode: SpellwebNode | null;
-    path: string[]; // node IDs in order
-    pendingMark: boolean; // waiting for user to mark current node
-  }
-  const [navigator, _setNavigator] = useState<NavigatorState>({
-    active: false,
-    currentNode: null,
-    path: [],
-    pendingMark: false,
-  });
-  const [showNavigatorModal, _setShowNavigatorModal] = useState(false);
   const [showClearMapModal, setShowClearMapModal] = useState(false);
   const [showForgeModal, setShowForgeModal] = useState(false);
+  const [showBladesModal, setShowBladesModal] = useState(false); // Unified Blades modal (ZK + Witness)
+  const [showRunecraftModal, setShowRunecraftModal] = useState(false); // Runecraft modal for Swordsman linking
+  const [runecraftBlade, setRunecraftBlade] = useState<ForgedBlade | null>(null); // Blade being runecrafted
+  const [swordsmanLink, setSwordsmanLink] = useState<SwordsmanLink | null>(() => getSwordsmanLink());
+  const [showSwordsmanImport, setShowSwordsmanImport] = useState(false); // Swordsman identity import modal
+  const [showMageMenu, setShowMageMenu] = useState(false); // Mage spell menu (M key)
+  const [showCeremonyMenu, setShowCeremonyMenu] = useState(false); // Ceremony menu (Y key) - ☯️ Sun/Moon poems
   const [latestProof, setLatestProof] = useState<SpellProof | null>(null);
   const [forgePhase, setForgePhase] = useState<'ignite' | 'forge' | 'temper' | 'complete' | 'naming' | 'manifesting'>('ignite');
   const [bladeName, setBladeName] = useState('');
   const [bladeEmoji, setBladeEmoji] = useState('');
   const [forgedBlades, setForgedBlades] = useState<ForgedBlade[]>(() => {
     try {
-      const saved = localStorage.getItem('spellweb-forged-blades');
+      const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.forgedBlades);
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
   const [activeBlade, setActiveBlade] = useState<ForgedBlade | null>(null); // Currently highlighted blade
-  const [bladeTraceActive, setBladeTraceActive] = useState(false); // Whether orbs are tracing a blade's constellation
+  const [bladeTraceActive, setBladeTraceActive] = useState(false);
+  const [isShineMode, setIsShineMode] = useState(true); // Shine (100%) vs Shadow (15%) toggle // Whether orbs are tracing a blade's constellation
   const [orbsAtHome, setOrbsAtHome] = useState(false); // Whether orbs are at ceremony panel vs wandering
 
-  // Delete mode for blade inventories
-  const [deleteMode, setDeleteMode] = useState<'forged' | 'witness' | null>(null);
-  const [bladesToDelete, setBladesToDelete] = useState<Set<string>>(new Set());
+  // EQUIPPED BLADE - The blade the swordsman wields (gives his orb its emojis)
+  const [equippedBlade, setEquippedBlade] = useState<ForgedBlade | null>(() => {
+    try {
+      const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.equippedBlade);
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+
+  // MAGE'S CHOSEN SPELLS - 8 spells she has learned (gives her orb its emojis)
+  interface MageSpell {
+    nodeId: string;
+    label: string;
+    emoji?: string;
+    emojiSpell?: string;
+    proverb?: string;
+    hexagramLine: number; // 0-5, which I Ching line this maps to
+    learnedAt: number;
+  }
+  const [mageSpells, setMageSpells] = useState<MageSpell[]>(() => {
+    try {
+      const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.mageSpells);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+
+  // Spell learning emoji picker modal state
+  const [showSpellEmojiPicker, setShowSpellEmojiPicker] = useState(false);
+  const [pendingSpellNode, setPendingSpellNode] = useState<SpellwebNode | null>(null);
+  const [pendingSpellLine, setPendingSpellLine] = useState<number>(0);
+  const [pendingSpellEmoji, setPendingSpellEmoji] = useState<string>('');
+  const [pendingSpellProverb, setPendingSpellProverb] = useState<string>('');
+
+  // Selected spell for mage (visual indicator, like equipped blade for swordsman)
+  const [selectedSpellIndex, setSelectedSpellIndex] = useState<number | null>(null);
+
+  // Mana points - accumulated through ceremony laps, spent when casting during evocation
+  // Golden ratio φ determines max mana based on EQUIPPED BLADE: φ × blade_nodes × 10
+  // Mana COST per spell cast depends on blade tier: dragon=1, heavy=3, light/none=6
+  const PHI = 1.6180339887; // Golden ratio
+  const [manaPoints, setManaPoints] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('spellweb_mana_points');
+      return saved ? parseInt(saved, 10) : 8; // Start with 8 mana (one byte)
+    } catch { return 8; }
+  });
+  // Max mana scales with equipped blade's constellation using golden ratio: φ × blade_nodes × 10
+  // Full 6-node blade = φ × 6 × 10 ≈ 97 mana
+  const bladeNodeCount = equippedBlade?.constellationMarks?.length || 1;
+  const MAX_MANA = Math.max(16, Math.floor(PHI * bladeNodeCount * 10));
+
+  // Mana cost per spell cast based on blade tier
+  // Dragon blade (powerful): 1 mana per cast
+  // Heavy blade (moderate): 3 mana per cast
+  // Light blade / no blade (default): 6 mana per cast
+  const getManaCostPerCast = () => {
+    if (!equippedBlade) return 6; // No blade = expensive casts
+    switch (equippedBlade.tier) {
+      case 'dragon': return 1;
+      case 'heavy': return 3;
+      case 'light':
+      default: return 6;
+    }
+  };
+  const MANA_COST = getManaCostPerCast();
+
+  // Refs for d3 handlers to access current state (avoids stale closure)
+  const manaPointsRef = useRef(manaPoints);
+  const incantationActiveRef = useRef(false);
+  const selectedSpellIndexRef = useRef(selectedSpellIndex);
+  const manaCostRef = useRef(MANA_COST);
+  useEffect(() => { manaPointsRef.current = manaPoints; }, [manaPoints]);
+  useEffect(() => { incantationActiveRef.current = incantationActive; }, [incantationActive]);
+  useEffect(() => { selectedSpellIndexRef.current = selectedSpellIndex; }, [selectedSpellIndex]);
+  useEffect(() => { manaCostRef.current = MANA_COST; }, [MANA_COST]);
+
+  // Floating emojis for trajectory effect when clicking with selected spell
+  interface FloatingEmoji {
+    id: number;
+    emoji: string;
+    x: number;
+    y: number;
+    targetX: number;
+    targetY: number;
+  }
+  const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
+  const floatingEmojiIdRef = useRef(0);
+  const mageSpellQueueIndexRef = useRef(0); // Cycles through mageSpells on background click
+
+  // Hemispheric Control Scheme State
+  // Right Side (Swordsman/Master): [S] key opens blades, right-click marks waypoint
+  // Left Side (Mage/Emissary): [M] key opens spells, left-click casts selected spell
 
   // Witness mode state (Promise Theory bilateral exchange)
   const [witnessMode, setWitnessMode] = useState<{
@@ -178,6 +284,7 @@ export default function SpellWeb() {
   const [filters, setFilters] = useState<FilterState>({
     knowledge: true,
     narrative: true,
+    chronicle: true,
   });
 
   const [typeFilters, setTypeFilters] = useState<TypeFilterState>({
@@ -189,6 +296,7 @@ export default function SpellWeb() {
     persona: true,
     term: true,
     skill: true,
+    chronicle: true,
   });
 
   const [spellbookFilters, setSpellbookFilters] = useState<SpellbookFilterState>({
@@ -204,17 +312,77 @@ export default function SpellWeb() {
 
   // Persist userEdges to localStorage
   useEffect(() => {
-    localStorage.setItem('spellweb-user-edges', JSON.stringify(userEdges));
+    localStorage.setItem(SPELLWEB_STORAGE_KEYS.userEdges, JSON.stringify(userEdges));
   }, [userEdges]);
 
   // Persist forgedBlades to localStorage
   useEffect(() => {
-    localStorage.setItem('spellweb-forged-blades', JSON.stringify(forgedBlades));
+    localStorage.setItem(SPELLWEB_STORAGE_KEYS.forgedBlades, JSON.stringify(forgedBlades));
   }, [forgedBlades]);
+
+  // Persist equippedBlade to localStorage
+  useEffect(() => {
+    if (equippedBlade) {
+      localStorage.setItem(SPELLWEB_STORAGE_KEYS.equippedBlade, JSON.stringify(equippedBlade));
+    } else {
+      localStorage.removeItem(SPELLWEB_STORAGE_KEYS.equippedBlade);
+    }
+  }, [equippedBlade]);
+
+  // Persist mageSpells to localStorage
+  useEffect(() => {
+    localStorage.setItem(SPELLWEB_STORAGE_KEYS.mageSpells, JSON.stringify(mageSpells));
+  }, [mageSpells]);
+
+  // Keyboard shortcuts for hemispheric control scheme
+  // S = Cycle through swordsman blades (right brain, deliberate)
+  // M = Cycle through mage spells (left brain, reactive)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        // Cycle through forged blades (swordsman inventory rotation)
+        // Forged blades have tier info (light/heavy/dragon) which affects mana cost
+        if (forgedBlades.length > 0) {
+          const currentBladeIndex = equippedBlade
+            ? forgedBlades.findIndex(b => b.id === equippedBlade.id)
+            : -1;
+          const nextIndex = (currentBladeIndex + 1) % forgedBlades.length;
+          const nextBlade = forgedBlades[nextIndex];
+          // Set the full blade with tier info for mana calculations
+          setEquippedBlade(nextBlade);
+        }
+      } else if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        // Cycle through mage spells (mage inventory rotation)
+        if (mageSpells.length > 0) {
+          setSelectedSpellIndex(prev => {
+            if (prev === null) return 0;
+            return (prev + 1) % mageSpells.length;
+          });
+        }
+      } else if (e.key === 'y' || e.key === 'Y') {
+        e.preventDefault();
+        // Toggle ceremony menu (yin-yang / sun-moon poems)
+        setShowCeremonyMenu(prev => !prev);
+      } else if (e.key === 'Escape') {
+        setShowMageMenu(false);
+        setShowBladesModal(false);
+        setShowCeremonyMenu(false);
+        setSelectedSpellIndex(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mageSpells.length, forgedBlades, equippedBlade]);
 
   // Persist savedConstellations to localStorage
   useEffect(() => {
-    localStorage.setItem('spellweb-constellations', JSON.stringify(savedConstellations));
+    localStorage.setItem(SPELLWEB_STORAGE_KEYS.constellations, JSON.stringify(savedConstellations));
   }, [savedConstellations]);
 
   const filteredNodes = useMemo(
@@ -261,42 +429,6 @@ export default function SpellWeb() {
     );
   }, [searchQuery]);
 
-  // Get connected nodes from current navigator position (grouped by edge type)
-  const navigatorConnections = useMemo(() => {
-    if (!navigator.active || !navigator.currentNode) return new Map<string, Array<{ node: SpellwebNode; edge: SpellwebEdge; direction: 'outgoing' | 'incoming' }>>();
-
-    const connections = new Map<string, Array<{ node: SpellwebNode; edge: SpellwebEdge; direction: 'outgoing' | 'incoming' }>>();
-    const currentId = navigator.currentNode.id;
-
-    EDGES.forEach(edge => {
-      const sourceId = typeof edge.source === 'string' ? edge.source : edge.source.id;
-      const targetId = typeof edge.target === 'string' ? edge.target : edge.target.id;
-
-      let connectedNodeId: string | null = null;
-      let direction: 'outgoing' | 'incoming' = 'outgoing';
-
-      if (sourceId === currentId) {
-        connectedNodeId = targetId;
-        direction = 'outgoing';
-      } else if (targetId === currentId) {
-        connectedNodeId = sourceId;
-        direction = 'incoming';
-      }
-
-      if (connectedNodeId && !navigator.path.includes(connectedNodeId)) {
-        const connectedNode = NODES.find(n => n.id === connectedNodeId);
-        if (connectedNode) {
-          const edgeType = edge.type || 'references';
-          if (!connections.has(edgeType)) {
-            connections.set(edgeType, []);
-          }
-          connections.get(edgeType)!.push({ node: connectedNode, edge, direction });
-        }
-      }
-    });
-
-    return connections;
-  }, [navigator.active, navigator.currentNode, navigator.path]);
 
   // Measure container
   useEffect(() => {
@@ -633,6 +765,37 @@ export default function SpellWeb() {
     // Attach click handlers
     nodeMerge.on("click", (event, d) => {
       event.stopPropagation();
+
+      // Emit floating emoji if mage spell is selected (use ref to avoid stale closure)
+      if (selectedSpellIndexRef.current !== null) {
+        const spell = mageSpells.find(s => s.hexagramLine === selectedSpellIndexRef.current) || mageSpells[selectedSpellIndexRef.current];
+        if (spell?.emoji && d.x !== undefined && d.y !== undefined) {
+          // Deduct mana when casting during evocation (use refs for current state)
+          // Cost depends on blade tier: dragon=1, heavy=3, light/none=6
+          if (incantationActiveRef.current && manaPointsRef.current >= manaCostRef.current) {
+            setManaPoints(prev => {
+              const newMana = Math.max(0, prev - manaCostRef.current);
+              localStorage.setItem('spellweb_mana_points', String(newMana));
+              return newMana;
+            });
+          }
+
+          const newEmoji: FloatingEmoji = {
+            id: floatingEmojiIdRef.current++,
+            emoji: spell.emoji,
+            x: d.x,
+            y: d.y,
+            targetX: d.x + (Math.random() - 0.5) * 100,
+            targetY: d.y - 80 - Math.random() * 40,
+          };
+          setFloatingEmojis(prev => [...prev, newEmoji]);
+          // Remove after animation
+          setTimeout(() => {
+            setFloatingEmojis(prev => prev.filter(e => e.id !== newEmoji.id));
+          }, 1500);
+        }
+      }
+
       if (connectionMode.active && connectionMode.sourceNode) {
         if (d.id !== connectionMode.sourceNode.id) {
           setConnectTarget(d);
@@ -652,6 +815,23 @@ export default function SpellWeb() {
     nodeMerge.on("mouseenter", (_, d) => setHoveredNode(d));
     nodeMerge.on("mouseleave", () => setHoveredNode(null));
 
+    // RIGHT CLICK = SWORDSMAN (Master) - Mark waypoint for constellation
+    nodeMerge.on("contextmenu", (event, d) => {
+      event.preventDefault();
+      event.stopPropagation();
+      // Right-click to mark waypoint
+      if (!constellation.some(m => m.nodeId === d.id)) {
+        setMarkEmoji(d.emoji || '⚔️');
+        setShowMarkModal(true);
+        setSelectedNode(d);
+      }
+    });
+
+    // Background right-click - no action
+    svg.on("contextmenu", (event) => {
+      event.preventDefault();
+    });
+
     // Update simulation tick
     if (simRef.current) {
       simRef.current.on("tick", () => {
@@ -665,13 +845,56 @@ export default function SpellWeb() {
       simRef.current.alpha(0.1).restart();
     }
 
-    // Background click
-    svg.on("click", () => {
+    // Background click - fire spell queue toward click position (only during evoke)
+    svg.on("click", (event) => {
       if (!connectionMode.active) {
         setSelectedNode(null);
       }
+
+      // Fire spell from mage queue on background click (only during evoke with mana)
+      if (incantationActiveRef.current && manaPointsRef.current > 0) {
+        let emoji = '✨'; // Default fallback
+
+        // Try to get emoji from mage spells first
+        if (mageSpells.length > 0) {
+          const spell = mageSpells[mageSpellQueueIndexRef.current % mageSpells.length];
+          mageSpellQueueIndexRef.current++;
+          if (spell?.emoji) emoji = spell.emoji;
+        }
+
+        // Deduct mana (cost depends on blade tier: dragon=1, heavy=3, light/none=6)
+        if (manaPointsRef.current < manaCostRef.current) return; // Not enough mana
+        setManaPoints(prev => {
+          const newMana = Math.max(0, prev - manaCostRef.current);
+          localStorage.setItem('spellweb_mana_points', String(newMana));
+          return newMana;
+        });
+
+        // Mage position: bottom center of viewport (ceremony panel area)
+        const mageX = window.innerWidth / 2 + 40; // Offset right for mage orb
+        const mageY = window.innerHeight - 120; // Bottom of screen
+
+        // Click position
+        const [clickX, clickY] = d3.pointer(event);
+
+        // Create floating emoji that flies from mage toward click
+        const newEmoji: FloatingEmoji = {
+          id: floatingEmojiIdRef.current++,
+          emoji,
+          x: mageX,
+          y: mageY,
+          targetX: clickX,
+          targetY: clickY,
+        };
+        setFloatingEmojis(prev => [...prev, newEmoji]);
+
+        // Remove after animation
+        setTimeout(() => {
+          setFloatingEmojis(prev => prev.filter(e => e.id !== newEmoji.id));
+        }, 1500);
+      }
     });
-  }, [filters, typeFilters, spellbookFilters, searchMatches, connectionMode, waypoint, handleWaypointAddNode]);
+  }, [filters, typeFilters, spellbookFilters, searchMatches, connectionMode, waypoint, handleWaypointAddNode, mageSpells]);
 
   // Sync userEdges to the D3 graph when they change
   useEffect(() => {
@@ -791,7 +1014,17 @@ export default function SpellWeb() {
     if (!svgRef.current) return;
     const svg = d3.select(svgRef.current);
 
+    // Blade trace uses lighter dimming (0.5), not full highlight mode (0.15)
     const isHighlightMode = castingSpells || incantationActive;
+
+    // Get tier color for active blade trace
+    const activeBladeNodeIds = new Set(
+      bladeTraceActive && activeBlade?.constellationMarks
+        ? activeBlade.constellationMarks.map(m => m.nodeId)
+        : []
+    );
+    const bladeTraceColor = activeBlade?.tier === 'dragon' ? '#ffd700' :
+      activeBlade?.tier === 'heavy' ? '#c0c0c0' : '#87ceeb';
 
     // Update emoji spell text to show constellation marks OR actual emoji spells during incantation
     svg.selectAll<SVGTextElement, SimulationNode>(".emoji-spell")
@@ -828,18 +1061,31 @@ export default function SpellWeb() {
       });
 
     // Highlight constellation/incantation nodes, dim others
+    // Shadow mode is a simple global toggle - dims everything to 15%
     svg.selectAll<SVGGElement, SimulationNode>("g.node").select("circle")
       .transition()
       .duration(400)
       .attr("opacity", (d) => {
-        if (!isHighlightMode) {
-          if (searchMatches.size > 0) return searchMatches.has(d.id) ? 1 : 0.15;
-          return 0.85;
+        // Shadow mode: simple global dim (overrides everything)
+        if (!isShineMode) {
+          return 0.15;
         }
+        // Shine mode ON - check if we should still dim for special modes
+        // Evoke mode - dark (38%) for non-highlighted
         if (incantationActive) {
-          return incantationHighlightNodes.has(d.id) ? 1 : 0.15;
+          return incantationHighlightNodes.has(d.id) ? 1 : 0.38;
         }
-        return constellationNodeIds.has(d.id) ? 1 : 0.2;
+        // Blade trace - light dim (62%) for non-traced
+        if (bladeTraceActive && activeBladeNodeIds.size > 0) {
+          return activeBladeNodeIds.has(d.id) ? 1 : 0.62;
+        }
+        // Search filter
+        if (searchMatches.size > 0) {
+          return searchMatches.has(d.id) ? 1 : 0.15;
+        }
+        // Default shine mode: everything at full opacity
+        // Constellation nodes get highlighted stroke but same opacity
+        return 1;
       })
       .attr("stroke", (d) => {
         if (incantationActive && incantationHighlightNodes.has(d.id)) {
@@ -847,27 +1093,41 @@ export default function SpellWeb() {
           return compressionSpellNodes.has(d.id) ? "#ff6600" : "#ffd700";
         }
         if (castingSpells && constellationNodeIds.has(d.id)) return "#ffd700";
+        // Blade trace: use tier color (gold=dragon, silver=heavy, blue=light)
+        if (bladeTraceActive && activeBladeNodeIds.has(d.id)) return bladeTraceColor;
         return getNodeVisual(d).stroke;
       })
       .attr("stroke-width", (d) => {
         if (incantationActive && incantationHighlightNodes.has(d.id)) return 3;
         if (castingSpells && constellationNodeIds.has(d.id)) return 3;
+        if (bladeTraceActive && activeBladeNodeIds.has(d.id)) return 3;
         return d.type === "spell" ? 2 : 1.5;
       });
 
-    // Dim labels when casting/incanting, except highlighted nodes
+    // Dim labels when casting/incanting/tracing, except highlighted nodes
     svg.selectAll<SVGTextElement, SimulationNode>(".node-label")
       .transition()
       .duration(400)
       .attr("opacity", (d) => {
-        if (!isHighlightMode) {
-          if (searchMatches.size > 0) return searchMatches.has(d.id) ? 1 : 0.1;
-          return 0.7;
+        // Shadow mode: simple global dim (overrides everything)
+        if (!isShineMode) {
+          return 0.1;
         }
+        // Shine mode ON - check if we should still dim for special modes
+        // Evoke mode - dark (38%) for non-highlighted
         if (incantationActive) {
-          return incantationHighlightNodes.has(d.id) ? 0.9 : 0.1;
+          return incantationHighlightNodes.has(d.id) ? 0.9 : 0.38;
         }
-        return constellationNodeIds.has(d.id) ? 0.3 : 0.1;
+        // Blade trace - light dim (62%) for non-traced
+        if (bladeTraceActive && activeBladeNodeIds.size > 0) {
+          return activeBladeNodeIds.has(d.id) ? 0.9 : 0.62;
+        }
+        // Search filter
+        if (searchMatches.size > 0) {
+          return searchMatches.has(d.id) ? 1 : 0.1;
+        }
+        // Default shine mode: labels at good visibility
+        return constellationNodeIds.has(d.id) ? 0.9 : 0.7;
       });
 
     // Dim edges, highlight constellation path and compresses_to edges during incantation
@@ -875,6 +1135,10 @@ export default function SpellWeb() {
       .transition()
       .duration(400)
       .attr("stroke-opacity", (d) => {
+        // Shadow mode: dim but keep edges somewhat visible
+        if (!isShineMode) {
+          return 0.25;
+        }
         if (!isHighlightMode) return 0.35;
         if (!d || !d.source || !d.target) return 0.35;
         const sourceId = typeof d.source === "string" ? d.source : (d.source as SimulationNode)?.id;
@@ -896,7 +1160,7 @@ export default function SpellWeb() {
 
         // Constellation mode: highlight edges between constellation nodes
         if (constellationNodeIds.has(sourceId) && constellationNodeIds.has(targetId)) return 0.8;
-        return 0.05;
+        return 0.35;
       })
       .attr("stroke", (d) => {
         if (!d || !d.source || !d.target) return getEdgeStyle(d?.type as any).color;
@@ -909,7 +1173,7 @@ export default function SpellWeb() {
         }
         return getEdgeStyle(d.type as any).color;
       });
-  }, [castingSpells, incantationActive, constellation, constellationNodeIds, compressionSpellNodes, incantationHighlightNodes, searchMatches]);
+  }, [castingSpells, incantationActive, constellation, constellationNodeIds, compressionSpellNodes, incantationHighlightNodes, searchMatches, bladeTraceActive, activeBlade, isShineMode]);
 
   // Render constellation connections (user-drawn lines between constellation nodes)
   useEffect(() => {
@@ -952,7 +1216,7 @@ export default function SpellWeb() {
       .attr("y2", d => d.targetNode!.y || 0)
       .transition()
       .duration(400)
-      .attr("opacity", castingSpells ? 0.8 : 0);
+      .attr("opacity", (castingSpells || bladeTraceActive || constellationConnections.length > 0) ? 0.8 : 0);
 
     // Update positions on simulation tick
     if (simRef.current) {
@@ -964,7 +1228,7 @@ export default function SpellWeb() {
           .attr("y2", d => d.targetNode!.y || 0);
       });
     }
-  }, [constellationConnections, castingSpells]);
+  }, [constellationConnections, castingSpells, bladeTraceActive]);
 
   const toggleLayer = useCallback((layer: keyof FilterState) => {
     setFilters((f) => ({ ...f, [layer]: !f[layer] }));
@@ -1156,16 +1420,19 @@ export default function SpellWeb() {
     setShowClosePortalModal(false);
   }, []);
 
-  const handleCancelWaypoint = useCallback(() => {
-    // Remove connections that were auto-added during this waypoint session
-    setConstellationConnections([]);
-    setWaypoint({ active: false, path: [] });
-  }, []);
-
   // Handle proof generated from evoke ceremony - update the active constellation
   const handleProofGenerated = useCallback((proof: SpellProof) => {
     // Store latest proof for forging
     setLatestProof(proof);
+
+    // Add mana from completed laps
+    if (proof.lapCount > 0) {
+      setManaPoints(prev => {
+        const newMana = Math.min(prev + proof.lapCount, MAX_MANA);
+        localStorage.setItem('spellweb_mana_points', String(newMana));
+        return newMana;
+      });
+    }
 
     if (!activeConstellationId) return;
     // Update the active constellation with the proof
@@ -1207,7 +1474,7 @@ export default function SpellWeb() {
         forgedBlade.isWitness ? "## Witness Blade" : "## Forged Blade",
         `**${forgedBlade.emoji} ${forgedBlade.name}**`,
         `- **Tier:** ${forgedBlade.tier.charAt(0).toUpperCase() + forgedBlade.tier.slice(1)} Blade`,
-        `- **Stratum:** ${forgedBlade.stratum}/6`,
+        `- **Stratum:** ${forgedBlade.stratum}/6 ${stratumToMoonPhase(forgedBlade.stratum)} (${getMoonPhaseInfo(forgedBlade.stratum).name})`,
         `- **Forged:** ${new Date(forgedBlade.forgedAt).toLocaleString()}`,
         `- **Nodes:** ${forgedBlade.constellationNodes}`,
         ...(forgedBlade.isWitness ? [
@@ -1232,7 +1499,22 @@ export default function SpellWeb() {
         `Signature: ${saved.proof.signature}`,
         `Hash: ${saved.proof.constellationHash}`,
         `Hex: ${saved.proof.bladeHex}`,
+        `Blade Hash: ${saved.proof.bladeHash}`,
+        `Chain: #${saved.proof.chainLength}${saved.proof.previousBladeHash ? ` (prev: ${saved.proof.previousBladeHash.slice(0,8)}...)` : ' (inception)'}`,
         "```",
+        "",
+      ] : []),
+      ...(saved.proof?.mageId ? [
+        "### Mage Identity",
+        `- **Mage ID:** \`${saved.proof.mageId}\``,
+        `- **Signature:** \`${saved.proof.mageSignature?.slice(0,32)}...\``,
+        "",
+      ] : []),
+      ...(saved.proof?.runecrafted ? [
+        "### Runecraft (Dual-Key Binding)",
+        `- **Swordsman ID:** \`${saved.proof.swordsmanId}\``,
+        `- **Runecrafted:** ${new Date(saved.proof.runecraftedAt || 0).toLocaleString()}`,
+        "- **Status:** 🔮 Dual-key proof established",
         "",
       ] : []),
       ...(saved.inscribedSpell ? [
@@ -1243,6 +1525,18 @@ export default function SpellWeb() {
       ...(saved.reflection ? [
         "## Reflection",
         `> ${saved.reflection}`,
+        "",
+      ] : []),
+      ...(mageSpells.length > 0 ? [
+        "## Mage's Grimoire",
+        `*${mageSpells.length}/8 Spells Learned*`,
+        "",
+        "| Line | Emoji | Spell | Proverb |",
+        "|------|-------|-------|---------|",
+        ...mageSpells.map(spell => {
+          const dimNames = ['Hide', 'Commit', 'Prove', 'Connect', 'Reflect', 'Delegate'];
+          return `| d${spell.hexagramLine + 1}${dimNames[spell.hexagramLine]} | ${spell.emoji || '✦'} | ${spell.label} | ${spell.proverb ? `"${spell.proverb}"` : '-'} |`;
+        }),
         "",
       ] : []),
       "## Constellation Path",
@@ -1280,7 +1574,7 @@ export default function SpellWeb() {
     if (saved.inscribedSpell) {
       window.navigator.clipboard.writeText(saved.inscribedSpell).catch(() => {});
     }
-  }, [forgedBlades]);
+  }, [forgedBlades, mageSpells]);
 
   // Load a saved constellation
   const handleLoadConstellation = useCallback((saved: SavedConstellation) => {
@@ -1288,29 +1582,9 @@ export default function SpellWeb() {
     setConstellationConnections(saved.connections);
     setActiveConstellationId(saved.id);
     setCastingSpells(true);
-    setShowMyConstellations(false);
+    setIsShineMode(true);
   }, []);
 
-  // Navigator handlers (used for waypoint navigation flow)
-  const handleNavigatorMarkConfirm = useCallback(() => {
-    // Confirm mark - handled by waypoint flow now
-  }, []);
-
-  const handleNavigatorStep = useCallback((nextNode: SpellwebNode) => {
-    handleWaypointAddNode(nextNode);
-  }, [handleWaypointAddNode]);
-
-  const handleNavigatorWaypoint = useCallback(() => {
-    // Legacy - not used in new flow
-  }, []);
-
-  const handleNavigatorEnd = useCallback(() => {
-    handleClosePortal();
-  }, [handleClosePortal]);
-
-  const handleNavigatorCancel = useCallback(() => {
-    handleCancelWaypoint();
-  }, [handleCancelWaypoint]);
 
   // Handle witness blade file import
   const handleWitnessBladeFile = useCallback((file: File) => {
@@ -1381,7 +1655,7 @@ export default function SpellWeb() {
         startedAt: 0,
         completedAt: 0,
         nodeCount: marks.length,
-        chargeLevel: (chargeMatch?.[1]?.toLowerCase() || "ember") as 'ember' | 'blaze' | 'inferno',
+        chargeLevel: (chargeMatch?.[1]?.toLowerCase() || "ember") as 'spark' | 'ember' | 'flame' | 'inferno' | 'dragon',
         spellsCast: parseInt(spellsCastMatch?.[1] || "0"),
         bladeDimensions: {
           protection: dimProtection,
@@ -1393,6 +1667,14 @@ export default function SpellWeb() {
         },
         bladeStratum: parseInt(stratumMatch?.[1] || "0"),
         bladeTier: (tierMatch?.[1]?.toLowerCase() || "light") as 'light' | 'heavy' | 'dragon',
+        // Hash chain (imported blades start their own chain)
+        previousBladeHash: null,
+        bladeHash: hashMatch[1], // Use constellation hash as blade hash for imports
+        chainLength: 0, // Imported blade, no chain history
+        // Commitment (imported blades are pre-verified by their creator)
+        commitment: '',
+        commitmentNonce: '',
+        commitmentVerified: true, // Trust the import
       } : undefined;
 
       // Set up witness mode
@@ -1452,18 +1734,678 @@ export default function SpellWeb() {
         onSearchChange={setSearchQuery}
         nodeCount={filteredNodes.length}
         edgeCount={filteredEdges.length}
+        spellbookFilters={spellbookFilters}
+        onToggleSpellbook={toggleSpellbook}
+        hasConstellation={constellation.length > 0}
+        onClearConstellation={() => setShowClearMapModal(true)}
+        windowWidth={dimensions.w}
       />
+
+      {/* Mage Modal - Full screen popup like Blades (M key) */}
+      {showMageMenu && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.85)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 300,
+          }}
+          onClick={() => setShowMageMenu(false)}
+        >
+          <div
+            style={{
+              background: THEME.panelBg,
+              border: `1px solid #9b59b6`,
+              borderRadius: 12,
+              padding: 24,
+              maxWidth: 550,
+              width: "90%",
+              maxHeight: "80vh",
+              overflow: "auto",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, color: "#9b59b6", fontSize: 20, fontFamily: "'Cormorant Garamond', serif" }}>
+                🧙 Mage Spellbook
+              </h3>
+              <button
+                onClick={() => setShowMageMenu(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: THEME.textDim,
+                  cursor: 'pointer',
+                  fontSize: 18,
+                }}
+              >×</button>
+            </div>
+
+            {/* Mana Bar Section */}
+            <div style={{
+              padding: 16,
+              background: mageSpells.length > 0 ? '#9b59b610' : '#ffffff05',
+              borderRadius: 8,
+              border: `1px solid ${mageSpells.length > 0 ? '#9b59b650' : '#333'}`,
+              marginBottom: 16,
+            }}>
+              <div style={{
+                fontSize: 11,
+                color: mageSpells.length > 0 ? '#9b59b6' : '#666',
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: 1,
+                marginBottom: 12,
+              }}>
+                ✦ MANA (Privacy Budget)
+              </div>
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 8,
+              }}>
+                <span style={{ fontSize: 12, color: "#9b59b6", fontFamily: "'JetBrains Mono', monospace" }}>
+                  {mageSpells.length}/8 spells equipped
+                </span>
+                <span style={{ fontSize: 10, color: "#666" }}>
+                  {8 - mageSpells.length} slots available
+                </span>
+              </div>
+              <div style={{
+                width: "100%",
+                height: 10,
+                background: "rgba(155, 89, 182, 0.15)",
+                borderRadius: 5,
+                overflow: "hidden",
+              }}>
+                <div style={{
+                  width: `${(mageSpells.length / 8) * 100}%`,
+                  height: "100%",
+                  background: "linear-gradient(90deg, #9b59b6, #7b68ee)",
+                  borderRadius: 5,
+                  transition: "width 0.3s ease",
+                  boxShadow: mageSpells.length > 0 ? '0 0 10px #9b59b680' : 'none',
+                }} />
+              </div>
+            </div>
+
+            {/* Equipped Spells Section */}
+            <div style={{
+              padding: 16,
+              background: '#ffffff05',
+              borderRadius: 8,
+              border: '1px solid #333',
+              marginBottom: 16,
+            }}>
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 12,
+              }}>
+                <span style={{ fontSize: 11, color: "#9b59b6", fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1 }}>
+                  EQUIPPED SPELLS
+                </span>
+                <span style={{ fontSize: 9, color: "#666", fontFamily: "'JetBrains Mono', monospace" }}>
+                  Drag to reorder
+                </span>
+              </div>
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(8, 1fr)",
+                gap: 8,
+              }}>
+                {[0, 1, 2, 3, 4, 5, 6, 7].map((slotIndex) => {
+                  const spell = mageSpells[slotIndex];
+                  const isSelected = selectedSpellIndex === slotIndex;
+                  return (
+                    <div
+                      key={slotIndex}
+                      draggable={!!spell}
+                      onDragStart={(e) => {
+                        if (spell) {
+                          e.dataTransfer.setData('mageMenuSpellIndex', String(slotIndex));
+                        }
+                      }}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const fromIndex = parseInt(e.dataTransfer.getData('mageMenuSpellIndex'));
+                        if (!isNaN(fromIndex) && fromIndex !== slotIndex) {
+                          const newSpells = [...mageSpells];
+                          const [moved] = newSpells.splice(fromIndex, 1);
+                          if (slotIndex < newSpells.length) {
+                            newSpells.splice(slotIndex, 0, moved);
+                          } else {
+                            newSpells.push(moved);
+                          }
+                          setMageSpells(newSpells.filter(Boolean));
+                        }
+                      }}
+                      title={spell
+                        ? `${spell.label}\n${spell.proverb || ''}\n\nDrag to reorder • Click to ${isSelected ? 'deselect' : 'select'}`
+                        : `Slot ${slotIndex + 1}: Empty`}
+                      onClick={() => {
+                        if (spell) {
+                          setSelectedSpellIndex(prev => prev === slotIndex ? null : slotIndex);
+                        }
+                      }}
+                      style={{
+                        aspectRatio: '1',
+                        borderRadius: 8,
+                        background: spell
+                          ? isSelected
+                            ? "linear-gradient(135deg, #9b59b680, #9b59b650)"
+                            : "linear-gradient(135deg, #9b59b640, #9b59b620)"
+                          : "rgba(60, 60, 80, 0.3)",
+                        border: isSelected
+                          ? "2px solid #9b59b6"
+                          : `1px solid ${spell ? "#9b59b660" : "#444"}`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: spell ? 18 : 12,
+                        cursor: spell ? "grab" : "default",
+                        boxShadow: isSelected ? "0 0 15px #9b59b680" : "none",
+                        color: spell ? "#fff" : "#555",
+                        transition: "all 0.2s ease",
+                        position: "relative",
+                      }}
+                    >
+                      {spell ? getFirstEmoji(spell.emoji) : `${slotIndex + 1}`}
+                      {spell && (
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newSpells = mageSpells.filter((_, i) => i !== slotIndex);
+                            setMageSpells(newSpells);
+                            if (selectedSpellIndex === slotIndex) {
+                              setSelectedSpellIndex(null);
+                            }
+                          }}
+                          style={{
+                            position: "absolute",
+                            top: -6,
+                            right: -6,
+                            width: 16,
+                            height: 16,
+                            borderRadius: "50%",
+                            background: "#ff4444",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 10,
+                            color: "#fff",
+                            cursor: "pointer",
+                          }}
+                          title="Remove spell"
+                        >✕</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Selected spell info */}
+              {selectedSpellIndex !== null && mageSpells[selectedSpellIndex] && (
+                <div style={{
+                  marginTop: 12,
+                  padding: 10,
+                  background: '#9b59b615',
+                  borderRadius: 6,
+                  border: '1px solid #9b59b640',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: 18 }}>{mageSpells[selectedSpellIndex].emoji}</span>
+                    <span style={{ fontSize: 13, color: '#9b59b6', fontWeight: 600 }}>
+                      {mageSpells[selectedSpellIndex].label}
+                    </span>
+                  </div>
+                  {mageSpells[selectedSpellIndex].proverb && (
+                    <div style={{ fontSize: 11, color: '#888', fontStyle: 'italic' }}>
+                      "{mageSpells[selectedSpellIndex].proverb}"
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Available Spells from Constellation */}
+            <div style={{
+              padding: 16,
+              background: constellation.length > 0 ? '#9b59b608' : '#ffffff05',
+              borderRadius: 8,
+              border: `1px solid ${constellation.length > 0 ? '#9b59b640' : '#333'}`,
+              marginBottom: 16,
+            }}>
+              <div style={{
+                fontSize: 11,
+                color: constellation.length > 0 ? '#9b59b6' : '#666',
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: 1,
+                marginBottom: 12,
+              }}>
+                🌟 CONSTELLATION SPELLS ({constellation.length})
+              </div>
+              {constellation.length > 0 ? (
+                <div style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 6,
+                  maxHeight: 120,
+                  overflowY: "auto",
+                }}>
+                  {constellation.map((mark, idx) => {
+                    const isLearned = mageSpells.some(s => s.nodeId === mark.nodeId);
+                    const node = NODES.find(n => n.id === mark.nodeId);
+                    return (
+                      <div
+                        key={`${mark.nodeId}-${idx}`}
+                        title={`${mark.nodeLabel}\n${node?.proverb || ''}\n\n${isLearned ? 'Already learned' : 'Click to learn'}`}
+                        onClick={() => {
+                          if (!isLearned && mageSpells.length < 8) {
+                            setMageSpells([...mageSpells, {
+                              nodeId: mark.nodeId,
+                              label: mark.nodeLabel,
+                              emoji: mark.emoji || node?.emoji || '✦',
+                              proverb: node?.proverb,
+                              emojiSpell: node?.emojiSpell,
+                              hexagramLine: mageSpells.length,
+                              learnedAt: Date.now(),
+                            }]);
+                          }
+                        }}
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 6,
+                          background: isLearned
+                            ? "rgba(155, 89, 182, 0.3)"
+                            : "rgba(60, 60, 80, 0.3)",
+                          border: `1px solid ${isLearned ? '#9b59b6' : '#444'}`,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 16,
+                          cursor: isLearned ? "default" : mageSpells.length >= 8 ? "not-allowed" : "pointer",
+                          opacity: isLearned ? 0.5 : 1,
+                          color: "#fff",
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        {getFirstEmoji(mark.emoji)}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ fontSize: 12, color: '#666', textAlign: 'center', padding: 20 }}>
+                  Create a constellation to discover spells
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              {mageSpells.length > 0 && (
+                <button
+                  onClick={() => setMageSpells([])}
+                  style={{
+                    flex: 1,
+                    padding: "10px 16px",
+                    borderRadius: 8,
+                    background: "rgba(255, 100, 100, 0.1)",
+                    border: "1px solid #ff666660",
+                    color: "#ff6666",
+                    fontSize: 12,
+                    cursor: "pointer",
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}
+                >
+                  Clear All Spells
+                </button>
+              )}
+              <button
+                onClick={() => setShowMageMenu(false)}
+                style={{
+                  flex: 1,
+                  padding: "10px 16px",
+                  borderRadius: 8,
+                  background: "linear-gradient(135deg, #9b59b630, #7b68ee20)",
+                  border: "1px solid #9b59b6",
+                  color: "#9b59b6",
+                  fontSize: 12,
+                  cursor: "pointer",
+                  fontFamily: "'JetBrains Mono', monospace",
+                }}
+              >
+                Done
+              </button>
+            </div>
+
+            {/* Ceremony Paths Section */}
+            <div style={{
+              padding: 16,
+              background: '#1a1a2e',
+              borderRadius: 8,
+              border: '1px solid #333',
+              marginBottom: 16,
+            }}>
+              <div style={{
+                fontSize: 11,
+                color: '#888',
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: 1,
+                marginBottom: 12,
+              }}>
+                ☀️⊥🌑 CEREMONY PATHS
+              </div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                {/* Emissary Path (Sun) */}
+                <div style={{
+                  flex: 1,
+                  padding: 12,
+                  background: 'linear-gradient(135deg, #ffd70010, #ff8c0010)',
+                  borderRadius: 8,
+                  border: '1px solid #ffd70040',
+                }}>
+                  <div style={{ fontSize: 10, color: '#ffd700', marginBottom: 8, fontFamily: "'JetBrains Mono', monospace" }}>
+                    ☀️ EMISSARY PATH
+                  </div>
+                  <div style={{ fontSize: 9, color: '#888', marginBottom: 8 }}>
+                    The Emissary Who Forgot the Master
+                  </div>
+                  <audio
+                    controls
+                    src="https://voice.agentprivacy.ai/The_Emissary_Who_Forgot_the_Master.mp3"
+                    style={{ width: '100%', height: 32 }}
+                  />
+                </div>
+                {/* Amnesia Path (Moon) */}
+                <div style={{
+                  flex: 1,
+                  padding: 12,
+                  background: 'linear-gradient(135deg, #c0c0c010, #87ceeb10)',
+                  borderRadius: 8,
+                  border: '1px solid #c0c0c040',
+                }}>
+                  <div style={{ fontSize: 10, color: '#c0c0c0', marginBottom: 8, fontFamily: "'JetBrains Mono', monospace" }}>
+                    🌑 AMNESIA PATH
+                  </div>
+                  <div style={{ fontSize: 9, color: '#888', marginBottom: 8 }}>
+                    The Amnesia Protocol
+                  </div>
+                  <audio
+                    controls
+                    src="https://voice.agentprivacy.ai/The_Amnesia_Protocol.mp3"
+                    style={{ width: '100%', height: 32 }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Saved Constellations Section */}
+            <div style={{
+              padding: 16,
+              background: savedConstellations.length > 0 ? '#7b68ee08' : '#ffffff05',
+              borderRadius: 8,
+              border: `1px solid ${savedConstellations.length > 0 ? '#7b68ee40' : '#333'}`,
+              marginBottom: 16,
+            }}>
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 12,
+              }}>
+                <span style={{
+                  fontSize: 11,
+                  color: savedConstellations.length > 0 ? '#7b68ee' : '#666',
+                  fontFamily: "'JetBrains Mono', monospace",
+                  letterSpacing: 1,
+                }}>
+                  🌌 SAVED CONSTELLATIONS ({savedConstellations.length})
+                </span>
+                {/* Export Mage Identity button */}
+                {hasMageIdentity() && (
+                  <button
+                    onClick={() => {
+                      const backup = exportMageKeyBackup();
+                      if (!backup) {
+                        alert('No mage identity found to export');
+                        return;
+                      }
+                      // Download as JSON file
+                      const json = JSON.stringify(backup, null, 2);
+                      const blob = new Blob([json], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `mage-${backup.mageId.slice(5, 13)}-backup.json`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: 4,
+                      background: "linear-gradient(135deg, #9b59b620, #7b68ee15)",
+                      border: "1px solid #9b59b6",
+                      color: "#9b59b6",
+                      fontSize: 10,
+                      cursor: "pointer",
+                      fontFamily: "'JetBrains Mono', monospace",
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
+                    title="Export mage identity keys (backup)"
+                  >
+                    <span>🔑</span> Export Keys
+                  </button>
+                )}
+              </div>
+              {/* Celestial Ceremony Presets */}
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 11, color: THEME.textDim, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>☀️⊥🌙</span> Ceremony Presets
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {CONSTELLATION_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => {
+                        // Load preset constellation - find node labels from NODES
+                        const marks = preset.marks.map(m => {
+                          const node = NODES.find(n => n.id === m.nodeId);
+                          return {
+                            nodeId: m.nodeId,
+                            nodeLabel: node?.label || m.nodeId,
+                            emoji: m.emoji || '✦',
+                            note: m.note || '',
+                            emojiSpell: m.emojiSpell,
+                          };
+                        });
+                        setConstellation(marks);
+                        setConstellationConnections(preset.connections.map(c => ({
+                          sourceId: c.sourceId,
+                          targetId: c.targetId,
+                          note: c.note || '',
+                        })));
+                        setInscribedSpell(preset.inscribedSpell);
+                        setConstellationReflection(preset.reflection || '');
+                        setConstellationName(preset.name);
+                        setCastingSpells(true);
+                        setIsShineMode(true);
+                        setShowMageMenu(false);
+                      }}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        background: preset.ceremony === 'sun'
+                          ? 'linear-gradient(135deg, #ffd70015, #ff8c0010)'
+                          : 'linear-gradient(135deg, #7b68ee15, #9b59b610)',
+                        border: `1px solid ${preset.ceremony === 'sun' ? '#ffd700' : '#7b68ee'}`,
+                        color: preset.ceremony === 'sun' ? '#ffd700' : '#7b68ee',
+                        fontSize: 10,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontFamily: "'JetBrains Mono', monospace",
+                      }}
+                      title={`${preset.description}\n\n"${preset.proverb}"\n\n${preset.nodeCount} nodes • ${preset.tier} tier`}
+                    >
+                      <span style={{ fontSize: 14 }}>{preset.emoji}</span>
+                      <span>{preset.name}</span>
+                      <span style={{ opacity: 0.6, fontSize: 9 }}>({preset.nodeCount})</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ fontSize: 11, color: THEME.textDim, marginBottom: 8 }}>
+                Saved Paths
+              </div>
+              {savedConstellations.length === 0 ? (
+                <div style={{ fontSize: 12, color: '#666', textAlign: 'center', padding: 16 }}>
+                  No saved constellations yet. Trace a path through the stars to create one.
+                </div>
+              ) : (
+                <div style={{ maxHeight: 200, overflowY: 'auto' }}>
+                  {savedConstellations.map((saved) => (
+                    <div
+                      key={saved.id}
+                      style={{
+                        padding: 12,
+                        marginBottom: 8,
+                        background: activeConstellationId === saved.id ? "#7b68ee15" : "#ffffff06",
+                        borderRadius: 6,
+                        border: `1px solid ${activeConstellationId === saved.id ? '#7b68ee' : '#333'}`,
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                        <div>
+                          <div style={{ fontSize: 12, color: THEME.text, fontWeight: 500 }}>
+                            {saved.name}
+                          </div>
+                          <div style={{ fontSize: 9, color: THEME.textDim }}>
+                            {new Date(saved.createdAt).toLocaleDateString()} • {saved.marks.length} nodes
+                          </div>
+                        </div>
+                        {saved.proof && (
+                          <span style={{
+                            fontSize: 9,
+                            padding: '2px 6px',
+                            borderRadius: 3,
+                            background: saved.proof.chargeLevel === 'dragon' ? '#ffd70020' : saved.proof.chargeLevel === 'inferno' ? '#ff6b6b20' : '#9b59b620',
+                            color: saved.proof.chargeLevel === 'dragon' ? '#ffd700' : saved.proof.chargeLevel === 'inferno' ? '#ff6b6b' : '#9b59b6',
+                          }}>
+                            {saved.proof.chargeLevel.toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      {saved.inscribedSpell && (
+                        <div style={{ fontSize: 14, marginBottom: 6, letterSpacing: 2, color: "#ffd700" }}>
+                          {saved.inscribedSpell}
+                        </div>
+                      )}
+                      <div style={{ fontSize: 11, marginBottom: 6, color: THEME.textDim }}>
+                        {saved.marks.map(m => m.emoji).join(" → ")}
+                      </div>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button
+                          onClick={() => handleLoadConstellation(saved)}
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: 4,
+                            background: "#7b68ee20",
+                            border: `1px solid #7b68ee`,
+                            color: "#7b68ee",
+                            fontSize: 10,
+                            cursor: "pointer",
+                          }}
+                        >
+                          ✨ View
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleLoadConstellation(saved);
+                            setInscribedSpell(saved.inscribedSpell || "");
+                            setConstellationReflection(saved.reflection || "");
+                            setShowMageMenu(false);
+                            setShowClosePortalModal(true);
+                          }}
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: 4,
+                            background: "#ffd70020",
+                            border: `1px solid #ffd700`,
+                            color: "#ffd700",
+                            fontSize: 10,
+                            cursor: "pointer",
+                          }}
+                        >
+                          ✏️ Edit
+                        </button>
+                        {(() => {
+                          const hasForgedBlade = saved.proof
+                            ? forgedBlades.some(b => b.proof.signature === saved.proof?.signature)
+                            : false;
+                          return (
+                            <button
+                              onClick={() => hasForgedBlade && handleExportConstellation(saved)}
+                              disabled={!hasForgedBlade}
+                              title={hasForgedBlade ? "Export constellation with blade" : "Forge a blade to enable export"}
+                              style={{
+                                padding: "4px 10px",
+                                borderRadius: 4,
+                                background: hasForgedBlade ? "#50c87815" : "transparent",
+                                border: `1px solid ${hasForgedBlade ? "#50c878" : '#444'}`,
+                                color: hasForgedBlade ? "#50c878" : '#555',
+                                fontSize: 10,
+                                cursor: hasForgedBlade ? "pointer" : "not-allowed",
+                                opacity: hasForgedBlade ? 1 : 0.5,
+                              }}
+                            >
+                              📄 Export
+                            </button>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div style={{
+              marginTop: 12,
+              fontSize: 10,
+              color: "#666",
+              textAlign: "center",
+              fontFamily: "'JetBrains Mono', monospace",
+            }}>
+              Press [M] to toggle • Click constellation nodes to learn spells
+            </div>
+          </div>
+        </div>
+      )}
 
       <GraphFilters
         filters={filters}
         typeFilters={typeFilters}
-        spellbookFilters={spellbookFilters}
         onToggleLayer={toggleLayer}
         onToggleType={toggleType}
-        onToggleSpellbook={toggleSpellbook}
         isOpen={mobileFiltersOpen}
         // Mobile action props
-        onOpenConstellations={() => { setShowMyConstellations(true); setMobileFiltersOpen(false); }}
+        onOpenConstellations={() => { setShowMageMenu(true); setMobileFiltersOpen(false); }}
         onOpenZKBlades={() => {
           if (latestProof) {
             setForgePhase('ignite');
@@ -1506,7 +2448,8 @@ export default function SpellWeb() {
 
       <Legend hasSelectedNode={!!selectedNode} />
 
-      {hoveredNode && !selectedNode && <HoverTooltip node={hoveredNode} />}
+      {/* Show HoverTooltip only when constellation exists (otherwise shows in ceremony panel) */}
+      {hoveredNode && !selectedNode && constellation.length > 0 && <HoverTooltip node={hoveredNode} />}
 
       {/* Connection Mode Cancel - only when connecting */}
       {connectionMode.active && (
@@ -1701,790 +2644,559 @@ export default function SpellWeb() {
         </div>
       )}
 
-      {/* Navigator Modal - Mark current step */}
-      {showNavigatorModal && navigator.currentNode && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 300,
-          }}
-          onClick={handleNavigatorCancel}
-        >
+
+      {/* Left Side: Mage + Blades Inventories (Side by Side) */}
+      {(() => {
+        const mageColor = '#9b59b6';
+        const bladesColor = '#e74c3c';
+        const allBlades = forgedBlades;
+
+        // Panel dimensions - BIGGER
+        const slotSize = 44;
+        const slotGap = 4;
+        const panelPadding = 8;
+
+        return (
           <div
-            style={{
-              background: THEME.panelBg,
-              border: `1px solid #00d9ff`,
-              borderRadius: 12,
-              padding: 24,
-              width: 400,
-              maxWidth: "90vw",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 style={{ margin: "0 0 16px", color: "#00d9ff", fontSize: 16 }}>
-              {navigator.path.length === 1 ? "🧭 Open Portal" : `📍 Mark Waypoint (Step ${navigator.path.length})`}
-            </h3>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, color: THEME.text, marginBottom: 12 }}>
-                {navigator.currentNode.emoji && <span style={{ marginRight: 8 }}>{navigator.currentNode.emoji}</span>}
-                {navigator.currentNode.label}
-              </div>
-              {navigator.currentNode.desc && (
-                <div style={{ fontSize: 11, color: THEME.textDim, marginBottom: 12 }}>
-                  {navigator.currentNode.desc}
-                </div>
-              )}
-              <label style={{ fontSize: 12, color: THEME.textDim, display: "block", marginBottom: 6 }}>
-                {navigator.path.length === 1 ? "Choose your portal symbol" : "Choose an emoji for this waypoint"}
-              </label>
-              <input
-                type="text"
-                value={markEmoji}
-                onChange={(e) => setMarkEmoji(e.target.value)}
-                placeholder="✦"
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  borderRadius: 6,
-                  background: "#ffffff08",
-                  border: `1px solid ${THEME.panelBorder}`,
-                  color: THEME.text,
-                  fontSize: 18,
-                  fontFamily: "sans-serif",
-                  textAlign: "center",
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 12, color: THEME.textDim, display: "block", marginBottom: 6 }}>
-                🪞 Reflect (optional)
-              </label>
-              <textarea
-                value={markNote}
-                onChange={(e) => setMarkNote(e.target.value)}
-                placeholder={navigator.path.length > 1 ? "Why did you follow this path?" : "Why start here?"}
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  borderRadius: 6,
-                  background: "#ffffff08",
-                  border: `1px solid ${THEME.panelBorder}`,
-                  color: THEME.text,
-                  fontSize: 13,
-                  fontFamily: "'IBM Plex Sans', sans-serif",
-                  resize: "vertical",
-                  minHeight: 60,
-                }}
-              />
-            </div>
-            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-              <button
-                onClick={handleNavigatorCancel}
-                style={{
-                  padding: "10px 16px",
-                  borderRadius: 6,
-                  background: "transparent",
-                  border: `1px solid ${THEME.panelBorder}`,
-                  color: THEME.text,
-                  fontSize: 12,
-                  cursor: "pointer",
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleNavigatorMarkConfirm}
-                style={{
-                  padding: "10px 16px",
-                  borderRadius: 6,
-                  background: "#00d9ff",
-                  border: "none",
-                  color: "#000",
-                  fontSize: 12,
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
-              >
-                {navigator.path.length === 1 ? "🧭 Begin Journey" : "📍 Mark Waypoint"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Navigator Panel - Shows connected nodes by edge type */}
-      {navigator.active && !showNavigatorModal && navigator.currentNode && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: 80,
-            right: 16,
-            width: 350,
-            maxHeight: "60vh",
-            overflow: "auto",
-            background: `${THEME.panelBg}f0`,
-            border: `1px solid #00d9ff`,
-            borderRadius: 12,
-            padding: 16,
-            zIndex: 100,
-            backdropFilter: "blur(12px)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <div style={{ fontSize: 12, color: "#00d9ff", fontFamily: "'JetBrains Mono', monospace" }}>
-              🧭 Navigate from: {navigator.currentNode.emoji || "◆"} {navigator.currentNode.label}
-            </div>
-          </div>
-
-          {/* Path so far */}
-          {navigator.path.length > 1 && (
-            <div style={{ marginBottom: 16, padding: "8px 12px", background: "#ffffff08", borderRadius: 6 }}>
-              <div style={{ fontSize: 10, color: THEME.textDim, marginBottom: 6, letterSpacing: 1 }}>PATH ({navigator.path.length} steps)</div>
-              <div style={{ fontSize: 12, color: THEME.text }}>
-                {navigator.path.map((nodeId, i) => {
-                  const node = NODES.find(n => n.id === nodeId);
-                  const mark = constellation.find(m => m.nodeId === nodeId);
-                  return (
-                    <span key={nodeId}>
-                      {i > 0 && <span style={{ color: THEME.textDim }}> → </span>}
-                      <span>{mark?.emoji || node?.emoji || "◆"}</span>
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Connected nodes by edge type */}
-          {navigatorConnections.size > 0 ? (
-            Array.from(navigatorConnections.entries()).map(([edgeType, connections]) => (
-              <div key={edgeType} style={{ marginBottom: 16 }}>
-                <div style={{
-                  fontSize: 10,
-                  color: THEME.edges[edgeType as keyof typeof THEME.edges]?.color || THEME.textDim,
-                  marginBottom: 8,
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                }}>
-                  {edgeType.replace(/_/g, ' ')} ({connections.length})
-                </div>
-                {connections.slice(0, 8).map(({ node, direction }) => (
-                  <button
-                    key={node.id}
-                    onClick={() => handleNavigatorStep(node)}
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      marginBottom: 6,
-                      borderRadius: 6,
-                      background: "#ffffff08",
-                      border: `1px solid ${THEME.panelBorder}`,
-                      color: THEME.text,
-                      fontSize: 12,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      textAlign: "left",
-                    }}
-                  >
-                    <span style={{ fontSize: 14 }}>{node.emoji || "◆"}</span>
-                    <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {node.label}
-                    </span>
-                    <span style={{ fontSize: 10, color: THEME.textDim }}>
-                      {direction === 'outgoing' ? '→' : '←'}
-                    </span>
-                  </button>
-                ))}
-                {connections.length > 8 && (
-                  <div style={{ fontSize: 10, color: THEME.textDim, textAlign: "center" }}>
-                    +{connections.length - 8} more
-                  </div>
-                )}
-              </div>
-            ))
-          ) : (
-            <div style={{ fontSize: 12, color: THEME.textDim, textAlign: "center", padding: 20 }}>
-              No more connections to explore
-            </div>
-          )}
-
-          {/* Action buttons */}
-          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-            {/* Waypoint button - mark current position */}
-            <button
-              onClick={handleNavigatorWaypoint}
-              style={{
-                flex: 1,
-                padding: "12px 16px",
-                borderRadius: 6,
-                background: `${THEME.panelBg}e0`,
-                border: `1px solid #7b68ee`,
-                color: "#7b68ee",
-                fontSize: 12,
-                fontFamily: "'JetBrains Mono', monospace",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
-            >
-              <span>📍</span> Waypoint
-            </button>
-
-            {/* Close Portal button */}
-            <button
-              onClick={handleNavigatorEnd}
-              style={{
-                flex: 1,
-                padding: "12px 16px",
-                borderRadius: 6,
-                background: `linear-gradient(135deg, #e9456030, #7b68ee30)`,
-                border: `1px solid #e94560`,
-                color: "#e94560",
-                fontSize: 12,
-                fontFamily: "'JetBrains Mono', monospace",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
-            >
-              <span>🌀</span> Close Portal
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Blade Inventories - Left side grid between Witness and ZK buttons */}
-
-      {/* Left menu buttons with blade inventories */}
-      {(() => {
-        const ownBlades = forgedBlades.filter(b => !b.isWitness);
-        const witnessBlades = forgedBlades.filter(b => b.isWitness);
-        const witnessColor = '#3b82f6';
-
-        // Calculate inventory heights (5 blades per row, up to 2 rows each)
-        const ownRows = Math.ceil(Math.min(ownBlades.length, 10) / 5);
-        const witnessRows = Math.ceil(Math.min(witnessBlades.length, 10) / 5);
-        const ownInventoryHeight = ownBlades.length > 0 ? (ownRows * 38 + 28) : 0;
-        const witnessInventoryHeight = witnessBlades.length > 0 ? (witnessRows * 38 + 28) : 0;
-
-        // Stack positions from bottom up: Share(16), Constellations(70), ZK Blades, Inventories, Witness Button
-        const zkBladesBottom = 124;
-        const ownInventoryBottom = zkBladesBottom + 54;
-        const witnessInventoryBottom = ownInventoryBottom + ownInventoryHeight;
-        const witnessButtonBottom = witnessInventoryBottom + witnessInventoryHeight;
-
-        return (
-          <>
-            {/* Witness Blade Import Button - Top of stack */}
-            <label
-              className="mobile-hide"
-              style={{
-                position: "absolute",
-                bottom: witnessButtonBottom,
-                left: 16,
-                padding: "10px 16px",
-                borderRadius: 8,
-                background: "linear-gradient(135deg, #3b82f620, #1e40af20)",
-                border: "1px solid #3b82f6",
-                color: "#3b82f6",
-                fontSize: 12,
-                cursor: "pointer",
-                fontFamily: "'JetBrains Mono', monospace",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                transition: "all 0.3s",
-                zIndex: 100,
-              }}
-            >
-              <span>👁️</span> Witness Blade
-              <input
-                type="file"
-                accept=".md"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleWitnessBladeFile(file);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-
-            {/* Witness Blades Inventory (blue, round) */}
-            {witnessBlades.length > 0 && (
-              <div
-                className="mobile-hide"
-                style={{
-                  position: "absolute",
-                  bottom: witnessInventoryBottom,
-                  left: 16,
-                  padding: "6px 10px",
-                  borderRadius: 10,
-                  background: "rgba(10, 10, 30, 0.9)",
-                  border: `1px solid ${deleteMode === 'witness' ? '#ff4444' : witnessColor + '40'}`,
-                  backdropFilter: "blur(8px)",
-                  zIndex: 100,
-                }}
-              >
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 4,
-                }}>
-                  <div style={{
-                    fontSize: 8,
-                    color: witnessColor,
-                    fontFamily: "'JetBrains Mono', monospace",
-                    letterSpacing: 1,
-                    textTransform: 'uppercase',
-                    opacity: 0.8,
-                  }}>
-                    👁️ Witnessed ({witnessBlades.length})
-                  </div>
-                  {/* Delete toggle */}
-                  <div
-                    title={deleteMode === 'witness' ? "Cancel delete" : "Delete blades"}
-                    onClick={() => {
-                      if (deleteMode === 'witness') {
-                        setDeleteMode(null);
-                        setBladesToDelete(new Set());
-                      } else {
-                        setDeleteMode('witness');
-                        setBladesToDelete(new Set());
-                      }
-                    }}
-                    style={{
-                      width: 14,
-                      height: 14,
-                      borderRadius: 3,
-                      background: deleteMode === 'witness' ? '#ff444440' : 'rgba(255,255,255,0.1)',
-                      border: `1px solid ${deleteMode === 'witness' ? '#ff4444' : '#666'}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 8,
-                      cursor: 'pointer',
-                      color: deleteMode === 'witness' ? '#ff4444' : '#888',
-                    }}
-                  >
-                    {deleteMode === 'witness' ? '✕' : '−'}
-                  </div>
-                </div>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(5, 32px)',
-                  gap: 4,
-                }}>
-                  {witnessBlades.slice(0, 10).map((blade) => {
-                    const isActive = activeBlade?.id === blade.id;
-                    const isMarkedForDelete = bladesToDelete.has(blade.id);
-                    return (
-                      <div
-                        key={blade.id}
-                        title={deleteMode === 'witness'
-                          ? (isMarkedForDelete ? `Click to unmark ${blade.name}` : `Click to mark ${blade.name} for deletion`)
-                          : `${blade.name} - Witnessed: ${blade.witnessedFrom} - Click to trace`}
-                        onClick={() => {
-                          if (deleteMode === 'witness') {
-                            const newSet = new Set(bladesToDelete);
-                            if (isMarkedForDelete) {
-                              newSet.delete(blade.id);
-                            } else {
-                              newSet.add(blade.id);
-                            }
-                            setBladesToDelete(newSet);
-                          } else {
-                            if (isActive) {
-                              setActiveBlade(null);
-                              setBladeTraceActive(false);
-                            } else {
-                              setActiveBlade(blade);
-                              setBladeTraceActive(true);
-                              setOrbsAtHome(false);
-                              if (blade.constellationMarks) {
-                                setConstellation(blade.constellationMarks);
-                                setConstellationConnections(blade.constellationConnections || []);
-                              }
-                            }
-                          }
-                        }}
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: '50%',
-                          background: isMarkedForDelete
-                            ? 'linear-gradient(135deg, #ff444450, #ff444430)'
-                            : isActive
-                              ? `linear-gradient(135deg, ${witnessColor}50, ${witnessColor}30)`
-                              : `linear-gradient(135deg, ${witnessColor}25, ${witnessColor}10)`,
-                          border: `2px solid ${isMarkedForDelete ? '#ff4444' : isActive ? witnessColor : witnessColor + '70'}`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 14,
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          boxShadow: isMarkedForDelete
-                            ? '0 0 12px #ff444480'
-                            : isActive ? `0 0 12px ${witnessColor}80` : `0 0 6px ${witnessColor}25`,
-                          transform: isActive ? 'scale(1.1)' : 'scale(1)',
-                          opacity: deleteMode === 'witness' && !isMarkedForDelete ? 0.7 : 1,
-                          position: 'relative',
-                        }}
-                      >
-                        {blade.emoji}
-                        {isMarkedForDelete && (
-                          <div style={{
-                            position: 'absolute',
-                            top: -4,
-                            right: -4,
-                            width: 12,
-                            height: 12,
-                            borderRadius: '50%',
-                            background: '#ff4444',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: 8,
-                            color: '#fff',
-                          }}>✕</div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                {/* Confirm delete button */}
-                {deleteMode === 'witness' && bladesToDelete.size > 0 && (
-                  <div
-                    onClick={() => {
-                      const updated = forgedBlades.filter(b => !bladesToDelete.has(b.id));
-                      setForgedBlades(updated);
-                      localStorage.setItem('spellweb-forged-blades', JSON.stringify(updated));
-                      setDeleteMode(null);
-                      setBladesToDelete(new Set());
-                    }}
-                    style={{
-                      marginTop: 6,
-                      padding: '4px 8px',
-                      borderRadius: 4,
-                      background: '#ff4444',
-                      color: '#fff',
-                      fontSize: 9,
-                      fontFamily: "'JetBrains Mono', monospace",
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Delete {bladesToDelete.size} blade{bladesToDelete.size > 1 ? 's' : ''}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Own Forged Blades Inventory (gold/tier, square) */}
-            {ownBlades.length > 0 && (
-              <div
-                className="mobile-hide"
-                style={{
-                  position: "absolute",
-                  bottom: ownInventoryBottom,
-                  left: 16,
-                  padding: "6px 10px",
-                  borderRadius: 10,
-                  background: "rgba(10, 10, 20, 0.9)",
-                  border: `1px solid ${deleteMode === 'forged' ? '#ff4444' : '#ffd70040'}`,
-                  backdropFilter: "blur(8px)",
-                  zIndex: 100,
-                }}
-              >
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 4,
-                }}>
-                  <div style={{
-                    fontSize: 8,
-                    color: '#ffd700',
-                    fontFamily: "'JetBrains Mono', monospace",
-                    letterSpacing: 1,
-                    textTransform: 'uppercase',
-                    opacity: 0.8,
-                  }}>
-                    ⚔️ Forged ({ownBlades.length})
-                  </div>
-                  {/* Delete toggle */}
-                  <div
-                    title={deleteMode === 'forged' ? "Cancel delete" : "Delete blades"}
-                    onClick={() => {
-                      if (deleteMode === 'forged') {
-                        setDeleteMode(null);
-                        setBladesToDelete(new Set());
-                      } else {
-                        setDeleteMode('forged');
-                        setBladesToDelete(new Set());
-                      }
-                    }}
-                    style={{
-                      width: 14,
-                      height: 14,
-                      borderRadius: 3,
-                      background: deleteMode === 'forged' ? '#ff444440' : 'rgba(255,255,255,0.1)',
-                      border: `1px solid ${deleteMode === 'forged' ? '#ff4444' : '#666'}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 8,
-                      cursor: 'pointer',
-                      color: deleteMode === 'forged' ? '#ff4444' : '#888',
-                    }}
-                  >
-                    {deleteMode === 'forged' ? '✕' : '−'}
-                  </div>
-                </div>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(5, 32px)',
-                  gap: 4,
-                }}>
-                  {ownBlades.slice(0, 10).map((blade) => {
-                    const isActive = activeBlade?.id === blade.id;
-                    const isMarkedForDelete = bladesToDelete.has(blade.id);
-                    const tierColor = blade.tier === 'dragon' ? '#ffd700' :
-                      blade.tier === 'heavy' ? '#c0c0c0' : '#87ceeb';
-                    return (
-                      <div
-                        key={blade.id}
-                        title={deleteMode === 'forged'
-                          ? (isMarkedForDelete ? `Click to unmark ${blade.name}` : `Click to mark ${blade.name} for deletion`)
-                          : `${blade.name} (${blade.tier} blade, stratum ${blade.stratum}) - Click to trace`}
-                        onClick={() => {
-                          if (deleteMode === 'forged') {
-                            const newSet = new Set(bladesToDelete);
-                            if (isMarkedForDelete) {
-                              newSet.delete(blade.id);
-                            } else {
-                              newSet.add(blade.id);
-                            }
-                            setBladesToDelete(newSet);
-                          } else {
-                            if (isActive) {
-                              setActiveBlade(null);
-                              setBladeTraceActive(false);
-                            } else {
-                              setActiveBlade(blade);
-                              setBladeTraceActive(true);
-                              setOrbsAtHome(false);
-                              if (blade.constellationMarks) {
-                                setConstellation(blade.constellationMarks);
-                                setConstellationConnections(blade.constellationConnections || []);
-                              }
-                            }
-                          }
-                        }}
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 6,
-                          background: isMarkedForDelete
-                            ? 'linear-gradient(135deg, #ff444450, #ff444430)'
-                            : isActive
-                              ? `linear-gradient(135deg, ${tierColor}50, ${tierColor}30)`
-                              : blade.tier === 'dragon'
-                                ? 'linear-gradient(135deg, #ffd70030, #ff660020)'
-                                : blade.tier === 'heavy'
-                                  ? 'linear-gradient(135deg, #c0c0c030, #88888820)'
-                                  : 'linear-gradient(135deg, #87ceeb30, #4a9eff20)',
-                          border: `2px solid ${isMarkedForDelete ? '#ff4444' : isActive ? tierColor : tierColor + '50'}`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 14,
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          boxShadow: isMarkedForDelete
-                            ? '0 0 12px #ff444480'
-                            : isActive ? `0 0 12px ${tierColor}80` : 'none',
-                          transform: isActive ? 'scale(1.1)' : 'scale(1)',
-                          opacity: deleteMode === 'forged' && !isMarkedForDelete ? 0.7 : 1,
-                          position: 'relative',
-                        }}
-                      >
-                        {blade.emoji}
-                        {isMarkedForDelete && (
-                          <div style={{
-                            position: 'absolute',
-                            top: -4,
-                            right: -4,
-                            width: 12,
-                            height: 12,
-                            borderRadius: '50%',
-                            background: '#ff4444',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: 8,
-                            color: '#fff',
-                          }}>✕</div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                {/* Confirm delete button */}
-                {deleteMode === 'forged' && bladesToDelete.size > 0 && (
-                  <div
-                    onClick={() => {
-                      const updated = forgedBlades.filter(b => !bladesToDelete.has(b.id));
-                      setForgedBlades(updated);
-                      localStorage.setItem('spellweb-forged-blades', JSON.stringify(updated));
-                      setDeleteMode(null);
-                      setBladesToDelete(new Set());
-                    }}
-                    style={{
-                      marginTop: 6,
-                      padding: '4px 8px',
-                      borderRadius: 4,
-                      background: '#ff4444',
-                      color: '#fff',
-                      fontSize: 9,
-                      fontFamily: "'JetBrains Mono', monospace",
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Delete {bladesToDelete.size} blade{bladesToDelete.size > 1 ? 's' : ''}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Forge ZK Blades Button */}
-            <button
-              className="mobile-hide"
-              onClick={() => {
-                if (latestProof) {
-                  setForgePhase('ignite');
-                  setShowForgeModal(true);
-                  setTimeout(() => setForgePhase('forge'), 800);
-                  setTimeout(() => setForgePhase('temper'), 2000);
-                  setTimeout(() => setForgePhase('complete'), 3500);
-                }
-              }}
-              style={{
-                position: "absolute",
-                bottom: zkBladesBottom,
-                left: 16,
-                padding: "12px 20px",
-                borderRadius: 8,
-                background: latestProof
-                  ? "linear-gradient(135deg, #ffd70050, #ff660040)"
-                  : "linear-gradient(135deg, #33333330, #22222220)",
-                border: latestProof ? "1px solid #ffd700" : "1px solid #444",
-                color: latestProof ? "#ffd700" : "#666",
-                fontSize: 12,
-                cursor: latestProof ? "pointer" : "default",
-                fontFamily: "'JetBrains Mono', monospace",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                transition: "all 0.3s",
-                boxShadow: latestProof ? "0 0 20px rgba(255, 215, 0, 0.3)" : "none",
-                opacity: latestProof ? 1 : 0.5,
-                zIndex: 100,
-              }}
-            >
-              <span>⚔️</span> ZK Blades
-            </button>
-          </>
-        );
-      })()}
-
-      {/* Constellations Button - Glows when proofs exist */}
-      {(() => {
-        const hasProofs = savedConstellations.some(c => c.proof);
-        return (
-          <button
             className="mobile-hide"
-            onClick={() => setShowMyConstellations(true)}
             style={{
               position: "absolute",
-              bottom: 70,
+              bottom: 20,
               left: 16,
-              padding: "10px 16px",
-              borderRadius: 8,
-              background: hasProofs
-                ? "linear-gradient(135deg, #7b68ee40, #9b59b630)"
-                : "rgba(123, 104, 238, 0.15)",
-              border: `1px solid ${hasProofs ? '#9b59b6' : '#7b68ee'}`,
-              color: hasProofs ? "#c9a0dc" : "#7b68ee",
-              fontSize: 12,
-              cursor: "pointer",
-              fontFamily: "'JetBrains Mono', monospace",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              transition: "all 0.3s",
-              boxShadow: hasProofs ? "0 0 15px rgba(155, 89, 182, 0.3)" : "none",
               zIndex: 100,
+              display: 'flex',
+              gap: 12,
             }}
           >
-            <span>🌌</span> Constellations
-          </button>
+            {/* MAGE INVENTORY */}
+            <div
+              style={{
+                borderRadius: 10,
+                background: "rgba(10, 10, 30, 0.95)",
+                border: `1px solid ${mageColor}50`,
+                backdropFilter: "blur(12px)",
+                overflow: 'hidden',
+              }}
+            >
+              {/* Mage Header - emoji + hotkey */}
+              <button
+                onClick={() => setShowMageMenu(true)}
+                style={{
+                  width: '100%',
+                  padding: '6px 8px',
+                  background: `linear-gradient(135deg, ${mageColor}25, ${mageColor}10)`,
+                  border: 'none',
+                  borderBottom: `1px solid ${mageColor}30`,
+                  color: mageColor,
+                  fontSize: 10,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  transition: 'all 0.2s',
+                }}
+              >
+                <span style={{ fontSize: 14 }}>🧙</span>
+                <span style={{ opacity: 0.7 }}>[M]</span>
+              </button>
+
+              {/* Spell Grid */}
+              <div style={{ padding: panelPadding }}>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(2, ${slotSize}px)`,
+                  gap: slotGap,
+                }}>
+                  {[0, 1, 2, 3, 4, 5, 6, 7].map((slotIndex) => {
+                    const spell = mageSpells[slotIndex];
+                    const isSelected = selectedSpellIndex === slotIndex;
+                    return (
+                      <div
+                        key={slotIndex}
+                        draggable={!!spell}
+                        onDragStart={(e) => {
+                          if (spell) e.dataTransfer.setData('mageSpellIndex', String(slotIndex));
+                        }}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const fromIndex = parseInt(e.dataTransfer.getData('mageSpellIndex'));
+                          if (!isNaN(fromIndex) && fromIndex !== slotIndex) {
+                            const newSpells = [...mageSpells];
+                            const temp = newSpells[fromIndex];
+                            newSpells[fromIndex] = newSpells[slotIndex];
+                            newSpells[slotIndex] = temp;
+                            setMageSpells(newSpells.filter(Boolean));
+                          }
+                        }}
+                        title={spell ? `${spell.label}\n${spell.proverb || ''}` : `Empty slot`}
+                        onClick={() => spell && setSelectedSpellIndex(isSelected ? null : slotIndex)}
+                        style={{
+                          width: slotSize,
+                          height: slotSize,
+                          borderRadius: 6,
+                          background: spell
+                            ? isSelected
+                              ? `linear-gradient(135deg, ${mageColor}80, ${mageColor}50)`
+                              : `linear-gradient(135deg, ${mageColor}30, ${mageColor}15)`
+                            : 'rgba(60, 60, 80, 0.2)',
+                          border: isSelected ? `2px solid ${mageColor}` : `1px solid ${spell ? mageColor + '50' : '#444'}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: spell ? 20 : 10,
+                          cursor: spell ? 'pointer' : 'default',
+                          transition: 'all 0.2s ease',
+                          boxShadow: isSelected ? `0 0 12px ${mageColor}60` : 'none',
+                        }}
+                      >
+                        {spell?.emoji || ''}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* ☯️ CEREMONY PANEL - Between Mage and Blades */}
+            <div
+              style={{
+                borderRadius: 10,
+                background: "rgba(10, 10, 25, 0.95)",
+                border: `1px solid #88888850`,
+                backdropFilter: "blur(12px)",
+                overflow: 'hidden',
+                width: showCeremonyMenu ? 200 : 'auto',
+                transition: 'width 0.2s',
+              }}
+            >
+              {/* Ceremony Header - yin-yang + hotkey */}
+              <button
+                onClick={() => setShowCeremonyMenu(prev => !prev)}
+                style={{
+                  width: '100%',
+                  padding: '6px 8px',
+                  background: showCeremonyMenu
+                    ? 'linear-gradient(135deg, #ffd70030, #7b68ee30)'
+                    : 'linear-gradient(135deg, #88888825, #88888810)',
+                  border: 'none',
+                  borderBottom: `1px solid #88888830`,
+                  color: '#aaa',
+                  fontSize: 10,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  transition: 'all 0.2s',
+                }}
+              >
+                <span style={{ fontSize: 14 }}>☯️</span>
+                <span style={{ opacity: 0.7 }}>[Y]</span>
+              </button>
+
+              {/* Ceremony Content - Collapsed: just preset buttons, Expanded: with audio */}
+              <div style={{ padding: panelPadding }}>
+                {!showCeremonyMenu ? (
+                  /* Collapsed: 2x1 grid with Sun and Moon preset buttons */
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: slotGap,
+                    alignItems: 'center',
+                  }}>
+                    {/* Sun Preset */}
+                    <button
+                      onClick={() => {
+                        const preset = CONSTELLATION_PRESETS[0];
+                        const marks = preset.marks.map(m => {
+                          const node = NODES.find(n => n.id === m.nodeId);
+                          return {
+                            nodeId: m.nodeId,
+                            nodeLabel: node?.label || m.nodeId,
+                            emoji: m.emoji || '✦',
+                            note: m.note || '',
+                            emojiSpell: m.emojiSpell,
+                          };
+                        });
+                        setConstellation(marks);
+                        setConstellationConnections(preset.connections.map(c => ({
+                          sourceId: c.sourceId,
+                          targetId: c.targetId,
+                          note: c.note || '',
+                        })));
+                        setInscribedSpell(preset.inscribedSpell);
+                        setConstellationReflection(preset.reflection || '');
+                        setConstellationName(preset.name);
+                        setCastingSpells(true);
+                        setIsShineMode(true);
+                      }}
+                      title={`☀️ The Emissary Path\n"Just as the Sun, promises space, between."\n13 nodes • Dragon tier`}
+                      style={{
+                        width: slotSize,
+                        height: slotSize,
+                        borderRadius: 6,
+                        background: 'linear-gradient(135deg, #ffd70025, #ff8c0015)',
+                        border: '1px solid #ffd70050',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 20,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      ☀️
+                    </button>
+                    {/* Gap indicator */}
+                    <div
+                      title="⊥ The Gap — the irreducible separation"
+                      style={{
+                        width: slotSize,
+                        height: 16,
+                        borderRadius: 4,
+                        background: '#22222280',
+                        border: '1px solid #444',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 10,
+                        color: '#666',
+                        fontFamily: '"JetBrains Mono", monospace',
+                      }}
+                    >
+                      ⊥
+                    </div>
+                    {/* Moon Preset */}
+                    <button
+                      onClick={() => {
+                        const preset = CONSTELLATION_PRESETS[1];
+                        const marks = preset.marks.map(m => {
+                          const node = NODES.find(n => n.id === m.nodeId);
+                          return {
+                            nodeId: m.nodeId,
+                            nodeLabel: node?.label || m.nodeId,
+                            emoji: m.emoji || '✦',
+                            note: m.note || '',
+                            emojiSpell: m.emojiSpell,
+                          };
+                        });
+                        setConstellation(marks);
+                        setConstellationConnections(preset.connections.map(c => ({
+                          sourceId: c.sourceId,
+                          targetId: c.targetId,
+                          note: c.note || '',
+                        })));
+                        setInscribedSpell(preset.inscribedSpell);
+                        setConstellationReflection(preset.reflection || '');
+                        setConstellationName(preset.name);
+                        setCastingSpells(true);
+                        setIsShineMode(true);
+                      }}
+                      title={`🌙 The Amnesia Path\n"The amnesia is the protocol. The wound is the trust."\n15 nodes • Dragon tier`}
+                      style={{
+                        width: slotSize,
+                        height: slotSize,
+                        borderRadius: 6,
+                        background: 'linear-gradient(135deg, #7b68ee25, #9b59b615)',
+                        border: '1px solid #7b68ee50',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 20,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      🌙
+                    </button>
+                  </div>
+                ) : (
+                  /* Expanded: Full ceremony menu with audio players */
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {/* Sun Ceremony */}
+                    <div style={{
+                      padding: 8,
+                      borderRadius: 8,
+                      background: 'linear-gradient(135deg, #ffd70015, #ff8c0008)',
+                      border: '1px solid #ffd70040',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <span style={{ fontSize: 18 }}>☀️</span>
+                        <div>
+                          <div style={{ fontSize: 11, color: '#ffd700', fontWeight: 500 }}>Sun Ceremony</div>
+                          <div style={{ fontSize: 9, color: '#888' }}>13 nodes • The Emissary Path</div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const preset = CONSTELLATION_PRESETS[0];
+                          const marks = preset.marks.map(m => {
+                            const node = NODES.find(n => n.id === m.nodeId);
+                            return {
+                              nodeId: m.nodeId,
+                              nodeLabel: node?.label || m.nodeId,
+                              emoji: m.emoji || '✦',
+                              note: m.note || '',
+                              emojiSpell: m.emojiSpell,
+                            };
+                          });
+                          setConstellation(marks);
+                          setConstellationConnections(preset.connections.map(c => ({
+                            sourceId: c.sourceId,
+                            targetId: c.targetId,
+                            note: c.note || '',
+                          })));
+                          setInscribedSpell(preset.inscribedSpell);
+                          setConstellationReflection(preset.reflection || '');
+                          setConstellationName(preset.name);
+                          setCastingSpells(true);
+                          setIsShineMode(true);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '6px 10px',
+                          marginBottom: 8,
+                          borderRadius: 6,
+                          background: '#ffd70020',
+                          border: '1px solid #ffd700',
+                          color: '#ffd700',
+                          fontSize: 10,
+                          cursor: 'pointer',
+                          fontFamily: "'JetBrains Mono', monospace",
+                        }}
+                      >
+                        Load Constellation
+                      </button>
+                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>🎙️ The Emissary Who Forgot the Master</div>
+                      <audio
+                        controls
+                        src="https://voice.agentprivacy.ai/The_Emissary_Who_Forgot_the_Master.mp3"
+                        style={{ width: '100%', height: 32 }}
+                      />
+                    </div>
+
+                    {/* Gap */}
+                    <div style={{
+                      padding: '6px 12px',
+                      borderRadius: 4,
+                      background: '#22222280',
+                      border: '1px solid #444',
+                      textAlign: 'center',
+                    }}>
+                      <div style={{ fontSize: 12, color: '#666' }}>⊥</div>
+                      <div style={{ fontSize: 8, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>
+                        The irreducible separation
+                      </div>
+                    </div>
+
+                    {/* Moon Ceremony */}
+                    <div style={{
+                      padding: 8,
+                      borderRadius: 8,
+                      background: 'linear-gradient(135deg, #7b68ee15, #9b59b608)',
+                      border: '1px solid #7b68ee40',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <span style={{ fontSize: 18 }}>🌙</span>
+                        <div>
+                          <div style={{ fontSize: 11, color: '#7b68ee', fontWeight: 500 }}>Moon Ceremony</div>
+                          <div style={{ fontSize: 9, color: '#888' }}>15 nodes • The Amnesia Path</div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const preset = CONSTELLATION_PRESETS[1];
+                          const marks = preset.marks.map(m => {
+                            const node = NODES.find(n => n.id === m.nodeId);
+                            return {
+                              nodeId: m.nodeId,
+                              nodeLabel: node?.label || m.nodeId,
+                              emoji: m.emoji || '✦',
+                              note: m.note || '',
+                              emojiSpell: m.emojiSpell,
+                            };
+                          });
+                          setConstellation(marks);
+                          setConstellationConnections(preset.connections.map(c => ({
+                            sourceId: c.sourceId,
+                            targetId: c.targetId,
+                            note: c.note || '',
+                          })));
+                          setInscribedSpell(preset.inscribedSpell);
+                          setConstellationReflection(preset.reflection || '');
+                          setConstellationName(preset.name);
+                          setCastingSpells(true);
+                          setIsShineMode(true);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '6px 10px',
+                          marginBottom: 8,
+                          borderRadius: 6,
+                          background: '#7b68ee20',
+                          border: '1px solid #7b68ee',
+                          color: '#7b68ee',
+                          fontSize: 10,
+                          cursor: 'pointer',
+                          fontFamily: "'JetBrains Mono', monospace",
+                        }}
+                      >
+                        Load Constellation
+                      </button>
+                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>🎙️ The Amnesia Protocol</div>
+                      <audio
+                        controls
+                        src="https://voice.agentprivacy.ai/The_Amnesia_Protocol.mp3"
+                        style={{ width: '100%', height: 32 }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* BLADES INVENTORY */}
+            <div
+              style={{
+                borderRadius: 10,
+                background: "rgba(10, 10, 20, 0.95)",
+                border: `1px solid ${bladesColor}50`,
+                backdropFilter: "blur(12px)",
+                overflow: 'hidden',
+              }}
+            >
+              {/* Blade Header - emoji + hotkey */}
+              <button
+                onClick={() => setShowBladesModal(true)}
+                style={{
+                  width: '100%',
+                  padding: '6px 8px',
+                  background: `linear-gradient(135deg, ${bladesColor}25, ${bladesColor}10)`,
+                  border: 'none',
+                  borderBottom: `1px solid ${bladesColor}30`,
+                  color: bladesColor,
+                  fontSize: 10,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  transition: 'all 0.2s',
+                }}
+              >
+                <span style={{ fontSize: 14 }}>⚔️</span>
+                <span style={{ opacity: 0.7 }}>[S]</span>
+              </button>
+
+              {/* Blade Grid */}
+              <div style={{ padding: panelPadding }}>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(2, ${slotSize}px)`,
+                  gap: slotGap,
+                }}>
+                  {[0, 1, 2, 3, 4, 5, 6, 7].map((slotIndex) => {
+                    const blade = allBlades[slotIndex];
+                    const isEquipped = blade && equippedBlade?.id === blade.id;
+                    const isActive = blade && activeBlade?.id === blade.id;
+                    const tierColor = blade?.tier === 'dragon' ? '#ffd700' :
+                      blade?.tier === 'heavy' ? '#c0c0c0' : '#87ceeb';
+
+                    return (
+                      <div
+                        key={slotIndex}
+                        draggable={!!blade}
+                        onDragStart={(e) => {
+                          if (blade) e.dataTransfer.setData('bladeIndex', String(slotIndex));
+                        }}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const fromIndex = parseInt(e.dataTransfer.getData('bladeIndex'));
+                          if (!isNaN(fromIndex) && fromIndex !== slotIndex) {
+                            const newBlades = [...forgedBlades];
+                            const temp = newBlades[fromIndex];
+                            newBlades[fromIndex] = newBlades[slotIndex];
+                            newBlades[slotIndex] = temp;
+                            const filtered = newBlades.filter(Boolean);
+                            setForgedBlades(filtered);
+                            localStorage.setItem(SPELLWEB_STORAGE_KEYS.forgedBlades, JSON.stringify(filtered));
+                          }
+                        }}
+                        title={blade ? `${blade.name} ${stratumToMoonPhase(blade.stratum)} (${blade.tier})${isEquipped ? ' ⚔️ EQUIPPED' : ''}` : `Empty slot`}
+                        onClick={() => {
+                          if (blade) {
+                            if (isActive) {
+                              setActiveBlade(null);
+                              setBladeTraceActive(false);
+                              setIsShineMode(true); // Restore shine when stopping trace
+                            } else {
+                              setActiveBlade(blade);
+                              setBladeTraceActive(true);
+                              setOrbsAtHome(false);
+                              if (blade.constellationMarks) {
+                                setConstellation(blade.constellationMarks);
+                                setConstellationConnections(blade.constellationConnections || []);
+                              }
+                            }
+                          }
+                        }}
+                        onDoubleClick={() => blade && setEquippedBlade(isEquipped ? null : blade)}
+                        style={{
+                          width: slotSize,
+                          height: slotSize,
+                          borderRadius: 6,
+                          background: blade
+                            ? isEquipped
+                              ? 'linear-gradient(135deg, #e74c3c50, #e74c3c30)'
+                              : isActive
+                                ? `linear-gradient(135deg, ${tierColor}40, ${tierColor}20)`
+                                : `linear-gradient(135deg, ${tierColor}25, ${tierColor}10)`
+                            : 'rgba(60, 60, 80, 0.2)',
+                          border: isEquipped ? '2px solid #e74c3c' : `1px solid ${blade ? tierColor + '50' : '#444'}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: blade ? 20 : 10,
+                          cursor: blade ? 'pointer' : 'default',
+                          transition: 'all 0.2s ease',
+                          boxShadow: isEquipped ? '0 0 12px #e74c3c60' : isActive ? `0 0 10px ${tierColor}40` : 'none',
+                          position: 'relative',
+                        }}
+                      >
+                        {blade?.emoji || ''}
+                        {isEquipped && (
+                          <span style={{
+                            position: 'absolute',
+                            bottom: -4,
+                            right: -4,
+                            fontSize: 8,
+                            background: '#e74c3c',
+                            borderRadius: '50%',
+                            width: 14,
+                            height: 14,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#fff',
+                            boxShadow: '0 0 6px #e74c3c',
+                          }}>⚔</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
         );
       })()}
 
-      {/* Share Knowledge Button - Bottom Left */}
-      <a
-        className="mobile-hide"
-        href="https://agentprivacy.ai/evoke"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          position: "absolute",
-          bottom: 16,
-          left: 16,
-          padding: "10px 16px",
-          borderRadius: 8,
-          background: `linear-gradient(135deg, #7b68ee20, #e9456020)`,
-          border: `1px solid #7b68ee80`,
-          color: "#aaa",
-          fontSize: 12,
-          fontFamily: "'JetBrains Mono', monospace",
-          textDecoration: "none",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          backdropFilter: "blur(8px)",
-          zIndex: 50,
-          transition: "all 0.2s",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = `linear-gradient(135deg, #7b68ee40, #e9456040)`;
-          e.currentTarget.style.color = "#fff";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = `linear-gradient(135deg, #7b68ee20, #e9456020)`;
-          e.currentTarget.style.color = "#aaa";
-        }}
-      >
-        <span>🔮</span> Share Knowledge
-      </a>
 
       {/* Connect Modal - Edge Drawing */}
       {showConnectModal && connectionMode.sourceNode && connectTarget && (
@@ -2707,6 +3419,7 @@ export default function SpellWeb() {
                   setCastingSpells(false);
                   setIncantationActive(false);
                   setShowClearMapModal(false);
+                  setIsShineMode(true); // Restore shine when clearing map
                 }}
                 style={{
                   padding: "10px 20px",
@@ -2939,8 +3652,9 @@ export default function SpellWeb() {
         </div>
       )}
 
-      {/* My Constellations Modal */}
-      {showMyConstellations && (
+
+      {/* Spell Learning Emoji Picker Modal */}
+      {showSpellEmojiPicker && pendingSpellNode && (
         <div
           style={{
             position: "fixed",
@@ -2954,160 +3668,197 @@ export default function SpellWeb() {
             justifyContent: "center",
             zIndex: 300,
           }}
-          onClick={() => setShowMyConstellations(false)}
+          onClick={() => {
+            setShowSpellEmojiPicker(false);
+            setPendingSpellNode(null);
+            setPendingSpellEmoji('');
+            setPendingSpellProverb('');
+          }}
         >
           <div
             style={{
               background: THEME.panelBg,
-              border: `1px solid ${THEME.panelBorder}`,
+              border: `1px solid #9b59b6`,
               borderRadius: 12,
               padding: 24,
-              maxWidth: 500,
+              maxWidth: 450,
               width: "90%",
-              maxHeight: "70vh",
+              maxHeight: "80vh",
               overflow: "auto",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ margin: "0 0 16px", color: "#7b68ee", fontSize: 18 }}>
-              🌌 My Constellations
+            <h3 style={{ margin: "0 0 6px", color: "#9b59b6", fontSize: 20, fontFamily: "'Cormorant Garamond', serif" }}>
+              🔮 Learn Spell
             </h3>
+            <p style={{ margin: "0 0 16px", color: THEME.textDim, fontSize: 12 }}>
+              Choose one emoji to represent this spell in your hexagram line {pendingSpellLine + 1}.
+            </p>
 
-            {savedConstellations.length === 0 ? (
-              <p style={{ color: THEME.textDim, fontSize: 13 }}>
-                No saved constellations yet. Use the Waypoint feature to trace a path through the stars.
-              </p>
-            ) : (
-              <div>
-                {savedConstellations.map((saved) => (
-                  <div
-                    key={saved.id}
-                    style={{
-                      padding: 16,
-                      marginBottom: 12,
-                      background: "#ffffff08",
-                      borderRadius: 8,
-                      border: `1px solid ${THEME.panelBorder}`,
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                      <div>
-                        <div style={{ fontSize: 14, color: THEME.text, fontWeight: 500 }}>
-                          {saved.name}
-                        </div>
-                        <div style={{ fontSize: 10, color: THEME.textDim }}>
-                          {new Date(saved.createdAt).toLocaleDateString()} • {saved.marks.length} nodes
-                        </div>
-                      </div>
-                    </div>
-                    {saved.inscribedSpell && (
-                      <div style={{ fontSize: 20, marginBottom: 8, letterSpacing: 4, color: "#ffd700" }}>
-                        {saved.inscribedSpell}
-                      </div>
-                    )}
-                    {saved.proof && (
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        marginBottom: 8,
-                        padding: "6px 10px",
-                        background: "rgba(255, 107, 107, 0.1)",
-                        borderRadius: 6,
-                        fontSize: 11,
-                      }}>
-                        <span>🔥</span>
-                        <span style={{ color: saved.proof.chargeLevel === 'inferno' ? '#ff6b6b' : saved.proof.chargeLevel === 'blaze' ? '#ffd700' : '#888' }}>
-                          {saved.proof.chargeLevel.toUpperCase()}
-                        </span>
-                        <span style={{ color: THEME.textDim }}>•</span>
-                        <span style={{ color: THEME.textDim }}>{saved.proof.lapCount} laps</span>
-                        <span style={{ color: THEME.textDim }}>•</span>
-                        <span style={{ color: THEME.textDim }}>{saved.proof.spellsCast || 0} spells</span>
-                        <span style={{ color: THEME.textDim }}>•</span>
-                        <span style={{ color: "#9b59b6", fontFamily: "monospace", fontSize: 9 }}>
-                          {saved.proof.signature}
-                        </span>
-                      </div>
-                    )}
-                    <div style={{ fontSize: 14, marginBottom: 8, color: THEME.textDim }}>
-                      {saved.marks.map(m => m.emoji).join(" → ")}
-                    </div>
-                    {saved.reflection && (
-                      <div style={{ fontSize: 11, color: THEME.textDim, fontStyle: "italic", marginBottom: 8 }}>
-                        "{saved.reflection}"
-                      </div>
-                    )}
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button
-                        onClick={() => handleLoadConstellation(saved)}
-                        style={{
-                          padding: "6px 12px",
-                          borderRadius: 4,
-                          background: "#7b68ee30",
-                          border: `1px solid #7b68ee`,
-                          color: "#7b68ee",
-                          fontSize: 11,
-                          cursor: "pointer",
-                        }}
-                      >
-                        ✨ View
-                      </button>
-                      <button
-                        onClick={() => {
-                          // Load constellation and open edit modal
-                          handleLoadConstellation(saved);
-                          setInscribedSpell(saved.inscribedSpell || "");
-                          setConstellationReflection(saved.reflection || "");
-                          setShowMyConstellations(false);
-                          setShowClosePortalModal(true);
-                        }}
-                        style={{
-                          padding: "6px 12px",
-                          borderRadius: 4,
-                          background: "#ffd70030",
-                          border: `1px solid #ffd700`,
-                          color: "#ffd700",
-                          fontSize: 11,
-                          cursor: "pointer",
-                        }}
-                      >
-                        ✏️ Edit
-                      </button>
-                      {(() => {
-                        // Export only enabled when blade is forged
-                        const hasForgedBlade = saved.proof
-                          ? forgedBlades.some(b => b.proof.signature === saved.proof?.signature)
-                          : false;
-                        return (
-                          <button
-                            onClick={() => hasForgedBlade && handleExportConstellation(saved)}
-                            disabled={!hasForgedBlade}
-                            title={hasForgedBlade ? "Export constellation with blade" : "Forge a blade to enable export"}
-                            style={{
-                              padding: "6px 12px",
-                              borderRadius: 4,
-                              background: hasForgedBlade ? "#50c87820" : "transparent",
-                              border: `1px solid ${hasForgedBlade ? "#50c878" : THEME.panelBorder}`,
-                              color: hasForgedBlade ? "#50c878" : THEME.textDim,
-                              fontSize: 11,
-                              cursor: hasForgedBlade ? "pointer" : "not-allowed",
-                              opacity: hasForgedBlade ? 1 : 0.5,
-                            }}
-                          >
-                            📄 Export .md
-                          </button>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                ))}
+            {/* Spell info */}
+            <div style={{
+              padding: 12,
+              background: '#9b59b610',
+              borderRadius: 8,
+              marginBottom: 16,
+              border: '1px solid #9b59b630',
+            }}>
+              <div style={{ fontSize: 14, color: THEME.text, fontWeight: 500 }}>
+                {pendingSpellNode.emoji && <span style={{ marginRight: 6 }}>{pendingSpellNode.emoji}</span>}
+                {pendingSpellNode.label}
               </div>
-            )}
+              <div style={{ fontSize: 11, color: THEME.textDim, marginTop: 4 }}>
+                {pendingSpellNode.desc?.slice(0, 100)}{pendingSpellNode.desc && pendingSpellNode.desc.length > 100 ? '...' : ''}
+              </div>
+            </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
+            {/* Emoji selection from emojiSpell */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontSize: 11, color: "#9b59b6", marginBottom: 10, letterSpacing: 1 }}>
+                ✨ CHOOSE YOUR SPELL EMOJI
+              </label>
+              {pendingSpellNode.emojiSpell ? (
+                <>
+                  <p style={{ fontSize: 10, color: THEME.textDim, marginBottom: 8 }}>
+                    Click one emoji from the spell to inscribe:
+                  </p>
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 8,
+                    padding: 12,
+                    background: '#ffffff08',
+                    borderRadius: 8,
+                    border: `1px solid ${THEME.panelBorder}`,
+                  }}>
+                    {/* Parse emojis from emojiSpell */}
+                    {[...pendingSpellNode.emojiSpell].filter(char => {
+                      // Keep emojis only (basic check for emoji ranges)
+                      const code = char.codePointAt(0) || 0;
+                      return code > 0x1F300 || (code >= 0x2600 && code <= 0x27BF);
+                    }).map((emoji, i) => (
+                      <span
+                        key={i}
+                        onClick={() => setPendingSpellEmoji(emoji)}
+                        style={{
+                          fontSize: 24,
+                          cursor: 'pointer',
+                          padding: '8px 12px',
+                          borderRadius: 6,
+                          background: pendingSpellEmoji === emoji ? '#9b59b640' : '#9b59b610',
+                          border: `2px solid ${pendingSpellEmoji === emoji ? '#9b59b6' : 'transparent'}`,
+                          transition: 'all 0.15s',
+                        }}
+                        title={`Select ${emoji}`}
+                      >
+                        {emoji}
+                      </span>
+                    ))}
+                    {/* Also allow node's primary emoji */}
+                    {pendingSpellNode.emoji && !pendingSpellNode.emojiSpell?.includes(pendingSpellNode.emoji) && (
+                      <span
+                        onClick={() => setPendingSpellEmoji(pendingSpellNode.emoji || '')}
+                        style={{
+                          fontSize: 24,
+                          cursor: 'pointer',
+                          padding: '8px 12px',
+                          borderRadius: 6,
+                          background: pendingSpellEmoji === pendingSpellNode.emoji ? '#9b59b640' : '#9b59b610',
+                          border: `2px solid ${pendingSpellEmoji === pendingSpellNode.emoji ? '#9b59b6' : 'transparent'}`,
+                          transition: 'all 0.15s',
+                        }}
+                        title={`Select ${pendingSpellNode.emoji}`}
+                      >
+                        {pendingSpellNode.emoji}
+                      </span>
+                    )}
+                  </div>
+                </>
+              ) : (
+                // No emojiSpell, use node emoji or allow custom
+                <div style={{
+                  display: 'flex',
+                  gap: 8,
+                  alignItems: 'center',
+                }}>
+                  {pendingSpellNode.emoji && (
+                    <span
+                      onClick={() => setPendingSpellEmoji(pendingSpellNode.emoji || '')}
+                      style={{
+                        fontSize: 28,
+                        cursor: 'pointer',
+                        padding: '10px 14px',
+                        borderRadius: 6,
+                        background: pendingSpellEmoji === pendingSpellNode.emoji ? '#9b59b640' : '#9b59b610',
+                        border: `2px solid ${pendingSpellEmoji === pendingSpellNode.emoji ? '#9b59b6' : 'transparent'}`,
+                      }}
+                    >
+                      {pendingSpellNode.emoji}
+                    </span>
+                  )}
+                  <span style={{ fontSize: 11, color: THEME.textDim }}>or type:</span>
+                  <input
+                    type="text"
+                    value={pendingSpellEmoji}
+                    onChange={(e) => setPendingSpellEmoji(e.target.value.slice(-2))}
+                    placeholder="✦"
+                    style={{
+                      width: 60,
+                      padding: '10px 14px',
+                      borderRadius: 6,
+                      background: '#9b59b610',
+                      border: `1px solid #9b59b6`,
+                      color: THEME.text,
+                      fontSize: 20,
+                      textAlign: 'center',
+                    }}
+                  />
+                </div>
+              )}
+              {pendingSpellEmoji && (
+                <div style={{ marginTop: 8, fontSize: 12, color: '#9b59b6' }}>
+                  Selected: <span style={{ fontSize: 20 }}>{pendingSpellEmoji}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Proverb inscription */}
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: "block", fontSize: 11, color: "#ffd700", marginBottom: 10, letterSpacing: 1 }}>
+                📜 INSCRIBE YOUR PROVERB
+              </label>
+              <p style={{ fontSize: 10, color: THEME.textDim, marginBottom: 8 }}>
+                Write a short wisdom or intention for this spell:
+              </p>
+              <textarea
+                value={pendingSpellProverb}
+                onChange={(e) => setPendingSpellProverb(e.target.value)}
+                placeholder={pendingSpellNode.proverb || "A brief wisdom about this spell..."}
+                style={{
+                  width: "100%",
+                  padding: "12px 14px",
+                  borderRadius: 6,
+                  background: "#ffd70010",
+                  border: `1px solid #ffd70080`,
+                  color: THEME.text,
+                  fontSize: 13,
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontStyle: 'italic',
+                  resize: "vertical",
+                  minHeight: 60,
+                }}
+              />
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
               <button
-                onClick={() => setShowMyConstellations(false)}
+                onClick={() => {
+                  setShowSpellEmojiPicker(false);
+                  setPendingSpellNode(null);
+                  setPendingSpellEmoji('');
+                  setPendingSpellProverb('');
+                }}
                 style={{
                   padding: "10px 20px",
                   borderRadius: 6,
@@ -3118,7 +3869,40 @@ export default function SpellWeb() {
                   cursor: "pointer",
                 }}
               >
-                Close
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingSpellNode && pendingSpellEmoji) {
+                    const newSpell: MageSpell = {
+                      nodeId: pendingSpellNode.id,
+                      label: pendingSpellNode.label,
+                      emoji: pendingSpellEmoji,
+                      emojiSpell: pendingSpellNode.emojiSpell,
+                      proverb: pendingSpellProverb || pendingSpellNode.proverb || '',
+                      hexagramLine: pendingSpellLine,
+                      learnedAt: Date.now(),
+                    };
+                    setMageSpells(prev => [...prev, newSpell]);
+                    setShowSpellEmojiPicker(false);
+                    setPendingSpellNode(null);
+                    setPendingSpellEmoji('');
+                    setPendingSpellProverb('');
+                  }
+                }}
+                disabled={!pendingSpellEmoji}
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: 6,
+                  background: pendingSpellEmoji ? "#9b59b6" : "#9b59b640",
+                  border: "none",
+                  color: pendingSpellEmoji ? "#fff" : "#ffffff60",
+                  fontSize: 12,
+                  cursor: pendingSpellEmoji ? "pointer" : "default",
+                  fontWeight: 600,
+                }}
+              >
+                ✨ Learn Spell
               </button>
             </div>
           </div>
@@ -3165,33 +3949,6 @@ export default function SpellWeb() {
         </div>
       </div>
 
-      {/* Clear Map - Small button in bottom right */}
-      {constellation.length > 0 && (
-        <button
-          onClick={() => setShowClearMapModal(true)}
-          style={{
-            position: "absolute",
-            bottom: 16,
-            right: selectedNode ? 396 : 16,
-            padding: "6px 10px",
-            borderRadius: 4,
-            background: `${THEME.panelBg}c0`,
-            border: `1px solid #ff444480`,
-            color: "#ff4444",
-            fontSize: 10,
-            fontFamily: "'JetBrains Mono', monospace",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            backdropFilter: "blur(8px)",
-            zIndex: 50,
-            transition: "right 0.2s",
-          }}
-        >
-          <span style={{ fontSize: 10 }}>🗑️</span> Clear
-        </button>
-      )}
 
       {/* Graph Canvas */}
       <div
@@ -3207,8 +3964,86 @@ export default function SpellWeb() {
       >
         <svg ref={svgRef} width="100%" height="100%" style={{ display: "block" }} />
 
+        {/* Floating Emojis - Trajectory effect when clicking/casting spells */}
+        {floatingEmojis.map(fe => {
+          const dx = fe.targetX - fe.x;
+          const dy = fe.targetY - fe.y;
+          return (
+            <div
+              key={fe.id}
+              style={{
+                position: 'fixed',
+                left: fe.x,
+                top: fe.y,
+                fontSize: 24,
+                pointerEvents: 'none',
+                zIndex: 200,
+                textShadow: '0 0 10px #9b59b6, 0 0 20px #9b59b680',
+                // @ts-ignore - CSS custom properties
+                '--dx': `${dx}px`,
+                '--dy': `${dy}px`,
+                animation: 'spellEmojiTrajectory 1.5s ease-out forwards',
+              } as React.CSSProperties}
+            >
+              {fe.emoji}
+            </div>
+          );
+        })}
+
+
+        {/* Hovered Node Tooltip - Bottom right above domains key */}
+        {hoveredNode && !selectedNode && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: 140,
+              right: 16,
+              maxWidth: 280,
+              background: `${THEME.panelBg}f0`,
+              borderRadius: 8,
+              padding: '12px 16px',
+              zIndex: 60,
+              backdropFilter: 'blur(12px)',
+              border: `1px solid ${THEME.panelBorder}`,
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <span style={{ fontSize: 24 }}>{hoveredNode.emoji || '✦'}</span>
+              <span style={{
+                fontSize: 14,
+                color: THEME.textBright,
+                fontWeight: 600,
+                fontFamily: "'Cormorant Garamond', serif"
+              }}>
+                {hoveredNode.label}
+              </span>
+            </div>
+            {hoveredNode.desc && (
+              <div style={{
+                fontSize: 11,
+                color: THEME.textDim,
+                lineHeight: 1.5,
+                marginBottom: 8,
+              }}>
+                {hoveredNode.desc.slice(0, 150)}{hoveredNode.desc.length > 150 ? '…' : ''}
+              </div>
+            )}
+            <div style={{
+              fontSize: 9,
+              color: '#666',
+              textTransform: 'uppercase',
+              letterSpacing: 1.5,
+            }}>
+              {hoveredNode.type} · {hoveredNode.domain}
+            </div>
+          </div>
+        )}
+
         {/* Spell Ceremony - Floating panel with orbs traveling the constellation circuit */}
-        <SpellCeremony
+        {/* Always visible - SpellCeremony handles its own minimize state */}
+        {(
+          <SpellCeremony
           isActive={true}
           isCasting={incantationActive}
           circuitNodes={constellation.map(mark => {
@@ -3227,31 +4062,18 @@ export default function SpellWeb() {
             };
           }).filter(Boolean) as Array<{id: string; x: number; y: number; emoji?: string; emojiSpell?: string; label: string; proverb?: string}>}
           onProofGenerated={handleProofGenerated}
-          onToggleEvoke={() => setIncantationActive(i => !i)}
+          onToggleEvoke={() => { setIncantationActive(i => { if (i) setIsShineMode(true); return !i; }); }}
           onClearConstellation={() => {
             setConstellation([]);
             setConstellationConnections([]);
             setIncantationActive(false);
             setActiveConstellationId(null);
+            setIsShineMode(true); // Restore shine when clearing constellation
           }}
+          isShineMode={isShineMode}
           onShine={() => {
-            // Reset everything to fresh state - close all modals and clear all state
-            setConstellation([]);
-            setConstellationConnections([]);
-            setCastingSpells(false);
-            setIncantationActive(false);
-            setActiveConstellationId(null);
-            setSelectedNode(null);
-            setConnectionMode({ active: false, sourceNode: null });
-            setConnectTarget(null);
-            setWaypoint({ active: false, path: [] });
-            _setNavigator({ active: false, currentNode: null, path: [], pendingMark: false });
-            // Close all modals
-            setShowClosePortalModal(false);
-            setShowMyConstellations(false);
-            setShowMarkModal(false);
-            setShowConnectModal(false);
-            setShowClearMapModal(false);
+            // Toggle Shine (100%) vs Shadow (15%) mode
+            setIsShineMode(prev => !prev);
           }}
           onSavePath={() => {
             if (constellation.length > 0 && !activeConstellationId) {
@@ -3290,7 +4112,72 @@ export default function SpellWeb() {
           waypointActive={waypoint.active}
           orbsAtHome={orbsAtHome}
           onToggleOrbsHome={() => setOrbsAtHome(h => !h)}
+          equippedBlade={equippedBlade ? {
+            id: equippedBlade.id,
+            name: equippedBlade.name,
+            emoji: equippedBlade.emoji,
+            constellationMarks: equippedBlade.constellationMarks.map(mark => {
+              const staticNode = NODES.find(n => n.id === mark.nodeId);
+              return {
+                nodeId: mark.nodeId,
+                emoji: mark.emoji || staticNode?.emoji,
+                emojiSpell: staticNode?.emojiSpell,
+              };
+            }),
+          } : null}
+          mageSpells={mageSpells.map(spell => ({
+            nodeId: spell.nodeId,
+            label: spell.label,
+            emoji: spell.emoji,
+            emojiSpell: spell.emojiSpell,
+            proverb: spell.proverb,
+            hexagramLine: spell.hexagramLine,
+          }))}
+          hoveredNode={hoveredNode && !selectedNode ? {
+            label: hoveredNode.label,
+            emoji: hoveredNode.emoji,
+            type: hoveredNode.type,
+            desc: hoveredNode.desc,
+          } : null}
+          selectedSpell={selectedSpellIndex !== null && mageSpells[selectedSpellIndex] ? {
+            label: mageSpells[selectedSpellIndex].label,
+            emoji: mageSpells[selectedSpellIndex].emoji,
+            proverb: mageSpells[selectedSpellIndex].proverb,
+          } : null}
+          manaPoints={manaPoints}
+          maxMana={MAX_MANA}
+          onSpellCast={() => {
+            // Deduct mana when casting spell during ceremony
+            // Cost depends on blade tier: dragon=1, heavy=3, light/none=6
+            // Use ref to avoid stale closure issues
+            const cost = manaCostRef.current;
+            setManaPoints(prev => {
+              if (prev >= cost) {
+                const newMana = Math.max(0, prev - cost);
+                localStorage.setItem('spellweb_mana_points', String(newMana));
+                return newMana;
+              }
+              return prev; // Not enough mana
+            });
+          }}
+          castingMode={castingMode}
+          onToggleCastingMode={() => setCastingMode(m => m === 'constellation' ? 'mage' : 'constellation')}
+          manaFloor={7}
+          hasProof={!!latestProof}
+          onForge={() => {
+            if (latestProof) {
+              setForgePhase('ignite');
+              setShowForgeModal(true);
+              setTimeout(() => setForgePhase('forge'), 800);
+              setTimeout(() => setForgePhase('temper'), 2000);
+              setTimeout(() => setForgePhase('complete'), 3500);
+            }
+          }}
+          onOpenMageMenu={() => setShowMageMenu(true)}
+          onOpenBladesModal={() => setShowBladesModal(true)}
         />
+        )}
+
       </div>
 
       {/* Node Inspector */}
@@ -3303,8 +4190,20 @@ export default function SpellWeb() {
           onAddToPath={() => handleWaypointAddNode(selectedNode)}
           isWaypointActive={waypoint.active}
           isInPath={waypoint.path.includes(selectedNode.id)}
+          // Mage spell learning - opens emoji picker modal
+          onLearnSpell={(node, hexagramLine) => {
+            // Open emoji picker modal instead of directly adding
+            if (mageSpells.length < 8 && !mageSpells.some(s => s.nodeId === node.id)) {
+              setPendingSpellNode(node);
+              setPendingSpellLine(hexagramLine);
+              setShowSpellEmojiPicker(true);
+            }
+          }}
+          mageSpellCount={mageSpells.length}
+          isSpellLearned={mageSpells.some(s => s.nodeId === selectedNode.id)}
         />
       )}
+
 
       {/* Wandering Orbs - Float through graph when not evoking and not at home */}
       {!incantationActive && !orbsAtHome && (
@@ -3358,6 +4257,20 @@ export default function SpellWeb() {
           traceColor={
             activeBlade?.tier === 'dragon' ? '#ffd700' :
             activeBlade?.tier === 'heavy' ? '#c0c0c0' : '#87ceeb'
+          }
+          // Swordsman orb: emojis from equipped blade's constellation
+          swordsmanOrbitEmojis={
+            equippedBlade?.constellationMarks
+              .map(mark => mark.emoji)
+              .filter((e): e is string => !!e)
+              .slice(0, 6) || []
+          }
+          // Mage orb: emojis from learned spells
+          mageOrbitEmojis={
+            mageSpells
+              .map(spell => spell.emoji)
+              .filter((e): e is string => !!e)
+              .slice(0, 6)
           }
         />
       )}
@@ -3427,7 +4340,7 @@ export default function SpellWeb() {
                       strokeDashoffset="1000"
                       opacity="0.8"
                       style={{
-                        animation: `cutLine 0.5s ease-out ${i * 0.3}s forwards`,
+                        animation: `cutLine 0.8s ease-out ${i * 0.5}s forwards`,
                       }}
                     />
                   );
@@ -3445,7 +4358,7 @@ export default function SpellWeb() {
                     strokeDashoffset="1000"
                     opacity="0.8"
                     style={{
-                      animation: `cutLine 0.5s ease-out ${cutNodes.length * 0.3}s forwards`,
+                      animation: `cutLine 0.8s ease-out ${cutNodes.length * 0.5}s forwards`,
                     }}
                   />
                 )}
@@ -3461,7 +4374,7 @@ export default function SpellWeb() {
                     fill={tierColor}
                     opacity="0"
                     style={{
-                      animation: `nodeBurst 0.6s ease-out ${i * 0.3}s forwards`,
+                      animation: `nodeBurst 0.8s ease-out ${i * 0.5}s forwards`,
                     }}
                   />
                   <circle
@@ -3473,7 +4386,7 @@ export default function SpellWeb() {
                     strokeWidth="2"
                     opacity="0"
                     style={{
-                      animation: `nodeRing 0.8s ease-out ${i * 0.3}s forwards`,
+                      animation: `nodeRing 1s ease-out ${i * 0.5}s forwards`,
                     }}
                   />
                   <text
@@ -3483,7 +4396,7 @@ export default function SpellWeb() {
                     fontSize="20"
                     opacity="0"
                     style={{
-                      animation: `emojiFloat 1s ease-out ${i * 0.3}s forwards`,
+                      animation: `emojiFloat 1.2s ease-out ${i * 0.5}s forwards`,
                     }}
                   >
                     {node.emoji}
@@ -3491,18 +4404,18 @@ export default function SpellWeb() {
                 </g>
               ))}
 
-              {/* Animated sword following the path */}
+              {/* Animated sword following the path - completes full lap */}
               <text
                 fontSize="32"
                 textAnchor="middle"
                 dominantBaseline="middle"
                 filter="url(#cutGlow)"
                 style={{
-                  animation: `swordTrace ${cutNodes.length * 0.3 + 0.5}s ease-out forwards`,
+                  animation: `swordTrace ${cutNodes.length * 0.5 + 0.8}s ease-out forwards`,
                 }}
               >
                 <animateMotion
-                  dur={`${cutNodes.length * 0.3 + 0.5}s`}
+                  dur={`${cutNodes.length * 0.5 + 0.8}s`}
                   fill="freeze"
                   path={`M ${cutNodes.map(n => `${n.x},${n.y}`).join(' L ')} L ${cutNodes[0].x},${cutNodes[0].y}`}
                 />
@@ -3510,7 +4423,7 @@ export default function SpellWeb() {
               </text>
             </svg>
 
-            {/* Blade name reveal after animation */}
+            {/* Blade name reveal after animation completes full lap */}
             <div style={{
               position: 'absolute',
               top: '50%',
@@ -3518,7 +4431,7 @@ export default function SpellWeb() {
               transform: 'translate(-50%, -50%)',
               textAlign: 'center',
               opacity: 0,
-              animation: `fadeIn 1s ease-out ${cutNodes.length * 0.3 + 1}s forwards`,
+              animation: `fadeIn 1s ease-out ${cutNodes.length * 0.5 + 1.5}s forwards`,
             }}>
               <div style={{
                 fontSize: 48,
@@ -3549,6 +4462,1023 @@ export default function SpellWeb() {
           </div>
         );
       })()}
+
+      {/* Runecraft Modal - Link Swordsman identity to blade */}
+      {showRunecraftModal && runecraftBlade && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.9)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 350,
+          }}
+          onClick={() => {
+            setShowRunecraftModal(false);
+            setRunecraftBlade(null);
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "linear-gradient(180deg, #1a1a2e, #16162a)",
+              borderRadius: 16,
+              padding: 28,
+              maxWidth: 440,
+              width: "90%",
+              border: "2px solid #9333ea40",
+              boxShadow: "0 0 60px rgba(147, 51, 234, 0.2)",
+            }}
+          >
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>🔮</div>
+              <h2 style={{
+                color: '#9333ea',
+                fontSize: 18,
+                fontFamily: "'JetBrains Mono', monospace",
+                margin: 0,
+                letterSpacing: 2,
+              }}>
+                RUNECRAFT
+              </h2>
+              <div style={{
+                color: '#888',
+                fontSize: 11,
+                fontFamily: "'JetBrains Mono', monospace",
+                marginTop: 8,
+              }}>
+                Bind Swordsman identity to blade
+              </div>
+            </div>
+
+            {/* Blade Info */}
+            <div style={{
+              background: 'rgba(147, 51, 234, 0.1)',
+              borderRadius: 8,
+              padding: 12,
+              marginBottom: 16,
+              border: '1px solid #9333ea30',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 24 }}>{runecraftBlade.emoji}</span>
+                <div>
+                  <div style={{ color: '#fff', fontFamily: "'JetBrains Mono', monospace", fontSize: 14 }}>
+                    {runecraftBlade.name}
+                  </div>
+                  <div style={{ color: '#888', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>
+                    Mage: {runecraftBlade.proof.mageId || 'unsigned'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Swordsman Link Status */}
+            {!swordsmanLink ? (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{
+                  color: '#f59e0b',
+                  fontSize: 11,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  marginBottom: 12,
+                  textAlign: 'center',
+                }}>
+                  ⚠️ No Swordsman linked
+                </div>
+                <div style={{
+                  color: '#888',
+                  fontSize: 10,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  marginBottom: 12,
+                  textAlign: 'center',
+                }}>
+                  Import your Swordsman identity from agentprivacy to enable runecraft.
+                  Paste the JSON export below:
+                </div>
+                <textarea
+                  placeholder='{"participantId":"ap-...","displayName":"...","publicKeyHex":"..."}'
+                  style={{
+                    width: '100%',
+                    height: 80,
+                    background: 'rgba(0,0,0,0.3)',
+                    border: '1px solid #444',
+                    borderRadius: 6,
+                    color: '#fff',
+                    fontSize: 10,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    padding: 8,
+                    resize: 'none',
+                  }}
+                  onChange={(e) => {
+                    try {
+                      const data = JSON.parse(e.target.value);
+                      if (data.participantId && data.publicKeyHex) {
+                        const link = {
+                          participantId: data.participantId,
+                          displayName: data.displayName || 'Swordsman',
+                          publicKeyHex: data.publicKeyHex,
+                          trustTier: data.trustTier || 'blade',
+                          constellationPath: data.constellationPath,
+                          linkedAt: new Date().toISOString(),
+                        };
+                        saveSwordsmanLink(link);
+                        setSwordsmanLink(link);
+                      }
+                    } catch {
+                      // Invalid JSON, ignore
+                    }
+                  }}
+                />
+              </div>
+            ) : (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{
+                  background: 'rgba(34, 197, 94, 0.1)',
+                  borderRadius: 8,
+                  padding: 12,
+                  border: '1px solid #22c55e30',
+                }}>
+                  <div style={{
+                    color: '#22c55e',
+                    fontSize: 11,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    marginBottom: 8,
+                  }}>
+                    ✓ Swordsman Linked
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 16 }}>⚔️</span>
+                    <div>
+                      <div style={{ color: '#fff', fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>
+                        {swordsmanLink.displayName}
+                      </div>
+                      <div style={{ color: '#888', fontSize: 9, fontFamily: "'JetBrains Mono', monospace" }}>
+                        {swordsmanLink.participantId}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => {
+                  setShowRunecraftModal(false);
+                  setRunecraftBlade(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '10px 16px',
+                  borderRadius: 8,
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid #444',
+                  color: '#888',
+                  fontSize: 11,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                disabled={!swordsmanLink}
+                onClick={() => {
+                  if (swordsmanLink && runecraftBlade) {
+                    // Mark blade as runecrafted
+                    const updatedProof = {
+                      ...runecraftBlade.proof,
+                      runecrafted: true,
+                      swordsmanId: swordsmanLink.participantId,
+                      runecraftedAt: Date.now(),
+                      // Note: actual swordsmanSignature would require cross-app signing
+                      // For now, we mark the link as established
+                    };
+                    const updatedBlade = {
+                      ...runecraftBlade,
+                      proof: updatedProof,
+                    };
+                    // Update in forgedBlades
+                    const newBlades = forgedBlades.map(b =>
+                      b.id === runecraftBlade.id ? updatedBlade : b
+                    );
+                    setForgedBlades(newBlades);
+                    localStorage.setItem(SPELLWEB_STORAGE_KEYS.forgedBlades, JSON.stringify(newBlades));
+
+                    setShowRunecraftModal(false);
+                    setRunecraftBlade(null);
+                    console.log(`[Runecraft] Blade "${runecraftBlade.name}" linked to ${swordsmanLink.participantId}`);
+                  }
+                }}
+                style={{
+                  flex: 2,
+                  padding: '10px 16px',
+                  borderRadius: 8,
+                  background: swordsmanLink ? 'linear-gradient(135deg, #9333ea, #7c3aed)' : 'rgba(147, 51, 234, 0.2)',
+                  border: 'none',
+                  color: swordsmanLink ? '#fff' : '#666',
+                  fontSize: 11,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  cursor: swordsmanLink ? 'pointer' : 'not-allowed',
+                  letterSpacing: 1,
+                }}
+              >
+                🔮 Runecraft Blade
+              </button>
+            </div>
+
+            {/* Info */}
+            <div style={{
+              color: '#666',
+              fontSize: 9,
+              fontFamily: "'JetBrains Mono', monospace",
+              marginTop: 16,
+              textAlign: 'center',
+              lineHeight: 1.5,
+            }}>
+              Runecraft binds both Mage (knowledge graph) and Swordsman (promise graph)
+              identities to this blade, creating a dual-key proof of presence.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Blades Modal - Unified ZK Blades + Witness */}
+      {showBladesModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.85)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 300,
+          }}
+          onClick={() => setShowBladesModal(false)}
+        >
+          <div
+            style={{
+              background: THEME.panelBg,
+              border: `1px solid ${THEME.panelBorder}`,
+              borderRadius: 12,
+              padding: 24,
+              maxWidth: 550,
+              width: "90%",
+              maxHeight: "80vh",
+              overflow: "auto",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, color: "#ffd700", fontSize: 20, fontFamily: "'Cormorant Garamond', serif" }}>
+                ⚔️ Blades
+              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {/* Send to Soulbis - when blade is equipped */}
+                {equippedBlade && (
+                  <button
+                    onClick={() => {
+                      // Build spellweb blade payload for agentprivacy (per Chronicle mirroring spec)
+                      const dims = equippedBlade.proof.bladeDimensions;
+                      const marks = equippedBlade.constellationMarks || [];
+                      // Use DIMENSION_MAPPING emojis for active dimensions, fallback to mark emojis
+                      const dimEmojis = [
+                        dims.protection ? DIMENSION_MAPPING.L1.emoji : (marks[0]?.emoji || '·'),
+                        dims.delegation ? DIMENSION_MAPPING.L2.emoji : (marks[1]?.emoji || '·'),
+                        dims.memory ? DIMENSION_MAPPING.L3.emoji : (marks[2]?.emoji || '·'),
+                        dims.connection ? DIMENSION_MAPPING.L4.emoji : (marks[3]?.emoji || '·'),
+                        dims.computation ? DIMENSION_MAPPING.L5.emoji : (marks[4]?.emoji || '·'),
+                        dims.value ? DIMENSION_MAPPING.L6.emoji : (marks[5]?.emoji || '·'),
+                      ];
+                      const payload: SpellwebBladePayloadV1 = {
+                        v: 1,
+                        bladeId: equippedBlade.id,
+                        name: equippedBlade.name,
+                        primaryEmoji: equippedBlade.emoji,
+                        markEmojis: dimEmojis,
+                        proofSignature: equippedBlade.proof.signature,
+                        isWitness: equippedBlade.isWitness || false,
+                      };
+                      const b64 = encodeBladePayloadForUrl(payload);
+                      window.open(`https://agentprivacy.ai/spells?spellwebBlade=${b64}`, '_blank');
+                    }}
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: 6,
+                      background: "linear-gradient(135deg, #e74c3c30, #c0392b20)",
+                      border: "1px solid #e74c3c",
+                      color: "#e74c3c",
+                      fontSize: 11,
+                      cursor: "pointer",
+                      fontFamily: "'JetBrains Mono', monospace",
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                    title={`Send ${equippedBlade.name} to agentprivacy.ai Soulbis orbit`}
+                  >
+                    <span>⚔️</span> Soulbis
+                  </button>
+                )}
+                {/* Export blade.md button - green, copies/downloads current blade+spells+constellation */}
+                {(equippedBlade || constellation.length > 0) && (
+                  <button
+                    onClick={() => {
+                      // Build a SavedConstellation from current state
+                      const currentConstellation: SavedConstellation = {
+                        id: `export-${Date.now()}`,
+                        name: equippedBlade?.name || 'My Constellation',
+                        marks: constellation,
+                        connections: constellationConnections,
+                        createdAt: new Date().toISOString(),
+                        proof: equippedBlade?.proof || latestProof || undefined,
+                        inscribedSpell: undefined,
+                        reflection: undefined,
+                      };
+                      handleExportConstellation(currentConstellation);
+                      setShowBladesModal(false);
+                    }}
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: 6,
+                      background: "linear-gradient(135deg, #22c55e30, #16a34a20)",
+                      border: "1px solid #22c55e",
+                      color: "#22c55e",
+                      fontSize: 11,
+                      cursor: "pointer",
+                      fontFamily: "'JetBrains Mono', monospace",
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    <span>📋</span> blade.md
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowBladesModal(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: THEME.textDim,
+                    cursor: 'pointer',
+                    fontSize: 18,
+                  }}
+                >×</button>
+              </div>
+            </div>
+
+            {/* ZK Blades Section - Forge a new blade */}
+            <div style={{
+              padding: 16,
+              background: latestProof ? '#ffd70010' : '#ffffff05',
+              borderRadius: 8,
+              border: `1px solid ${latestProof ? '#ffd70050' : '#333'}`,
+              marginBottom: 16,
+            }}>
+              <div style={{
+                fontSize: 11,
+                color: latestProof ? '#ffd700' : '#666',
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: 1,
+                marginBottom: 12,
+              }}>
+                ⚡ FORGE ZK BLADE
+              </div>
+              {latestProof ? (
+                <div>
+                  <p style={{ fontSize: 12, color: THEME.text, marginBottom: 12 }}>
+                    Proof ready! Forge your constellation into a cryptographic blade.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowBladesModal(false);
+                      setForgePhase('ignite');
+                      setShowForgeModal(true);
+                      setTimeout(() => setForgePhase('forge'), 800);
+                      setTimeout(() => setForgePhase('temper'), 2000);
+                      setTimeout(() => setForgePhase('complete'), 3500);
+                    }}
+                    style={{
+                      padding: "10px 20px",
+                      borderRadius: 6,
+                      background: "linear-gradient(135deg, #ffd70050, #ff660030)",
+                      border: "1px solid #ffd700",
+                      color: "#ffd700",
+                      fontSize: 12,
+                      cursor: "pointer",
+                      fontFamily: "'JetBrains Mono', monospace",
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <span>🔥</span> Forge Blade
+                  </button>
+                </div>
+              ) : (
+                <p style={{ fontSize: 11, color: '#666', margin: 0 }}>
+                  Complete a constellation and generate a proof to forge a blade.
+                </p>
+              )}
+            </div>
+
+            {/* Swordsman Link Section - Import from agentprivacy */}
+            <div style={{
+              padding: 16,
+              background: swordsmanLink ? 'rgba(233, 69, 96, 0.05)' : '#e9456008',
+              borderRadius: 8,
+              border: `1px solid ${swordsmanLink ? 'rgba(233, 69, 96, 0.3)' : '#e9456030'}`,
+              marginBottom: 16,
+            }}>
+              <div style={{
+                fontSize: 11,
+                color: '#e94560',
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: 1,
+                marginBottom: 12,
+              }}>
+                ⚔️ SWORDSMAN LINK
+              </div>
+              {swordsmanLink ? (
+                <div>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    marginBottom: 12,
+                  }}>
+                    <span style={{ fontSize: 20 }}>⚔️</span>
+                    <div>
+                      <div style={{ color: '#e94560', fontWeight: 600, fontSize: 13 }}>
+                        {swordsmanLink.displayName}
+                      </div>
+                      <div style={{
+                        fontSize: 10,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        color: '#666',
+                      }}>
+                        {swordsmanLink.participantId}
+                      </div>
+                      {swordsmanLink.constellationPath && (
+                        <div style={{ fontSize: 12, marginTop: 4 }}>
+                          {swordsmanLink.constellationPath}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={() => setShowSwordsmanImport(true)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        background: 'rgba(233, 69, 96, 0.1)',
+                        border: '1px solid rgba(233, 69, 96, 0.3)',
+                        color: '#e94560',
+                        fontSize: 11,
+                        cursor: 'pointer',
+                        fontFamily: "'JetBrains Mono', monospace",
+                      }}
+                    >
+                      Update Link
+                    </button>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem('spellweb-swordsman-link');
+                        setSwordsmanLink(null);
+                      }}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        background: 'rgba(255, 100, 100, 0.1)',
+                        border: '1px solid rgba(255, 100, 100, 0.3)',
+                        color: '#ff6666',
+                        fontSize: 11,
+                        cursor: 'pointer',
+                        fontFamily: "'JetBrains Mono', monospace",
+                      }}
+                    >
+                      Unlink
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <p style={{ fontSize: 11, color: THEME.textDim, marginBottom: 12 }}>
+                    Link your agentprivacy.ai Swordsman identity to inscribe blades with runes.
+                  </p>
+                  <button
+                    onClick={() => setShowSwordsmanImport(true)}
+                    style={{
+                      padding: '10px 16px',
+                      borderRadius: 6,
+                      background: 'linear-gradient(135deg, rgba(233, 69, 96, 0.2), rgba(233, 69, 96, 0.1))',
+                      border: '1px solid #e94560',
+                      color: '#e94560',
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      fontFamily: "'JetBrains Mono', monospace",
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <span>⚔️</span> Link Swordsman
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Witness Blades Section - Upload/Import */}
+            <div style={{
+              padding: 16,
+              background: '#3b82f608',
+              borderRadius: 8,
+              border: '1px solid #3b82f630',
+              marginBottom: 16,
+            }}>
+              <div style={{
+                fontSize: 11,
+                color: '#3b82f6',
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: 1,
+                marginBottom: 12,
+              }}>
+                👁️ WITNESS BLADES
+              </div>
+              <p style={{ fontSize: 11, color: THEME.textDim, marginBottom: 12 }}>
+                Upload a blade.md file to witness another's constellation.
+              </p>
+              <label style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: "10px 16px",
+                borderRadius: 6,
+                background: "#3b82f620",
+                border: "1px solid #3b82f6",
+                color: "#3b82f6",
+                fontSize: 12,
+                cursor: "pointer",
+                fontFamily: "'JetBrains Mono', monospace",
+              }}>
+                <span>📄</span> Import blade.md
+                <input
+                  type="file"
+                  accept=".md"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const content = event.target?.result as string;
+                      if (!content) return;
+
+                      // Parse blade info for name
+                      const bladeMatch = content.match(/\*\*(.+?) (.+?)\*\*/);
+                      const hashMatch = content.match(/Hash: ([a-f0-9]+)/);
+
+                      // Parse path - the constellation waypoints
+                      const pathMatches = content.matchAll(/^\d+\.\s+(.+?)\s+\*\*(.+?)\*\*/gm);
+                      const marks: ConstellationMark[] = [];
+                      for (const match of pathMatches) {
+                        const emoji = match[1].trim();
+                        const label = match[2].trim();
+                        const node = NODES.find(n => n.label === label);
+                        marks.push({
+                          nodeId: node?.id || `imported-${marks.length}`,
+                          nodeLabel: label,
+                          emoji,
+                          note: "",
+                        });
+                      }
+
+                      if (marks.length === 0) {
+                        alert("Could not parse constellation path from blade.md file");
+                        return;
+                      }
+
+                      // Build connections between waypoints
+                      const connections: ConstellationConnection[] = [];
+                      for (let i = 0; i < marks.length - 1; i++) {
+                        connections.push({
+                          sourceId: marks[i].nodeId,
+                          targetId: marks[i + 1].nodeId,
+                          note: "",
+                        });
+                      }
+
+                      // Set up witness mode
+                      const witnessHash = hashMatch?.[1] || `imported-${Date.now()}`;
+                      const creatorName = bladeMatch ? `${bladeMatch[1]} ${bladeMatch[2]}` : file.name.replace('.md', '');
+
+                      setWitnessMode({
+                        active: true,
+                        constellationHash: witnessHash,
+                        witnessedFrom: creatorName,
+                      });
+
+                      // Load constellation for tracing - THIS ENABLES EVOKE
+                      setConstellation(marks);
+                      setConstellationConnections(connections);
+                      setCastingSpells(true);
+                      setShowBladesModal(false);
+                    };
+                    reader.readAsText(file);
+                  }}
+                />
+              </label>
+              {forgedBlades.filter(b => b.isWitness).length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontSize: 10, color: '#666', marginBottom: 8 }}>
+                    Witnessed blades: {forgedBlades.filter(b => b.isWitness).length}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {forgedBlades.filter(b => b.isWitness).map(blade => (
+                      <div
+                        key={blade.id}
+                        title={`${blade.name} - Witnessed from ${blade.witnessedFrom}`}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: '50%',
+                          background: 'linear-gradient(135deg, #3b82f630, #3b82f615)',
+                          border: '2px solid #3b82f680',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 14,
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => {
+                          setActiveBlade(blade);
+                          setBladeTraceActive(true);
+                          setShowBladesModal(false);
+                          if (blade.constellationMarks) {
+                            setConstellation(blade.constellationMarks);
+                            setConstellationConnections(blade.constellationConnections || []);
+                          }
+                        }}
+                      >
+                        {blade.emoji}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Blade Inventory Manager */}
+            <div style={{
+              padding: 16,
+              background: '#ffd70008',
+              borderRadius: 8,
+              border: '1px solid #ffd70030',
+            }}>
+              {/* Equipped Blade Section */}
+              <div style={{
+                fontSize: 11,
+                color: '#e74c3c',
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: 1,
+                marginBottom: 10,
+              }}>
+                ⚔️ EQUIPPED BLADE
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '12px 16px',
+                background: equippedBlade ? 'rgba(231, 76, 60, 0.1)' : 'rgba(100, 100, 100, 0.1)',
+                borderRadius: 8,
+                border: `1px solid ${equippedBlade ? '#e74c3c50' : '#44444450'}`,
+                marginBottom: 16,
+              }}>
+                {equippedBlade ? (
+                  <>
+                    <div style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 8,
+                      background: `linear-gradient(135deg, ${equippedBlade.tier === 'dragon' ? '#ffd700' : equippedBlade.tier === 'heavy' ? '#c0c0c0' : '#87ceeb'}40, ${equippedBlade.tier === 'dragon' ? '#ffd700' : equippedBlade.tier === 'heavy' ? '#c0c0c0' : '#87ceeb'}20)`,
+                      border: `2px solid ${equippedBlade.tier === 'dragon' ? '#ffd700' : equippedBlade.tier === 'heavy' ? '#c0c0c0' : '#87ceeb'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 22,
+                      boxShadow: `0 0 15px ${equippedBlade.tier === 'dragon' ? '#ffd700' : equippedBlade.tier === 'heavy' ? '#c0c0c0' : '#87ceeb'}40`,
+                    }}>
+                      {equippedBlade.emoji}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>{equippedBlade.name}</div>
+                      <div style={{ color: '#888', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>
+                        {equippedBlade.tier} blade • stratum {equippedBlade.stratum}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setEquippedBlade(null)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 4,
+                        background: 'rgba(255, 68, 68, 0.2)',
+                        border: '1px solid #ff4444',
+                        color: '#ff4444',
+                        fontSize: 10,
+                        cursor: 'pointer',
+                        fontFamily: "'JetBrains Mono', monospace",
+                      }}
+                    >
+                      Unequip
+                    </button>
+                  </>
+                ) : (
+                  <div style={{ color: '#666', fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}>
+                    No blade equipped — click a blade below to equip
+                  </div>
+                )}
+              </div>
+
+              {/* All Blades Grid - Drag to reorder */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 10,
+              }}>
+                <div style={{
+                  fontSize: 11,
+                  color: '#ffd700',
+                  fontFamily: "'JetBrains Mono', monospace",
+                  letterSpacing: 1,
+                }}>
+                  🗡️ ALL BLADES ({forgedBlades.length})
+                </div>
+                <div style={{ fontSize: 9, color: '#666', fontFamily: "'JetBrains Mono', monospace" }}>
+                  Drag to reorder
+                </div>
+              </div>
+              {forgedBlades.length > 0 ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {forgedBlades.map((blade, index) => {
+                    const isEquipped = equippedBlade?.id === blade.id;
+                    const tierColor = blade.tier === 'dragon' ? '#ffd700' :
+                      blade.tier === 'heavy' ? '#c0c0c0' : '#87ceeb';
+                    return (
+                      <div
+                        key={blade.id}
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('modalBladeIndex', String(index));
+                        }}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const fromIndex = parseInt(e.dataTransfer.getData('modalBladeIndex'));
+                          if (!isNaN(fromIndex) && fromIndex !== index) {
+                            const newBlades = [...forgedBlades];
+                            const [moved] = newBlades.splice(fromIndex, 1);
+                            newBlades.splice(index, 0, moved);
+                            setForgedBlades(newBlades);
+                            localStorage.setItem(SPELLWEB_STORAGE_KEYS.forgedBlades, JSON.stringify(newBlades));
+                          }
+                        }}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 4,
+                          position: 'relative',
+                        }}
+                      >
+                        <div
+                          title={`${blade.name} (${blade.tier}${blade.isWitness ? ' witnessed' : ''} blade, stratum ${blade.stratum})\n\nDrag to reorder • Click to equip`}
+                          onClick={() => {
+                            if (isEquipped) {
+                              setEquippedBlade(null);
+                            } else {
+                              setEquippedBlade(blade);
+                            }
+                          }}
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 8,
+                            background: isEquipped
+                              ? `linear-gradient(135deg, #e74c3c40, #e74c3c20)`
+                              : blade.isWitness
+                                ? 'linear-gradient(135deg, #3b82f625, #3b82f610)'
+                                : `linear-gradient(135deg, ${tierColor}25, ${tierColor}10)`,
+                            border: `2px solid ${isEquipped ? '#e74c3c' : blade.isWitness ? '#3b82f6' : tierColor + '60'}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 20,
+                            cursor: 'grab',
+                            boxShadow: isEquipped ? '0 0 15px rgba(231, 76, 60, 0.4)' : 'none',
+                            position: 'relative',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          {blade.emoji}
+                          {isEquipped && (
+                            <span style={{
+                              position: 'absolute',
+                              top: -5,
+                              right: -5,
+                              fontSize: 10,
+                              background: '#e74c3c',
+                              borderRadius: '50%',
+                              width: 16,
+                              height: 16,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#fff',
+                              boxShadow: '0 0 6px #e74c3c',
+                            }}>⚔</span>
+                          )}
+                          {blade.isWitness && !isEquipped && (
+                            <span style={{
+                              position: 'absolute',
+                              top: -4,
+                              left: -4,
+                              fontSize: 8,
+                              background: '#3b82f6',
+                              borderRadius: '50%',
+                              width: 14,
+                              height: 14,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#fff',
+                            }}>👁</span>
+                          )}
+                        </div>
+                        {/* Action buttons */}
+                        <div style={{ display: 'flex', gap: 2 }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveBlade(blade);
+                              setBladeTraceActive(true);
+                              setShowBladesModal(false);
+                              if (blade.constellationMarks) {
+                                setConstellation(blade.constellationMarks);
+                                setConstellationConnections(blade.constellationConnections || []);
+                              }
+                            }}
+                            style={{
+                              padding: '2px 5px',
+                              borderRadius: 3,
+                              background: 'rgba(255, 255, 255, 0.05)',
+                              border: '1px solid #444',
+                              color: '#888',
+                              fontSize: 8,
+                              cursor: 'pointer',
+                              fontFamily: "'JetBrains Mono', monospace",
+                            }}
+                          >
+                            ▶
+                          </button>
+                          {/* Runecraft button - lights up when Swordsman linked */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!blade.proof.runecrafted) {
+                                setRunecraftBlade(blade);
+                                setShowRunecraftModal(true);
+                              }
+                            }}
+                            title={blade.proof.runecrafted
+                              ? `Runecrafted with ${blade.proof.swordsmanId}`
+                              : swordsmanLink
+                                ? 'Runecraft with Swordsman key'
+                                : 'Link Swordsman to enable runecraft'}
+                            style={{
+                              padding: '2px 5px',
+                              borderRadius: 3,
+                              background: blade.proof.runecrafted
+                                ? 'rgba(147, 51, 234, 0.3)'
+                                : swordsmanLink
+                                  ? 'rgba(147, 51, 234, 0.15)'
+                                  : 'rgba(255, 255, 255, 0.02)',
+                              border: `1px solid ${blade.proof.runecrafted
+                                ? '#9333ea'
+                                : swordsmanLink
+                                  ? '#9333ea50'
+                                  : '#333'}`,
+                              color: blade.proof.runecrafted
+                                ? '#9333ea'
+                                : swordsmanLink
+                                  ? '#9333ea80'
+                                  : '#444',
+                              fontSize: 8,
+                              cursor: blade.proof.runecrafted ? 'default' : 'pointer',
+                              fontFamily: "'JetBrains Mono', monospace",
+                              opacity: blade.proof.runecrafted || swordsmanLink ? 1 : 0.4,
+                            }}
+                          >
+                            {blade.proof.runecrafted ? '🔮' : '✧'}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm(`Delete "${blade.name}"?`)) {
+                                const updated = forgedBlades.filter(b => b.id !== blade.id);
+                                setForgedBlades(updated);
+                                localStorage.setItem(SPELLWEB_STORAGE_KEYS.forgedBlades, JSON.stringify(updated));
+                                if (equippedBlade?.id === blade.id) {
+                                  setEquippedBlade(null);
+                                }
+                                if (activeBlade?.id === blade.id) {
+                                  setActiveBlade(null);
+                                  setBladeTraceActive(false);
+                                  setIsShineMode(true); // Restore shine when blade deleted
+                                }
+                              }
+                            }}
+                            style={{
+                              padding: '2px 5px',
+                              borderRadius: 3,
+                              background: 'rgba(255, 68, 68, 0.1)',
+                              border: '1px solid #ff444450',
+                              color: '#ff4444',
+                              fontSize: 8,
+                              cursor: 'pointer',
+                              fontFamily: "'JetBrains Mono', monospace",
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        {/* Blade name */}
+                        <div style={{
+                          fontSize: 8,
+                          color: '#888',
+                          maxWidth: 50,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          textAlign: 'center',
+                        }}>
+                          {blade.name} {stratumToMoonPhase(blade.stratum)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ color: '#666', fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}>
+                  No blades forged yet — complete an evoke and forge your first blade!
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Swordsman Import Modal */}
+      {showSwordsmanImport && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.85)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 350,
+          }}
+          onClick={() => setShowSwordsmanImport(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <SwordsmanImport
+              onImportComplete={(link) => {
+                setSwordsmanLink(link);
+                setShowSwordsmanImport(false);
+              }}
+              onClose={() => setShowSwordsmanImport(false)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Forge ZK Blades Modal */}
       {showForgeModal && latestProof && (() => {
@@ -3677,12 +5607,12 @@ export default function SpellWeb() {
                 transition: "all 0.5s ease",
               }}>
                 <div style={{ color: "#666", fontSize: 10, marginBottom: 12, textAlign: "center", letterSpacing: 2 }}>
-                  BLADE DIMENSIONS • STRATUM {stratum}/6 • 0x{hex}
+                  BLADE DIMENSIONS • STRATUM {stratum}/6 {stratumToMoonPhase(stratum)} • 0x{hex}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                   {dimensionLabels.map(({ key, label, desc, icon }, idx) => {
                     const active = dims[key as keyof typeof dims];
-                    const revealed = showDimensions && (forgePhase === 'complete' || idx <= (forgePhase === 'forge' ? 3 : 6));
+                    const revealed = showDimensions && (forgePhase === 'complete' || idx <= 5);
                     return (
                       <div
                         key={key}
@@ -3709,38 +5639,78 @@ export default function SpellWeb() {
                 </div>
               </div>
 
-              {/* Stats Grid - Fades in during temper phase */}
+              {/* Tier & Moon Phase - Two paths to blade identity */}
               <div style={{
-                background: "rgba(0, 0, 0, 0.3)",
-                borderRadius: 12,
-                padding: 16,
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
                 marginBottom: 20,
-                border: `1px solid ${colors.primary}30`,
                 opacity: showStats ? 1 : 0.2,
                 transition: "all 0.5s ease",
               }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: 10 }}>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ color: "#555", fontSize: 9 }}>LAPS</div>
-                    <div style={{ color: colors.primary, fontSize: 18, fontWeight: "bold" }}>{latestProof.lapCount}</div>
+                {/* TIER: Determined by LAPS */}
+                <div style={{
+                  background: "rgba(0, 0, 0, 0.4)",
+                  borderRadius: 12,
+                  padding: 14,
+                  border: `1px solid ${colors.primary}40`,
+                  textAlign: "center",
+                }}>
+                  <div style={{ color: "#666", fontSize: 9, letterSpacing: 2, marginBottom: 8 }}>
+                    LAPS → TIER
                   </div>
+                  <div style={{ fontSize: 28, marginBottom: 4 }}>{colors.icon}</div>
+                  <div style={{ color: colors.primary, fontSize: 14, fontWeight: "bold", textTransform: "uppercase" }}>
+                    {tier} Blade
+                  </div>
+                  <div style={{ color: "#555", fontSize: 10, marginTop: 4 }}>
+                    {latestProof.lapCount} laps • {latestProof.chargeLevel}
+                  </div>
+                </div>
+
+                {/* MOON PHASE: Determined by DIMENSIONS */}
+                <div style={{
+                  background: "rgba(0, 0, 0, 0.4)",
+                  borderRadius: 12,
+                  padding: 14,
+                  border: "1px solid #c0c0c040",
+                  textAlign: "center",
+                }}>
+                  <div style={{ color: "#666", fontSize: 9, letterSpacing: 2, marginBottom: 8 }}>
+                    DIMENSIONS → VISIBILITY
+                  </div>
+                  <div style={{ fontSize: 28, marginBottom: 4 }}>{stratumToMoonPhase(stratum)}</div>
+                  <div style={{ color: "#c0c0c0", fontSize: 14, fontWeight: "bold" }}>
+                    {getMoonPhaseInfo(stratum).name}
+                  </div>
+                  <div style={{ color: "#555", fontSize: 10, marginTop: 4 }}>
+                    {stratum}/6 dimensions • 0x{hex}
+                  </div>
+                </div>
+              </div>
+
+              {/* Ceremony Stats */}
+              <div style={{
+                background: "rgba(0, 0, 0, 0.3)",
+                borderRadius: 12,
+                padding: 12,
+                marginBottom: 20,
+                border: `1px solid ${colors.primary}20`,
+                opacity: showStats ? 1 : 0.2,
+                transition: "all 0.5s ease",
+              }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ color: "#555", fontSize: 9 }}>SPELLS</div>
-                    <div style={{ color: "#9b59b6", fontSize: 18, fontWeight: "bold" }}>{latestProof.spellsCast || 0}</div>
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ color: "#555", fontSize: 9 }}>CHARGE</div>
-                    <div style={{ color: latestProof.chargeLevel === 'inferno' ? '#ff6600' : colors.primary, fontSize: 12, fontWeight: "bold", textTransform: "uppercase" }}>
-                      {latestProof.chargeLevel}
-                    </div>
+                    <div style={{ color: "#9b59b6", fontSize: 16, fontWeight: "bold" }}>{latestProof.spellsCast || 0}</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ color: "#555", fontSize: 9 }}>NODES</div>
-                    <div style={{ color: "#fff", fontSize: 18, fontWeight: "bold" }}>{latestProof.nodeCount}</div>
+                    <div style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>{latestProof.nodeCount}</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ color: "#555", fontSize: 9 }}>TIME</div>
-                    <div style={{ color: "#fff", fontSize: 16 }}>{Math.round(latestProof.duration / 1000)}s</div>
+                    <div style={{ color: "#fff", fontSize: 14 }}>{Math.round(latestProof.duration / 1000)}s</div>
                   </div>
                 </div>
               </div>
@@ -3867,8 +5837,34 @@ export default function SpellWeb() {
                 const alreadyForged = forgedBlades.some(b => b.proof.signature === latestProof?.signature);
                 const canManifest = bladeName.trim() && bladeEmoji && !alreadyForged;
 
-                const handleManifest = () => {
+                const handleManifest = async () => {
                   if (canManifest && latestProof) {
+                    // Initialize mage identity on first forge (key generation)
+                    let mageIdentity = getMageIdentity();
+                    if (!hasMageIdentity()) {
+                      console.log('[Forge] First blade - initializing Mage identity...');
+                      mageIdentity = await initializeMageIdentity();
+                      console.log(`[Forge] Mage identity created: ${mageIdentity.mageId}`);
+                    }
+
+                    // Sign the blade with Mage key (claiming ownership)
+                    const signatureData = {
+                      constellationHash: latestProof.constellationHash,
+                      bladeHash: latestProof.bladeHash,
+                      lapCount: latestProof.lapCount,
+                      timestamp: latestProof.completedAt,
+                    };
+                    const mageSignatureResult = await signBlade(signatureData);
+
+                    // Create signed proof (Mage claims the blade)
+                    const signedProof: SpellProof = {
+                      ...latestProof,
+                      mageSignature: mageSignatureResult?.signature,
+                      mageId: mageSignatureResult?.mageId,
+                      // Runecraft fields (populated later if Swordsman linked)
+                      runecrafted: false,
+                    };
+
                     // Save blade to inventory with constellation data
                     const newBlade: ForgedBlade = {
                       id: `blade-${Date.now()}`,
@@ -3876,7 +5872,7 @@ export default function SpellWeb() {
                       emoji: bladeEmoji,
                       tier: tier,
                       stratum: stratum,
-                      proof: latestProof,
+                      proof: signedProof,
                       forgedAt: new Date().toISOString(),
                       constellationNodes: latestProof.nodeCount,
                       constellationMarks: [...constellation],
@@ -3890,12 +5886,12 @@ export default function SpellWeb() {
                     };
                     setForgedBlades(prev => [...prev, newBlade]);
                     setForgePhase('manifesting');
-                    // Clear witness mode and proof
+                    // Clear witness mode and proof - longer timeout to complete the full animation lap
                     setTimeout(() => {
                       setShowForgeModal(false);
                       setLatestProof(null);
                       setWitnessMode(null); // Clear witness mode after forging
-                    }, 4000);
+                    }, 10000);
                   }
                 };
 

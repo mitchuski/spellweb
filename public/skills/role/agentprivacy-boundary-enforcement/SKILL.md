@@ -14,7 +14,7 @@ metadata:
   version: "5.0"
   category: "role"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   equation_term: "P — boundary enforcement IS protection in real-time operation"
@@ -102,6 +102,20 @@ The audit trail enables the Person to review their swordsman's behaviour — "sh
 **C — verifiability.** Every enforcement decision is cryptographically verifiable. The swordsman's signature (or absence of signature) is proof of the decision. This verifiability — C in the equation — is what distinguishes enforcement from policy: enforcement is provable.
 
 **R(d) — reconstruction.** Each allow decision contributes to potential reconstruction. The swordsman's job is to ensure that the cumulative effect of all allow decisions keeps R(d) < 1. The minimum disclosure principle at Stage 4 is the mechanism: each allow releases the least possible information, keeping total leakage bounded.
+
+## BRAID verification loops as inference-layer boundary enforcement
+
+BRAID's terminal verification loops (arXiv:2512.15959) encode the same pattern as Swordsman boundary checking:
+
+```
+[Generate output] → [Check: R(d) disclosure within bounds?]
+  -- pass --> [Deliver]
+  -- fail --> [Feedback edge to revision] → [Re-check]
+```
+
+This "System 2 thinking emulation" is the Swordsman as boundary verifier at the inference layer. Before any output leaves the dual-agent system, verify against privacy boundaries using pre-validated verification nodes.
+
+For Swordsman deployment: generate BRAID boundary-checking graphs once (expensive), cache as holons, execute via nano-tier models for every access request (cheap). Real-time boundary enforcement becomes economically viable at millions of checks per day.
 
 ---
 

@@ -11,7 +11,7 @@ metadata:
   version: "4.0"
   category: "privacy_layer"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   target_context: "Knowledge graph ingestion, trust graph systems, ontology alignment, entity-relationship overlap detection"
@@ -36,7 +36,7 @@ ENTITY: Privacy_Value_Model_V4
   TYPE: economic_model
   DOMAIN: [privacy, agent_economics, cryptography, network_theory]
   STATUS: working_paper
-  AUTHOR: privacymage
+  AUTHOR: Mitchell_Travers
   DATE: 2026-02
   PREDECESSOR: [PVM_V1, PVM_V2, PVM_V3, PVM_V3.1]
   SUCCESSOR: PVM_V5 (planned: flow dynamics on manifold)

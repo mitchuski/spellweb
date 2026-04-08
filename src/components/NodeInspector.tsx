@@ -12,6 +12,10 @@ interface NodeInspectorProps {
   onAddToPath?: () => void;
   isWaypointActive?: boolean;
   isInPath?: boolean;
+  // Mage spell learning
+  onLearnSpell?: (node: SpellwebNode, hexagramLine: number) => void;
+  mageSpellCount?: number;
+  isSpellLearned?: boolean;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -27,6 +31,7 @@ const TYPE_LABELS: Record<string, string> = {
 export function NodeInspector({
   node, edges, onClose, onNavigate, onAddToPath,
   isWaypointActive, isInPath,
+  onLearnSpell, mageSpellCount = 0, isSpellLearned = false,
 }: NodeInspectorProps) {
   const visual = getNodeVisual(node);
 
@@ -205,6 +210,61 @@ export function NodeInspector({
             >
               {node.emojiSpell}
             </p>
+          </div>
+        )}
+
+        {/* Learn Spell Button - for mage to copy spell into her 6 */}
+        {(node.emojiSpell || node.proverb) && onLearnSpell && (
+          <div style={{ marginTop: 16 }}>
+            <button
+              onClick={() => {
+                // Assign to next available slot (0-7)
+                const nextLine = mageSpellCount < 8 ? mageSpellCount : 7;
+                onLearnSpell(node, nextLine);
+              }}
+              disabled={isSpellLearned || mageSpellCount >= 8}
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                borderRadius: 6,
+                background: isSpellLearned
+                  ? '#9b59b620'
+                  : mageSpellCount >= 8
+                    ? '#44444420'
+                    : 'linear-gradient(135deg, #9b59b630, #ffd70020)',
+                border: `1px solid ${isSpellLearned ? '#9b59b650' : mageSpellCount >= 8 ? '#444' : '#9b59b6'}`,
+                color: isSpellLearned ? '#9b59b680' : mageSpellCount >= 8 ? '#666' : '#9b59b6',
+                fontSize: 12,
+                fontFamily: "'JetBrains Mono', monospace",
+                cursor: isSpellLearned || mageSpellCount >= 8 ? "default" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                fontWeight: 600,
+                transition: 'all 0.2s',
+              }}
+            >
+              <span style={{ fontSize: 14 }}>
+                {isSpellLearned ? '✨' : mageSpellCount >= 8 ? '📖' : '🔮'}
+              </span>
+              {isSpellLearned
+                ? 'Spell Learned'
+                : mageSpellCount >= 8
+                  ? 'Grimoire Full (8/8)'
+                  : `Learn Spell (${mageSpellCount}/8)`}
+            </button>
+            {!isSpellLearned && mageSpellCount < 6 && (
+              <p style={{
+                fontSize: 10,
+                color: '#888',
+                marginTop: 6,
+                textAlign: 'center',
+                fontFamily: "'JetBrains Mono', monospace",
+              }}>
+                Add to Mage's grimoire slot {mageSpellCount + 1}
+              </p>
+            )}
           </div>
         )}
 

@@ -14,7 +14,7 @@ metadata:
   version: "5.0"
   category: "role"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   equation_term: "P (the undo function), A(τ) (revocation as verified history event), e^{-λt} (temporal decay as passive revocation)"

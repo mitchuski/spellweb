@@ -133,7 +133,7 @@ The Assessor makes V(π,t) legible:
   tagline: 'I quantify what surveillance steals and what sovereignty creates. The numbers make the case the stories can\'t.',
   alignment: 'mage',
   skills_role: ['economics', 'policy_governance', 'data_dignity',
-    'consent_infrastructure', 'ai_agent']
+    'consent_infrastructure', 'ai_agent', 'braid_reasoning']
 }
 
 // spellbook-templates.ts
@@ -152,11 +152,11 @@ The Assessor makes V(π,t) legible:
 
 **Privacy layer (9):** dragon, edge_value, knowledgegraph, network_topology, promise_theory, temporal_dynamics, tetrahedral_sovereignty, uor_toroidal, vrc_identity
 
-**Role skills (5):** economics, policy_governance, data_dignity, consent_infrastructure, ai_agent
+**Role skills (6):** economics, policy_governance, data_dignity, consent_infrastructure, ai_agent, braid_reasoning
 
 **Meta (1):** drake_dragon_duality
 
-**Total: 15 skills**
+**Total: 16 skills**
 
 ---
 
@@ -168,11 +168,11 @@ The Assessor makes V(π,t) legible:
 
 **Privacy layer (9):** dragon, edge_value, knowledgegraph, network_topology, promise_theory, temporal_dynamics, tetrahedral_sovereignty, uor_toroidal, vrc_identity
 
-**Role skills (5):** economics, policy_governance, data_dignity, consent_infrastructure, ai_agent
+**Role skills (6):** economics, policy_governance, data_dignity, consent_infrastructure, ai_agent, braid_reasoning
 
 **Meta (1):** drake_dragon_duality
 
-**Total: 15 skills**
+**Total: 16 skills**
 
 ---
 

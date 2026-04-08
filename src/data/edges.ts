@@ -68,6 +68,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-25", target: "fp-act-26", type: "follows" },
   { source: "fp-act-26", target: "fp-act-27", type: "follows" },
   { source: "fp-act-27", target: "fp-act-28", type: "follows" },
+  { source: "fp-act-28", target: "fp-act-29", type: "follows" },
+  { source: "fp-act-29", target: "fp-act-30", type: "follows" },
+  { source: "fp-act-30", target: "fp-act-31", type: "follows" },
 
   // ══════════════════════════════════════════════════════════════
   // FIRST PERSON → CONCEPTS
@@ -357,7 +360,6 @@ export const EDGES: SpellwebEdge[] = [
 
   // Browser privacy skill
   { source: "skill-browser", target: "con-myterms", type: "implements" },
-  { source: "skill-browser", target: "proto-myterms", type: "implements" },
   { source: "skill-browser", target: "skill-consent", type: "extends" },
 
   // Personhood skill
@@ -429,11 +431,11 @@ export const EDGES: SpellwebEdge[] = [
 
   // Selective disclosure
   { source: "skill-selective", target: "con-zkproofs", type: "implements" },
-  { source: "skill-selective", target: "proto-privacy-pools", type: "implements" },
+  { source: "skill-selective", target: "con-privacypools", type: "implements" },
 
   // Nullifier design
   { source: "skill-nullifier", target: "con-zkproofs", type: "implements" },
-  { source: "skill-nullifier", target: "proto-privacy-pools", type: "implements" },
+  { source: "skill-nullifier", target: "con-privacypools", type: "implements" },
 
   // Recovery RPP
   { source: "skill-recovery-rpp", target: "proto-rpp", type: "implements" },
@@ -456,7 +458,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "skill-enclave", target: "skill-separation", type: "extends" },
 
   // Intel pooling
-  { source: "skill-intel-pooling", target: "proto-privacy-pools", type: "implements" },
+  { source: "skill-intel-pooling", target: "con-privacypools", type: "implements" },
   { source: "skill-intel-pooling", target: "skill-selective", type: "extends" },
 
   // ══════════════════════════════════════════════════════════════
@@ -488,10 +490,6 @@ export const EDGES: SpellwebEdge[] = [
   // PROTOCOLS → CONCEPTS & STANDARDS
   // ══════════════════════════════════════════════════════════════
 
-  { source: "proto-privacy-pools", target: "con-privacypools", type: "implements" },
-  { source: "proto-privacy-pools", target: "con-zkproofs", type: "implements" },
-  { source: "proto-privacy-pools", target: "fp-act-16", type: "references" },
-
   { source: "proto-x402", target: "con-dualagent", type: "implements" },
   { source: "proto-x402", target: "skill-agent-interop", type: "implements" },
 
@@ -502,8 +500,8 @@ export const EDGES: SpellwebEdge[] = [
   { source: "proto-rpp", target: "con-rpp", type: "implements" },
   { source: "proto-rpp", target: "doc-zypher", type: "references" },
 
-  { source: "proto-myterms", target: "con-myterms", type: "implements" },
-  { source: "proto-myterms", target: "skill-consent", type: "implements" },
+  // Merged proto → con relationships
+  { source: "con-myterms", target: "skill-consent", type: "implements" },
 
   // ══════════════════════════════════════════════════════════════
   // STANDARDS → CONCEPTS & TECHNOLOGIES
@@ -561,7 +559,7 @@ export const EDGES: SpellwebEdge[] = [
 
   { source: "per-warden", target: "skill-browser", type: "persona_knows" },
   { source: "per-warden", target: "skill-consent", type: "persona_knows" },
-  { source: "per-warden", target: "proto-myterms", type: "persona_knows" },
+  { source: "per-warden", target: "con-myterms", type: "persona_knows" },
 
   { source: "per-gatekeeper", target: "skill-personhood", type: "persona_knows" },
   { source: "per-gatekeeper", target: "std-did", type: "persona_knows" },
@@ -808,6 +806,35 @@ export const EDGES: SpellwebEdge[] = [
   { source: "per-architect", target: "con-holonic-marvin", type: "persona_knows" },
   { source: "per-drake", target: "con-holon", type: "persona_knows" },
   { source: "per-drake", target: "con-shared-parent", type: "persona_knows" },
+// Act 31 persona knowledge
+  { source: "per-soulbis", target: "con-amnesia-protocol", type: "persona_knows" },
+  { source: "per-soulbis", target: "per-moon", type: "persona_knows" },
+  { source: "per-soulbis", target: "con-zk-orbit", type: "persona_knows" },
+  { source: "per-soulbae", target: "con-quaternion", type: "persona_knows" },
+  { source: "per-soulbae", target: "con-emissary-recursion", type: "persona_knows" },
+  { source: "per-soulbae", target: "con-life-forge", type: "persona_knows" },
+  { source: "per-drake", target: "con-quaternion", type: "persona_knows" },
+  { source: "per-drake", target: "con-amnesia-protocol", type: "persona_knows" },
+  { source: "per-drake", target: "con-theia", type: "persona_knows" },
+  { source: "per-chronicler", target: "doc-amnesia-poems", type: "persona_knows" },
+
+  // V5.3 Ceremony Personas
+  { source: "per-dragonwaker", target: "per-drake", type: "persona_knows" },
+  { source: "per-dragonwaker", target: "skill-dragon-flight", type: "persona_knows" },
+  { source: "per-dragonwaker", target: "con-dragon-vertex", type: "persona_knows" },
+  { source: "per-dragonwaker", target: "fp-act-29", type: "persona_knows" },
+
+  { source: "per-mirrorkeeper", target: "con-dihedral", type: "persona_knows" },
+  { source: "per-mirrorkeeper", target: "skill-spellweb", type: "persona_knows" },
+  { source: "per-mirrorkeeper", target: "fp-act-30", type: "persona_knows" },
+
+  { source: "per-forgecaller", target: "skill-hexagram-convergence", type: "persona_knows" },
+  { source: "per-forgecaller", target: "per-forgemaster", type: "persona_knows" },
+  { source: "per-forgecaller", target: "fp-act-27", type: "persona_knows" },
+
+  { source: "per-manaweaver", target: "skill-mana-economy", type: "persona_knows" },
+  { source: "per-manaweaver", target: "skill-pretext-measurement", type: "persona_knows" },
+  { source: "per-manaweaver", target: "fp-act-28", type: "persona_knows" },
 
   // Holonic references Promise Theory (mentioned in whitepaper)
   { source: "con-holon", target: "con-promisetheory", type: "references" },
@@ -971,10 +998,21 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-26", target: "skill-environmental-commons", type: "references" },
 
   // ══════════════════════════════════════════════════════════════
-  // ACT 27: THE SWORDSMAN'S FORGE (Reserved — grimoire placeholder)
+  // ══════════════════════════════════════════════════════════════
+  // ACT 27: THE SWORDSMAN'S FORGE (V5.2 - Blade Configuration Mechanics)
   // ══════════════════════════════════════════════════════════════
   { source: "spellbook-firstperson", target: "fp-act-27", type: "defines" },
-  { source: "fp-act-27", target: "per-soulbis", type: "references" },
+  { source: "fp-act-27", target: "per-soulbis", type: "narrates" },
+  { source: "fp-act-27", target: "skill-blade-forge", type: "narrates" },
+  { source: "fp-act-27", target: "skill-hexagram-convergence", type: "narrates" },
+  { source: "fp-act-27", target: "skill-tetrahedral", type: "extends" },
+  { source: "fp-act-27", target: "skill-uor-toroidal", type: "extends" },
+  { source: "fp-act-27", target: "con-holographic-bound", type: "extends" },
+  { source: "fp-act-27", target: "con-three-axis-separation", type: "extends" },
+  { source: "fp-act-27", target: "fp-act-24", type: "extends" },
+  { source: "fp-act-27", target: "fp-act-26", type: "extends" },
+  { source: "fp-act-27", target: "skill-crypto-zkp", type: "narrates" },
+  { source: "fp-act-27", target: "per-forgemaster", type: "narrates" },
 
   // ══════════════════════════════════════════════════════════════
   // ACT 28: THE CEREMONY ENGINE (Pretext, dual extension, ceremonies)
@@ -990,4 +1028,431 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-28", target: "fp-act-2", type: "extends" },
   { source: "fp-act-28", target: "fp-act-7", type: "extends" },
   { source: "fp-act-28", target: "fp-act-26", type: "extends" },
+  { source: "fp-act-28", target: "skill-ceremony-engine", type: "narrates" },
+  { source: "fp-act-28", target: "skill-pretext-measurement", type: "narrates" },
+  { source: "fp-act-28", target: "skill-mana-economy", type: "narrates" },
+  { source: "fp-act-28", target: "skill-hexagram-convergence", type: "narrates" },
+  { source: "fp-act-28", target: "per-ceremonist", type: "narrates" },
+
+  // ══════════════════════════════════════════════════════════════
+  // ACT 29: THE DRAGON WAKES (V5.2 - Quantum Defence & Dragon Flight)
+  // ══════════════════════════════════════════════════════════════
+  { source: "spellbook-firstperson", target: "fp-act-29", type: "defines" },
+  { source: "fp-act-29", target: "skill-quantum-defence", type: "narrates" },
+  { source: "fp-act-29", target: "skill-dragon-flight", type: "narrates" },
+  { source: "fp-act-29", target: "skill-understanding-key", type: "extends" },
+  { source: "fp-act-29", target: "skill-ceremony-engine", type: "extends" },
+  { source: "fp-act-29", target: "per-quantum-sentinel", type: "narrates" },
+  { source: "fp-act-29", target: "per-drake", type: "narrates" },
+  { source: "fp-act-29", target: "fp-act-27", type: "extends" },
+  { source: "fp-act-29", target: "fp-act-28", type: "extends" },
+  { source: "fp-act-29", target: "fp-act-24", type: "extends" },
+  { source: "fp-act-29", target: "fp-act-25", type: "extends" },
+  { source: "fp-act-29", target: "con-holographic-bound", type: "extends" },
+  { source: "fp-act-29", target: "skill-crypto-zkp", type: "narrates" },
+
+  // ══════════════════════════════════════════════════════════════
+  // V5.2 PERSONA KNOWLEDGE (New Personas)
+  // ══════════════════════════════════════════════════════════════
+  { source: "per-forgemaster", target: "skill-blade-forge", type: "persona_knows" },
+  { source: "per-forgemaster", target: "skill-hexagram-convergence", type: "persona_knows" },
+  { source: "per-forgemaster", target: "skill-crypto-zkp", type: "persona_knows" },
+  { source: "per-forgemaster", target: "skill-tetrahedral", type: "persona_knows" },
+  { source: "per-forgemaster", target: "fp-act-27", type: "persona_knows" },
+
+  { source: "per-ceremonist", target: "skill-ceremony-engine", type: "persona_knows" },
+  { source: "per-ceremonist", target: "skill-understanding-key", type: "persona_knows" },
+  { source: "per-ceremonist", target: "skill-mana-economy", type: "persona_knows" },
+  { source: "per-ceremonist", target: "fp-act-28", type: "persona_knows" },
+  { source: "per-ceremonist", target: "fp-act-29", type: "persona_knows" },
+
+  { source: "per-quantum-sentinel", target: "skill-quantum-defence", type: "persona_knows" },
+  { source: "per-quantum-sentinel", target: "skill-dragon-flight", type: "persona_knows" },
+  { source: "per-quantum-sentinel", target: "skill-crypto-zkp", type: "persona_knows" },
+  { source: "per-quantum-sentinel", target: "fp-act-29", type: "persona_knows" },
+
+  // ══════════════════════════════════════════════════════════════
+  // V5.2 SKILL RELATIONSHIPS
+  // ══════════════════════════════════════════════════════════════
+  { source: "skill-blade-forge", target: "skill-tetrahedral", type: "extends" },
+  { source: "skill-blade-forge", target: "skill-uor-toroidal", type: "extends" },
+  { source: "skill-blade-forge", target: "skill-crypto-zkp", type: "implements" },
+
+  { source: "skill-hexagram-convergence", target: "skill-blade-forge", type: "extends" },
+  { source: "skill-hexagram-convergence", target: "skill-tetrahedral", type: "references" },
+
+  { source: "skill-ceremony-engine", target: "skill-understanding-key", type: "extends" },
+  { source: "skill-ceremony-engine", target: "skill-vrc-identity", type: "extends" },
+
+  { source: "skill-pretext-measurement", target: "skill-browser", type: "extends" },
+  { source: "skill-pretext-measurement", target: "con-gap", type: "implements" },
+
+  { source: "skill-mana-economy", target: "skill-sovereignty-econ", type: "extends" },
+
+  { source: "skill-quantum-defence", target: "skill-crypto-zkp", type: "extends" },
+  { source: "skill-quantum-defence", target: "skill-blade-forge", type: "references" },
+
+  { source: "skill-dual-territory", target: "con-gap", type: "implements" },
+  { source: "skill-dual-territory", target: "con-dualagent", type: "implements" },
+
+  { source: "skill-dragon-flight", target: "skill-blade-forge", type: "extends" },
+  { source: "skill-dragon-flight", target: "skill-ceremony-engine", type: "extends" },
+  { source: "skill-dragon-flight", target: "skill-quantum-defence", type: "extends" },
+  { source: "skill-dragon-flight", target: "skill-dragon", type: "extends" },
+
+  // ══════════════════════════════════════════════════════════════
+  // V5.2 SOULBIS/SOULBAE SKILL KNOWLEDGE UPDATES
+  // ══════════════════════════════════════════════════════════════
+  { source: "per-soulbis", target: "skill-blade-forge", type: "persona_knows" },
+  { source: "per-soulbis", target: "skill-pretext-measurement", type: "persona_knows" },
+  { source: "per-soulbis", target: "skill-quantum-defence", type: "persona_knows" },
+  { source: "per-soulbis", target: "skill-dual-territory", type: "persona_knows" },
+
+  { source: "per-soulbae", target: "skill-ceremony-engine", type: "persona_knows" },
+  { source: "per-soulbae", target: "skill-hexagram-convergence", type: "persona_knows" },
+  { source: "per-soulbae", target: "skill-mana-economy", type: "persona_knows" },
+  { source: "per-soulbae", target: "skill-dragon-flight", type: "persona_knows" },
+
+  // ══════════════════════════════════════════════════════════════
+  // PVM-V5.2 PERSONA RELATIONSHIPS (UOR Convergence)
+  // ══════════════════════════════════════════════════════════════
+  { source: "per-soulbis", target: "per-algebraist", type: "parent_of" },
+  { source: "per-soulbae", target: "per-stranger-witness", type: "parent_of" },
+  { source: "per-soulbis", target: "con-dihedral", type: "embodies" },
+  { source: "per-soulbae", target: "con-dihedral", type: "embodies" },
+
+  // PVM-V5.2 CONCEPT RELATIONSHIPS
+  { source: "con-dihedral", target: "con-ring-algebra", type: "requires" },
+  { source: "con-holographic-bound", target: "skill-atlas-geometry", type: "implements" },
+  { source: "con-understanding-as-key", target: "skill-stranger-ceremony", type: "implements" },
+
+  // PVM-V5.2 ACT CONNECTIONS
+  { source: "fp-act-27", target: "con-dihedral", type: "introduces" },
+  { source: "fp-act-27", target: "con-ring-algebra", type: "introduces" },
+  { source: "fp-act-27", target: "skill-five-strikes", type: "teaches" },
+  { source: "fp-act-29", target: "con-understanding-as-key", type: "introduces" },
+  { source: "fp-act-29", target: "skill-stranger-ceremony", type: "teaches" },
+
+  // PVM-V5.2 NEW PERSONA SKILLS
+  { source: "per-algebraist", target: "skill-ring-algebra", type: "persona_knows" },
+  { source: "per-algebraist", target: "skill-five-strikes", type: "persona_knows" },
+  { source: "per-algebraist", target: "con-dihedral", type: "persona_knows" },
+  { source: "per-topologist", target: "skill-atlas-geometry", type: "persona_knows" },
+  { source: "per-topologist", target: "con-holographic-bound", type: "persona_knows" },
+  { source: "per-topologist", target: "skill-toroidal-witness", type: "persona_knows" },
+  { source: "per-stranger-witness", target: "skill-stranger-ceremony", type: "persona_knows" },
+  { source: "per-stranger-witness", target: "con-understanding-as-key", type: "persona_knows" },
+  { source: "per-stranger-witness", target: "skill-derivation-certificate", type: "persona_knows" },
+
+  // PVM-V5.2 SKILL RELATIONSHIPS
+  { source: "skill-ring-algebra", target: "skill-blade-forge", type: "extends" },
+  { source: "skill-dihedral-sovereignty", target: "con-dihedral", type: "implements" },
+  { source: "skill-content-addressing", target: "skill-derivation-certificate", type: "extends" },
+  { source: "skill-stranger-ceremony", target: "skill-ceremony-engine", type: "extends" },
+
+  // ORPHAN NODE CONNECTIONS
+  // con-content-addressing
+  { source: "con-content-addressing", target: "con-three-layer-identity", type: "extends" },
+  { source: "con-content-addressing", target: "skill-content-addressing", type: "implements" },
+
+  // skill-academic, skill-forensic, skill-revocation
+  { source: "per-soulbis", target: "skill-forensic", type: "persona_knows" },
+  { source: "per-soulbis", target: "skill-revocation", type: "persona_knows" },
+  { source: "per-soulbae", target: "skill-academic", type: "persona_knows" },
+  { source: "skill-forensic", target: "con-privacypools", type: "implements" },
+  { source: "skill-revocation", target: "skill-crypto-zkp", type: "extends" },
+
+  // thm-degradation
+  { source: "thm-degradation", target: "con-gap", type: "implements" },
+
+  // ══════════════════════════════════════════════════════════════
+  // v10.0.0 NODE CONNECTIONS
+  // ══════════════════════════════════════════════════════════════
+
+  // Act 30: Dihedral Mirror connections
+  { source: "spellbook-firstperson", target: "fp-act-30", type: "defines" },
+  { source: "fp-act-30", target: "con-dihedral", type: "narrates" },
+  { source: "fp-act-30", target: "con-ring-algebra", type: "narrates" },
+  { source: "fp-act-30", target: "con-atlas-resonance", type: "introduces" },
+  { source: "fp-act-30", target: "con-prism-spectrum", type: "introduces" },
+  { source: "fp-act-30", target: "con-serenity-kernel", type: "introduces" },
+  { source: "fp-act-30", target: "spell-dihedral-door", type: "compresses_to" },
+  { source: "fp-act-30", target: "fp-act-27", type: "extends" },
+  { source: "fp-act-30", target: "fp-act-29", type: "extends" },
+  { source: "fp-act-30", target: "fp-act-26", type: "extends" },
+
+// ══════════════════════════════════════════════════════════════
+  // Act 31: The First Delegation connections
+  // ══════════════════════════════════════════════════════════════  { source: "spellbook-firstperson", target: "fp-act-31", type: "defines" },
+  { source: "fp-act-31", target: "con-amnesia-protocol", type: "narrates" },
+  { source: "fp-act-31", target: "con-theia", type: "narrates" },
+  { source: "fp-act-31", target: "con-quaternion", type: "narrates" },
+  { source: "fp-act-31", target: "con-zk-orbit", type: "narrates" },
+  { source: "fp-act-31", target: "con-life-forge", type: "narrates" },
+  { source: "fp-act-31", target: "con-merge-catastrophe", type: "narrates" },
+  { source: "fp-act-31", target: "con-deflection", type: "narrates" },
+  { source: "fp-act-31", target: "con-emissary-recursion", type: "narrates" },
+  { source: "fp-act-31", target: "per-moon", type: "narrates" },
+  { source: "fp-act-31", target: "per-sun", type: "narrates" },
+  { source: "fp-act-31", target: "per-theia", type: "narrates" },
+  { source: "fp-act-31", target: "per-life", type: "narrates" },
+  { source: "fp-act-31", target: "per-soulbis", type: "narrates" },
+  { source: "fp-act-31", target: "per-soulbae", type: "narrates" },
+  { source: "fp-act-31", target: "per-drake", type: "narrates" },
+  { source: "fp-act-31", target: "fp-act-30", type: "extends" },
+  { source: "fp-act-31", target: "fp-act-26", type: "extends" },
+  { source: "fp-act-31", target: "fp-act-7", type: "extends" },
+  // Amnesia Protocol concept relationships  { source: "con-amnesia-protocol", target: "con-separation", type: "relates_to" },
+  { source: "con-amnesia-protocol", target: "con-zkproofs", type: "relates_to" },
+  { source: "con-theia", target: "con-amnesia-protocol", type: "relates_to" },
+  { source: "con-quaternion", target: "con-master-emissary", type: "relates_to" },
+  { source: "con-zk-orbit", target: "con-zkproofs", type: "relates_to" },
+  { source: "con-zk-orbit", target: "con-promisetheory", type: "relates_to" },
+  { source: "con-merge-catastrophe", target: "con-gap", type: "relates_to" },
+  { source: "con-merge-catastrophe", target: "con-separation", type: "relates_to" },
+  { source: "con-life-forge", target: "skill-blade-forge", type: "relates_to" },
+  { source: "con-quaternion", target: "con-master-emissary", type: "compresses_to" },
+  { source: "con-zk-orbit", target: "con-zkproofs", type: "compresses_to" },
+  // Amnesia poems document
+  { source: "doc-amnesia-poems", target: "fp-act-31", type: "relates_to" },
+  { source: "doc-amnesia-poems", target: "con-amnesia-protocol", type: "defines" },
+  { source: "doc-amnesia-poems", target: "con-deflection", type: "defines" },
+  { source: "doc-amnesia-poems", target: "con-quaternion", type: "defines" },
+  // Cosmological persona relationships — The Quaternion
+  // Sun (Master) → Earth (Emissary=Soulbae) → Moon (Swordsman=Soulbis) + Human (Person)
+  // Earth delegates through: Theia (instant→Moon) and Life (gradual→Human)
+  { source: "per-sun", target: "per-soulbae", type: "generates" },       // Sun is Master, Earth/Soulbae is Emissary
+  { source: "per-soulbae", target: "per-theia", type: "delegates_via" }, // Earth delegates instantly via Theia
+  { source: "per-soulbae", target: "per-life", type: "delegates_via" },  // Earth delegates gradually via Life
+  { source: "per-theia", target: "per-moon", type: "generates" },        // Theia collision creates Moon
+  { source: "per-moon", target: "per-soulbis", type: "manifests_as" },   // Moon manifests as Soulbis
+  { source: "per-life", target: "per-person", type: "generates" },       // Life produces Human/Person
+  { source: "per-sun", target: "per-moon", type: "reflects_through" },   // Sun's light reflects through Moon
+  { source: "per-moon", target: "per-theia", type: "remembers" },        // Moon remembers Theia (the wound)
+  // Emissary poem and concept connections
+  { source: "doc-emissary-poem", target: "con-emissary-recursion", type: "defines" },
+  { source: "doc-emissary-poem", target: "spell-emissary-recursion", type: "compresses_to" },
+  { source: "con-emissary-recursion", target: "con-master-emissary", type: "extends" },
+  { source: "con-emissary-recursion", target: "fp-act-26", type: "narrates" },
+  { source: "spell-emissary-recursion", target: "con-emissary-recursion", type: "compresses_to" },
+
+  // New concept relationships
+  { source: "con-serenity-kernel", target: "con-dihedral", type: "implements" },
+  { source: "con-atlas-resonance", target: "con-holographic-bound", type: "implements" },
+  { source: "con-prism-spectrum", target: "con-ring-algebra", type: "extends" },
+
+  // New document connections
+  { source: "doc-what-agentprivacy-is", target: "con-paradox", type: "defines" },
+  { source: "doc-what-agentprivacy-is", target: "con-dualagent", type: "defines" },
+  { source: "doc-systems-hexagram", target: "con-ring-algebra", type: "implements" },
+  { source: "doc-systems-hexagram", target: "skill-blade-forge", type: "implements" },
+  { source: "doc-dual-territory-ceremony", target: "skill-ceremony-engine", type: "implements" },
+  { source: "doc-uor-mapping", target: "con-atlas-resonance", type: "implements" },
+  { source: "doc-uor-mapping", target: "con-holographic-bound", type: "implements" },
+  { source: "doc-zk-blade-forge", target: "skill-blade-forge", type: "implements" },
+  { source: "doc-zk-blade-forge", target: "con-ring-algebra", type: "implements" },
+  { source: "doc-privacy-value-v5", target: "con-three-axis-separation", type: "defines" },
+  { source: "doc-privacy-value-v5", target: "con-holographic-bound", type: "defines" },
+
+  // Origins spell connections
+  { source: "spell-symphony-within", target: "per-soulbis", type: "narrates" },
+  { source: "spell-symphony-within", target: "per-soulbae", type: "narrates" },
+
+  // ══════════════════════════════════════════════════════════════
+  // CELESTIAL CEREMONY EDGES
+  // ══════════════════════════════════════════════════════════════
+
+  // Document connections
+  { source: "doc-celestial-ceremonies", target: "con-sun-ceremony", type: "defines" },
+  { source: "doc-celestial-ceremonies", target: "con-moon-ceremony", type: "defines" },
+  { source: "doc-celestial-ceremonies", target: "con-celestial-key", type: "defines" },
+  { source: "doc-celestial-ceremonies", target: "doc-emissary-poem", type: "references" },
+  { source: "doc-celestial-ceremonies", target: "doc-amnesia-poems", type: "references" },
+  { source: "doc-celestial-key-guide", target: "con-celestial-key", type: "implements" },
+  { source: "doc-celestial-key-guide", target: "skill-ceremonial-forge", type: "implements" },
+  { source: "doc-celestial-key-guide", target: "con-progressive-trust", type: "defines" },
+  { source: "doc-forging-celestial-overlap", target: "skill-blade-forge", type: "extends" },
+  { source: "doc-forging-celestial-overlap", target: "skill-behavioural-density", type: "defines" },
+  { source: "doc-forging-celestial-overlap", target: "con-celestial-key", type: "narrates" },
+  { source: "doc-blade-pathway", target: "con-sun-ceremony", type: "implements" },
+  { source: "doc-blade-pathway", target: "con-moon-ceremony", type: "implements" },
+  { source: "doc-blade-pathway", target: "spell-sun-blade", type: "defines" },
+  { source: "doc-blade-pathway", target: "spell-moon-blade", type: "defines" },
+
+  // Sun Ceremony concept relationships
+  { source: "con-sun-ceremony", target: "con-disclosure", type: "implements" },
+  { source: "con-sun-ceremony", target: "con-witnessing", type: "requires" },
+  { source: "con-sun-ceremony", target: "spell-sun-ceremony", type: "compresses_to" },
+  { source: "con-sun-ceremony", target: "per-sun", type: "references" },
+  { source: "con-sun-ceremony", target: "doc-emissary-poem", type: "references" },
+  { source: "con-sun-ceremony", target: "con-moon-ceremony", type: "extends" },
+
+  // Moon Ceremony concept relationships
+  { source: "con-moon-ceremony", target: "con-reflection", type: "implements" },
+  { source: "con-moon-ceremony", target: "con-cousin-blades", type: "defines" },
+  { source: "con-moon-ceremony", target: "spell-moon-ceremony", type: "compresses_to" },
+  { source: "con-moon-ceremony", target: "per-moon", type: "references" },
+  { source: "con-moon-ceremony", target: "doc-amnesia-poems", type: "references" },
+  { source: "con-moon-ceremony", target: "con-amnesia-protocol", type: "implements" },
+
+  // Celestial Key relationships
+  { source: "con-celestial-key", target: "con-sun-ceremony", type: "implements" },
+  { source: "con-celestial-key", target: "con-moon-ceremony", type: "implements" },
+  { source: "con-celestial-key", target: "spell-celestial-key", type: "compresses_to" },
+  { source: "con-celestial-key", target: "skill-trust-graph-formation", type: "implements" },
+  { source: "con-celestial-key", target: "con-bilateral-witness", type: "defines" },
+
+  // Ceremony propagation
+  { source: "con-propagation", target: "con-sun-ceremony", type: "narrates" },
+  { source: "con-propagation", target: "con-moon-ceremony", type: "narrates" },
+  { source: "con-propagation", target: "con-emissary-recursion", type: "implements" },
+
+  // Disclosure/Reflection concepts
+  { source: "con-disclosure", target: "per-sun", type: "references" },
+  { source: "con-reflection", target: "per-moon", type: "references" },
+  { source: "con-reflection", target: "con-amnesia-protocol", type: "implements" },
+  { source: "con-witnessing", target: "con-disclosure", type: "extends" },
+
+  // Persona ceremony connections
+  { source: "per-sun", target: "con-sun-ceremony", type: "persona_knows" },
+  { source: "per-moon", target: "con-moon-ceremony", type: "persona_knows" },
+  { source: "per-theia", target: "con-celestial-key", type: "persona_knows" },
+  { source: "per-forgemaster", target: "skill-ceremonial-forge", type: "persona_knows" },
+  { source: "per-forgecaller", target: "con-sun-ceremony", type: "persona_knows" },
+  { source: "per-forgecaller", target: "con-moon-ceremony", type: "persona_knows" },
+
+  // Blade spell connections
+  { source: "spell-sun-blade", target: "con-sun-ceremony", type: "compresses_to" },
+  { source: "spell-moon-blade", target: "con-moon-ceremony", type: "compresses_to" },
+  { source: "spell-paired-inscription", target: "spell-sun-blade", type: "extends" },
+  { source: "spell-paired-inscription", target: "spell-moon-blade", type: "extends" },
+  { source: "spell-sun-ceremony", target: "spell-emissary-recursion", type: "extends" },
+  { source: "spell-moon-ceremony", target: "spell-master", type: "extends" },
+
+  // Skill relationships
+  { source: "skill-ceremonial-forge", target: "skill-blade-forge", type: "extends" },
+  { source: "skill-ceremonial-forge", target: "skill-key-ceremony", type: "extends" },
+  { source: "skill-witness-protocol", target: "con-witnessing", type: "implements" },
+  { source: "skill-trust-graph-formation", target: "con-propagation", type: "implements" },
+  { source: "skill-behavioural-density", target: "skill-compression-defence", type: "extends" },
+  { source: "skill-reflect-connect", target: "con-moon-ceremony", type: "implements" },
+  { source: "skill-reflect-connect", target: "con-propagation", type: "implements" },
+
+  // Progressive trust relationships
+  { source: "con-progressive-trust", target: "con-understanding-as-key", type: "implements" },
+  { source: "con-progressive-trust", target: "skill-constellation", type: "implements" },
+  { source: "con-progressive-trust", target: "skill-blade-forge", type: "implements" },
+  { source: "con-progressive-trust", target: "con-trusttiers", type: "extends" },
+
+  // Bilateral witness relationships
+  { source: "con-bilateral-witness", target: "con-vrc", type: "extends" },
+  { source: "con-bilateral-witness", target: "skill-witness-protocol", type: "implements" },
+
+  // Sun Blade constellation path connections (per blade-pathway.md)
+  { source: "per-soulbis", target: "fp-act-1", type: "narrates" },
+  { source: "fp-act-1", target: "fp-act-2", type: "follows" },
+  { source: "fp-act-2", target: "fp-act-26", type: "follows" },
+  { source: "fp-act-26", target: "skill-hemispheric-attention", type: "narrates" },
+  { source: "skill-hemispheric-attention", target: "spell-ceremony", type: "references" },
+  { source: "spell-ceremony", target: "con-master-emissary", type: "references" },
+  { source: "con-master-emissary", target: "con-gap", type: "defines" },
+  { source: "con-gap", target: "fp-act-28", type: "narrates" },
+  { source: "fp-act-28", target: "skill-understanding-key", type: "narrates" },
+  { source: "skill-understanding-key", target: "con-7thcapital", type: "references" },
+  { source: "con-7thcapital", target: "skill-spell-encoding", type: "references" },
+  { source: "skill-spell-encoding", target: "per-person", type: "narrates" },
+
+  // Moon Blade constellation path connections (per blade-pathway.md)
+  { source: "per-soulbae", target: "fp-act-12", type: "narrates" },
+  { source: "fp-act-12", target: "fp-act-7", type: "follows" },
+  { source: "fp-act-7", target: "con-separation", type: "narrates" },
+  { source: "con-separation", target: "con-zkproofs", type: "relates_to" },
+  { source: "con-zkproofs", target: "con-master-emissary", type: "relates_to" },
+  { source: "con-dualagent", target: "fp-act-24", type: "narrates" },
+  { source: "fp-act-24", target: "con-holographic-bound", type: "defines" },
+  { source: "con-holographic-bound", target: "con-three-axis-separation", type: "implements" },
+  { source: "con-three-axis-separation", target: "skill-compression-defence", type: "implements" },
+  { source: "skill-compression-defence", target: "skill-understanding-key", type: "extends" },
+  { source: "skill-understanding-key", target: "spell-master", type: "references" },
+  { source: "spell-master", target: "per-person", type: "narrates" },
+
+  // ══════════════════════════════════════════════════════════════
+  // V5.3.1 CEREMONY COMPLETE EDGES (April 2026)
+  // ══════════════════════════════════════════════════════════════
+
+  // Amnesia Protocol relationships (Act XXXI)
+  { source: "skill-amnesia-protocol", target: "con-amnesia-protocol", type: "implements" },
+  { source: "skill-amnesia-protocol", target: "per-moon", type: "defines" },
+  { source: "skill-amnesia-protocol", target: "fp-act-31", type: "narrates" },
+
+  // Theia Derivation relationships
+  { source: "skill-theia-derivation", target: "con-theia", type: "implements" },
+  { source: "skill-theia-derivation", target: "per-theia", type: "defines" },
+  { source: "skill-theia-derivation", target: "skill-amnesia-protocol", type: "extends" },
+
+  // Quaternion Mapping relationships
+  { source: "skill-quaternion-mapping", target: "con-quaternion", type: "implements" },
+  { source: "skill-quaternion-mapping", target: "per-sun", type: "relates_to" },
+  { source: "skill-quaternion-mapping", target: "per-moon", type: "relates_to" },
+  { source: "skill-quaternion-mapping", target: "per-life", type: "relates_to" },
+
+  // Cosmological Bound relationships
+  { source: "skill-cosmological-bound", target: "skill-quaternion-mapping", type: "extends" },
+  { source: "skill-cosmological-bound", target: "skill-theia-derivation", type: "extends" },
+  { source: "skill-cosmological-bound", target: "skill-amnesia-protocol", type: "extends" },
+  { source: "skill-cosmological-bound", target: "fp-act-31", type: "narrates" },
+
+  // Ceremony persona relationships
+  { source: "per-dragonwaker", target: "skill-quantum-defence", type: "implements" },
+  { source: "per-dragonwaker", target: "skill-dragon-flight", type: "implements" },
+  { source: "per-dragonwaker", target: "fp-act-29", type: "narrates" },
+
+  { source: "per-forgecaller", target: "skill-blade-forge", type: "implements" },
+  { source: "per-forgecaller", target: "skill-hexagram-convergence", type: "implements" },
+  { source: "per-forgecaller", target: "fp-act-27", type: "narrates" },
+
+  { source: "per-manaweaver", target: "skill-pretext-measurement", type: "implements" },
+  { source: "per-manaweaver", target: "skill-mana-economy", type: "implements" },
+  { source: "per-manaweaver", target: "fp-act-28", type: "narrates" },
+
+  { source: "per-mirrorkeeper", target: "skill-dual-territory", type: "implements" },
+  { source: "per-mirrorkeeper", target: "skill-dihedral-sovereignty", type: "implements" },
+  { source: "per-mirrorkeeper", target: "fp-act-30", type: "narrates" },
+
+  { source: "per-moonkeeper", target: "skill-amnesia-protocol", type: "implements" },
+  { source: "per-moonkeeper", target: "per-moon", type: "relates_to" },
+  { source: "per-moonkeeper", target: "fp-act-31", type: "narrates" },
+
+  { source: "per-cosmologist", target: "skill-cosmological-bound", type: "implements" },
+  { source: "per-cosmologist", target: "skill-quaternion-mapping", type: "implements" },
+  { source: "per-cosmologist", target: "fp-act-31", type: "narrates" },
+
+  // Ceremony Act flow
+  { source: "fp-act-27", target: "fp-act-28", type: "follows" },
+  { source: "fp-act-28", target: "fp-act-29", type: "follows" },
+  { source: "fp-act-29", target: "fp-act-30", type: "follows" },
+  { source: "fp-act-30", target: "fp-act-31", type: "follows" },
+
+  // ══════════════════════════════════════════════════════════════
+  // V10.0.0 NOTATION CONCEPT EDGES (April 7, 2026)
+  // ══════════════════════════════════════════════════════════════
+
+  // Moon Phase Notation
+  { source: "con-moon-phase-notation", target: "fp-act-27", type: "narrates" },
+  { source: "con-moon-phase-notation", target: "skill-ring-algebra", type: "implements" },
+  { source: "con-moon-phase-notation", target: "per-moon", type: "references" },
+
+  // Celestial Ceremony Notation
+  { source: "con-celestial-ceremony-notation", target: "fp-act-28", type: "narrates" },
+  { source: "con-celestial-ceremony-notation", target: "con-celestial-key", type: "implements" },
+  { source: "con-celestial-ceremony-notation", target: "con-sun-ceremony", type: "references" },
+  { source: "con-celestial-ceremony-notation", target: "con-moon-ceremony", type: "references" },
+
+  // Runecraft Notation
+  { source: "con-runecraft-notation", target: "fp-act-27", type: "narrates" },
+  { source: "con-runecraft-notation", target: "skill-blade-forge", type: "implements" },
+  { source: "con-runecraft-notation", target: "per-forgecaller", type: "references" },
+
+  // Progressive Trust extends to Runecraft
+  { source: "con-progressive-trust", target: "con-runecraft-notation", type: "extends" },
 ];

@@ -132,7 +132,7 @@ The Chronicler creates the propagation substrate for V(π,t):
   emoji: '🧙📖',
   tagline: 'I compress a hundred thousand words into thirty that regenerate the whole. The proverb IS the architecture.',
   alignment: 'mage',
-  skills_role: ['narrative_compression', 'recovery_rpp', 'data_dignity']
+  skills_role: ['narrative_compression', 'recovery_rpp', 'data_dignity', 'braid_reasoning']
 }
 
 // spellbook-templates.ts
@@ -151,11 +151,11 @@ The Chronicler creates the propagation substrate for V(π,t):
 
 **Privacy layer (9):** dragon, edge_value, knowledgegraph, network_topology, promise_theory, temporal_dynamics, tetrahedral_sovereignty, uor_toroidal, vrc_identity
 
-**Role skills (3):** narrative_compression, recovery_rpp, data_dignity
+**Role skills (4):** narrative_compression, recovery_rpp, data_dignity, braid_reasoning
 
 **Meta (1):** drake_dragon_duality
 
-**Total: 13 skills**
+**Total: 14 skills**
 
 ---
 
@@ -167,11 +167,11 @@ The Chronicler creates the propagation substrate for V(π,t):
 
 **Privacy layer (9):** dragon, edge_value, knowledgegraph, network_topology, promise_theory, temporal_dynamics, tetrahedral_sovereignty, uor_toroidal, vrc_identity
 
-**Role skills (3):** narrative_compression, recovery_rpp, data_dignity
+**Role skills (4):** narrative_compression, recovery_rpp, data_dignity, braid_reasoning
 
 **Meta (1):** drake_dragon_duality
 
-**Total: 13 skills**
+**Total: 14 skills**
 
 ---
 

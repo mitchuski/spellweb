@@ -10,7 +10,7 @@ metadata:
   version: "4.0"
   category: "role"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   target_context: "Consent UX designers, IEEE 7012 implementers, Customer Commons contributors, cookie management builders, GDPR/ePrivacy architects"
@@ -105,6 +105,10 @@ The most immediate, practical application of consent infrastructure:
 **C (credential verifiability).** Consent VRCs are verifiable credentials. The consent itself becomes a credential — "this user consented to these terms at this time" is independently verifiable.
 
 **Σ (separation matrix).** Bilateral consent is a Promise Theory cooperation. The user proposes (+), the site accepts (−). The bilateral structure maps directly to the separation matrix — consent terms define the boundary between what the user reveals (Project) and what the user withholds (Protect).
+
+## BRAID deterministic branching validation
+
+BRAID's deterministic branching principle (arXiv:2512.15959) provides external validation: their research found that nano-tier models "struggle with ambiguity" when graph edges are non-deterministic. If AI agents struggle with ambiguous reasoning instructions, consent instructions to AI agents must be equally unambiguous. IEEE 7012 / MyTerms deterministic consent logic is not just a governance preference — it is a technical requirement for reliable agent execution.
 
 ## Open problems
 

@@ -10,7 +10,7 @@ metadata:
   version: "4.0"
   category: "role"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   target_context: "Browser agents, progressive trust designers, Sybil resistance architects, UX permission engineers"
@@ -97,6 +97,18 @@ The emergence of Reflect (from sustained Protect) and Connect (from sustained Pr
 2. **Time gates are non-negotiable.** Minimum durations between tiers prevent rush-farming. The specific durations are uncalibrated but the principle is structural.
 3. **Counterparty verification is bilateral.** Advancing from Light to Heavy requires counterparties to confirm the relationship, not just the agent to claim it.
 4. **The progression is per-context.** An agent can be Dragon in one domain and Blade in another. Sovereignty is not global — it is domain-specific.
+
+## BRAID deployment maturity mapping
+
+BRAID deployment maturity (arXiv:2512.15959) maps to armor progression:
+
+| Tier | BRAID Deployment |
+|---|---|
+| Blade | Ad-hoc reasoning, no cached graphs, monolithic model |
+| Light | First BRAID graphs generated and cached, basic PPD improvement |
+| Heavy | Guild-validated graph library, split-architecture, 10–30× PPD |
+| Full Plate | Comprehensive coverage, dynamic re-planning, Numerical Masking |
+| Dragon | Self-sustaining graph evolution, automated validation, BRAID Parity across all operations |
 
 ## Open problems
 

@@ -143,7 +143,7 @@ The conjectured ~3,000× proof size reduction (UNPROVEN) would make real-time ag
   alignment: 'swordsman',
   skills_role: ['crypto_zkp', 'personhood_sybil', 'academic', 'threat_adversarial',
     'selective_disclosure', 'recovery_rpp', 'cross_chain', 'understanding_as_key',
-    'sovereignty_economics', 'reputation_credentials']
+    'sovereignty_economics', 'reputation_credentials', 'braid_reasoning']
 }
 
 // spellbook-templates.ts
@@ -162,11 +162,11 @@ The conjectured ~3,000× proof size reduction (UNPROVEN) would make real-time ag
 
 **Privacy layer (9):** dragon, edge_value, knowledgegraph, network_topology, promise_theory, temporal_dynamics, tetrahedral_sovereignty, uor_toroidal, vrc_identity
 
-**Role skills (10):** crypto_zkp, personhood_sybil, academic, threat_adversarial, selective_disclosure, recovery_rpp, cross_chain, understanding_as_key, sovereignty_economics, reputation_credentials
+**Role skills (11):** crypto_zkp, personhood_sybil, academic, threat_adversarial, selective_disclosure, recovery_rpp, cross_chain, understanding_as_key, sovereignty_economics, reputation_credentials, braid_reasoning
 
 **Meta (1):** drake_dragon_duality
 
-**Total: 20 skills**
+**Total: 21 skills**
 
 ---
 
@@ -178,11 +178,11 @@ The conjectured ~3,000× proof size reduction (UNPROVEN) would make real-time ag
 
 **Privacy layer (9):** dragon, edge_value, knowledgegraph, network_topology, promise_theory, temporal_dynamics, tetrahedral_sovereignty, uor_toroidal, vrc_identity
 
-**Role skills (10):** crypto_zkp, personhood_sybil, academic, threat_adversarial, selective_disclosure, recovery_rpp, cross_chain, understanding_as_key, sovereignty_economics, reputation_credentials
+**Role skills (11):** crypto_zkp, personhood_sybil, academic, threat_adversarial, selective_disclosure, recovery_rpp, cross_chain, understanding_as_key, sovereignty_economics, reputation_credentials, braid_reasoning
 
 **Meta (1):** drake_dragon_duality
 
-**Total: 20 skills**
+**Total: 21 skills**
 
 ---
 

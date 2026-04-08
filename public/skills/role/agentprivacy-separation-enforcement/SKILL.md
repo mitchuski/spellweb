@@ -15,7 +15,7 @@ metadata:
   version: "5.0"
   category: "role"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   equation_term: "Φ(Σ) — the separation matrix; det(Σ) ≠ 0 is the architecture's core invariant"
@@ -142,6 +142,26 @@ The Person is the only entity that can bridge both observation sets. The Person 
 This means the Person cannot be automated away. No AI agent, no smart contract, no automation layer can replace the Person in the gap without collapsing the separation. Delegation (letting the mage act on the Person's behalf) is bounded precisely because the mage cannot sign. Automation (letting the swordsman auto-approve based on rules) is bounded precisely because the swordsman cannot see content.
 
 The gap is where human sovereignty persists. Closing it — however tempting for convenience — destroys the architecture's core guarantee.
+
+## Inference-layer separation: Generator ⊥ Solver
+
+BRAID (Amcalar & Cinar, arXiv:2512.15959) provides empirical validation that separation is superlinear at the inference layer, not just at the agent layer. The Generator/Solver split decouples reasoning planning from reasoning execution:
+
+- Generator: sees the full problem, produces the bounded reasoning graph. Analogous to Soulbae (viewing key — sees the full context).
+- Solver: executes the graph without seeing the full problem context. Analogous to Soulbis (signing key — acts without full visibility).
+- The Mermaid graph between them is a bounded channel with I(G;S|task) ≤ δ.
+
+This yields 30–74× PPD improvement — empirical proof that separation creates superlinear value at the inference layer, just as Φ(Σ) creates superlinear value at the agent layer.
+
+**Three-axis separation model.** The full architecture now enforces separation at three layers:
+
+| Axis | Separation | Enforcement | Value |
+|---|---|---|---|
+| Agent layer | Swordsman ⊥ Mage | I(S;M|π) ≤ ε | Privacy preservation |
+| Data layer | Shielded providers ⊥ Public providers | Holonic provider splitting | Reconstruction resistance |
+| Inference layer | Generator ⊥ Solver | BRAID bounded graph | 30–74× cost efficiency |
+
+Each axis strengthens the others. Agent separation is cheaper when inference separation reduces per-operation costs. Data separation is more durable when agent separation prevents cross-domain leakage. The three-axis model is multiplicative, not additive.
 
 ## Connection to the equation
 

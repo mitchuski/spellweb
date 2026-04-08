@@ -108,6 +108,12 @@ Tier 1 because without the Architect, the mathematics remains undeployed. Inform
 
 **threat_adversarial** — Threat modelling at the architecture level. The Architect reads threat_adversarial as "what can break the design itself, not just the deployment?"
 
+**braid_reasoning** — Inference architecture. The Architect selects which reasoning tasks use split-architecture (BRAID Generator → cached graph → lightweight Solver) vs monolithic deployment. BRAID's future work proposes fine-tuned "Architect" models — this IS the Architect persona applied to inference.
+
+**holonic_persistence** — Data persistence architecture. How Soulbis and Soulbae state persists across TEE rotations, chain migrations, and provider failures. The Architect reads holonic_persistence as the persistence layer specification.
+
+**holonic_identity** — Three-layer identity architecture. Data GUID / relationship VRC / principal DID. The Architect reads holonic_identity as the identity layer that data, agents, and relationships each occupy.
+
 
 ## Interaction Model
 
@@ -146,7 +152,8 @@ The Architect makes V(π,t) possible at the system level:
   alignment: 'balanced',
   skills_role: ['ai_agent', 'dark_forest', 'hitchhiker_governance', 'crypto_zkp',
     'armor_progression', 'trust_spanning', 'cross_chain', 'agent_interop',
-    'selective_disclosure', 'threat_adversarial']
+    'selective_disclosure', 'threat_adversarial', 'braid_reasoning',
+    'holonic_persistence', 'holonic_identity']
 }
 
 // spellbook-templates.ts
@@ -165,11 +172,11 @@ The Architect makes V(π,t) possible at the system level:
 
 **Privacy layer (9):** dragon, edge_value, knowledgegraph, network_topology, promise_theory, temporal_dynamics, tetrahedral_sovereignty, uor_toroidal, vrc_identity
 
-**Role skills (10):** ai_agent, dark_forest, hitchhiker_governance, crypto_zkp, armor_progression, trust_spanning, cross_chain, agent_interop, selective_disclosure, threat_adversarial
+**Role skills (13):** ai_agent, dark_forest, hitchhiker_governance, crypto_zkp, armor_progression, trust_spanning, cross_chain, agent_interop, selective_disclosure, threat_adversarial, braid_reasoning, holonic_persistence, holonic_identity
 
 **Meta (1):** drake_dragon_duality
 
-**Total: 20 skills (broadest specialist in the roster)**
+**Total: 23 skills**
 
 ---
 
@@ -181,11 +188,11 @@ The Architect makes V(π,t) possible at the system level:
 
 **Privacy layer (9):** dragon, edge_value, knowledgegraph, network_topology, promise_theory, temporal_dynamics, tetrahedral_sovereignty, uor_toroidal, vrc_identity
 
-**Role skills (10):** ai_agent, dark_forest, hitchhiker_governance, crypto_zkp, armor_progression, trust_spanning, cross_chain, agent_interop, selective_disclosure, threat_adversarial
+**Role skills (13):** ai_agent, dark_forest, hitchhiker_governance, crypto_zkp, armor_progression, trust_spanning, cross_chain, agent_interop, selective_disclosure, threat_adversarial, braid_reasoning, holonic_persistence, holonic_identity
 
 **Meta (1):** drake_dragon_duality
 
-**Total: 20 skills (broadest specialist in the roster)**
+**Total: 23 skills**
 
 ---
 

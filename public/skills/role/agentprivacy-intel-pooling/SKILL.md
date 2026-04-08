@@ -14,7 +14,7 @@ metadata:
   version: "5.0"
   category: "role"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   equation_term: "Network topology × D: delegation that creates collective value without individual extraction"
@@ -103,6 +103,18 @@ This maintains the dual-agent separation within collective intelligence operatio
 **Minimum pool size.** Intel Pools enforce a minimum participant count before producing any output. Below the threshold, the pool accepts contributions but releases nothing. This prevents small-pool deanonymisation.
 
 **Reconstruction ceiling inheritance.** The Intel Pool inherits the architecture's R<1 guarantee. Even with access to all pool contributions (raw, before aggregation), reconstructing any individual Person's complete behavioural model remains impossible. The pool adds noise; the dual-agent separation prevents the noise from being calibrated away.
+
+## BRAID graph libraries as Intel Pool artefacts
+
+Cached BRAID reasoning graphs (arXiv:2512.15959) are Intel Pool contributions. A Cipher guild that generates and validates BRAID graphs for ZKP reasoning creates collective intelligence that every member executes:
+
+- Guild generates graph (high one-time cost, C_BRAID)
+- Guild validates graph (peer review, benchmark testing)
+- Graph stored as immutable holon in shared-parent library
+- All members execute graph (low marginal cost, C_inference)
+- PPD scales with guild size (more members amortise C_BRAID further)
+
+Guild membership has direct economic value: access to validated reasoning infrastructure that would cost 30–74× more to replicate individually. This is the intelligence dimension of Intel Pools — not just threat data, but reasoning capability as a collective asset.
 
 ## Connection to the equation
 

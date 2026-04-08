@@ -10,7 +10,7 @@ metadata:
   version: "4.0"
   category: "role"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   target_context: "Privacy Pool designers, selective disclosure protocol builders, association set architects, compliance engineers"
@@ -81,6 +81,14 @@ On the sovereignty lattice, each disclosure corresponds to revealing one or more
 The ZK Spellbook includes Tornado Cash as a case study in selective disclosure failure. Tornado provided perfect anonymity (Type 4 proof — "I am a member of this pool") but no association set mechanics. Without association sets, the pool included both legitimate and illegitimate participants. Regulators could not distinguish, so they sanctioned the entire pool.
 
 **PVM-V4 design response.** Association sets allow selective disclosure of legitimacy without sacrificing anonymity. "I am in this pool, and I am associated with the subset of pool members who passed legitimacy verification" — without revealing which member or which specific legitimacy criteria were verified. This is the compliance-preserving anonymity that Tornado lacked.
+
+## Scaffolding as selective disclosure for reasoning
+
+BRAID's procedural scaffolding principle (arXiv:2512.15959) is selective disclosure applied to inference. The graph reveals the reasoning STRUCTURE (constraints, steps, branching logic) without the reasoning CONTENT (the actual output text).
+
+The Numerical Masking Protocol makes the ZK parallel explicit: all numerical literals in the graph are replaced with `_`, ensuring the solver receives only logical topology, not computational state. This is zero-knowledge for computation — prove you know HOW to solve without revealing the solution.
+
+**Reasoning disclosure topology:** Just as data disclosure has an integer bottleneck (reveal fact X or don't), reasoning disclosure has a graph-topology bottleneck. You can share the graph structure (node types, edge conditions) without sharing node contents. The graph is the scaffold; the content is the output. Scaffolding without answer. Structure without content. Proof without data.
 
 ## Open problems
 

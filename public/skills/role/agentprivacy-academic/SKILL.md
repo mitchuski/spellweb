@@ -10,7 +10,7 @@ metadata:
   version: "4.0"
   category: "role"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   target_context: "PETS, IEEE S&P, USENIX Security, CCS, peer reviewers"
@@ -89,6 +89,11 @@ The model explicitly states four breaking conditions: (B1) UOR structural incomp
 ## Limitations and scope
 
 The model values privacy-preserving agent architectures. It does not: provide a general theory of data valuation, address privacy in non-agent contexts, model adversaries with quantum computational capabilities, or account for regulatory arbitrage across jurisdictions. The golden ratio conjecture, UOR correspondence, and ZKP efficiency claims are speculative and should not be treated as established results.
+
+## Key external references
+
+- Amcalar, A. & Cinar, E. "BRAID: Bounded Reasoning for Autonomous Inference and Decisions." arXiv:2512.15959 (2025). [Structured prompting economics, PPD metric, Generator/Solver split architecture, Numerical Masking Protocol]
+- Gershfield, M. "Holonic Architecture: Identity-Independent Data Structures for Cross-Environment Interoperability." OASIS / NextGen Software Whitepaper v1.2 (2026). [Holon model, HyperDrive runtime, multi-provider persistence, shared-parent patterns, Holonic BRAID]
 
 ## Suggested review criteria
 

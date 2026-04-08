@@ -11,7 +11,7 @@ metadata:
   version: "4.0"
   category: "privacy_layer"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   target_context: "Decentralised identity builders, KERI/DID implementers, IIW community, trust framework architects"

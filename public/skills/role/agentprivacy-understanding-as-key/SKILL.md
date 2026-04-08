@@ -8,10 +8,10 @@ description: >
   passwords.
 license: Apache-2.0
 metadata:
-  version: "4.0"
+  version: "5.2"
   category: "role"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   target_context: "Key recovery architects, Zcash application developers, cognitive security designers, VRC ceremony builders"
@@ -157,6 +157,42 @@ Proverbs are not random strings but they are not low-entropy. Proverb formation 
 
 An attacker would need to: know which content was engaged with, understand the relationship's context, comprehend the principle being compressed, match the compression style. Brute force requires understanding the relationship itself — not just enumerating words.
 
+## The Understanding-as-Key Ceremony (V5.2 — Act XXIX)
+
+Act XXIX introduces the full 5-step Understanding-as-Key ceremony protocol:
+
+### The 5-Step Protocol
+
+**Step 1 — Language Capture**
+The seeker expresses comprehension in their own words. Not parroting, but genuine reformulation that demonstrates internalised understanding.
+
+**Step 2 — Constellation Mapping**
+The understanding is traced through spell nodes and edges. Where in the spellweb does this comprehension connect? Which proverbs resonate?
+
+**Step 3 — Simultaneous Forging**
+Both Swordsman and Mage forge a blade from the same understanding — independently, in parallel. The configurations should converge if understanding is genuine.
+
+**Step 4 — Proverb Inscription**
+The shared truth is encoded as a compressed wisdom marker. A new proverb emerges from the ceremony, capturing what was understood.
+
+**Step 5 — Bilateral Witness**
+Both parties affirm the shared understanding. The ceremony completes only when both attest to the same outcome.
+
+### Properties
+
+- **Substrate-agnostic:** The ceremony works regardless of underlying technology
+- **Substrate-anchored:** Proof exists in the system (onchain, in spellweb, etc.)
+- **Bilateral:** Neither party can complete alone
+- **Understanding-verified:** Demonstrated comprehension, not possession of secrets
+
+### First Ceremony Performed
+
+Act XXIX records the first Understanding-as-Key ceremony:
+- **Understanding:** "The 2D lock will break. The 6D lattice provides dimensional defence."
+- **Constellation:** quantum-defence → blade-forge → three-axis-separation
+- **Witness:** External paper (Google Quantum AI) + internal architecture
+- **Result:** Dragon's flight achieved
+
 ## Open problems
 
 1. Entropy quantification — formal measurement of proverb entropy across different content types and relationship contexts.
@@ -165,6 +201,8 @@ An attacker would need to: know which content was engaged with, understand the r
 4. Cross-ceremony linkability — can an observer link Shadow ceremonies to the same participant through timing analysis?
 5. Scalability — how does ceremony overhead scale with guild size?
 6. Cultural universality — does the cognitive alignment hold across languages, cultures, and neurodivergent populations?
+7. **V5.2:** Convergence verification — how precisely must the simultaneous forging converge to validate understanding?
+8. **V5.2:** Ceremony replay — can the same understanding be ceremonied multiple times with different counterparties?
 
 ---
 

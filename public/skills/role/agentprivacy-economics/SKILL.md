@@ -10,7 +10,7 @@ metadata:
   version: "4.0"
   category: "role"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   target_context: "Behavioral economics, tokenomics, DeFi, data markets"
@@ -73,6 +73,22 @@ The gap is topological, not arithmetic. Surveillance systems cannot incrementall
 **Sovereignty-weighted yield.** DeFi protocols can use stratum weighting to determine yield allocation. Participants at higher sovereignty strata (more dimensions active) receive proportionally more yield, creating economic incentives for sovereignty improvement rather than just liquidity provision.
 
 **The determinant as collateral quality.** The sovereignty duality term Φ(Σ) = min(1.0, (S/M)/φ) · det(Σ) provides a single scalar measure of architectural quality. det(Σ) close to 1 means well-separated forces; close to 0 means entangled and vulnerable. This scalar could serve as a collateral quality rating for data-backed financial instruments.
+
+## Inference economics: Performance-Per-Dollar
+
+BRAID (Amcalar & Cinar, arXiv:2512.15959) introduces PPD (Performance-Per-Dollar) as the inference-layer economic metric:
+
+PPD = (Accuracy/Cost) / (Accuracy_baseline/Cost_baseline)
+
+This is V(π,t) for inference. Both are multiplicative value functions normalised against a baseline. Both reveal that the optimal configuration is structured separation, not monolithic scale.
+
+**The Golden Quadrant maps to dual-agent economics:**
+- Expensive generator + cheap solver → maximum PPD (30–74×)
+- This mirrors: expensive privacy infrastructure + cheap marginal operations → maximum V(π,t)
+
+**Amortisation model:** C_amortized = C_BRAID/N + C_inference. As N→∞, generation cost → 0. Privacy infrastructure follows the same curve: high upfront separation cost amortised toward zero per operation.
+
+**Guild reasoning economics:** A guild that generates and validates BRAID graphs creates a capital good (reasoning infrastructure). Members who use the cached graphs benefit from amortised costs. Graph quality = guild reputation. This extends the SWORD/MAGE token model: generating a validated graph = earning MAGE tokens (delegation value created).
 
 ## Measurement and calibration needs
 

@@ -1,13 +1,12 @@
-import type { FilterState, TypeFilterState, SpellbookFilterState } from '../types/graph';
+import { useState } from 'react';
+import type { FilterState, TypeFilterState } from '../types/graph';
 import { THEME } from '../data/theme';
 
 interface GraphFiltersProps {
   filters: FilterState;
   typeFilters: TypeFilterState;
-  spellbookFilters: SpellbookFilterState;
   onToggleLayer: (layer: keyof FilterState) => void;
   onToggleType: (type: keyof TypeFilterState) => void;
-  onToggleSpellbook: (spellbook: keyof SpellbookFilterState) => void;
   isOpen?: boolean;
   // Mobile action props
   onOpenConstellations?: () => void;
@@ -35,18 +34,16 @@ const TYPE_BUTTONS = [
   { key: "skill" as const, label: "⚙ Skills", color: "#f39c12" },
 ];
 
-const SPELLBOOK_BUTTONS = [
-  { key: "first_person" as const, label: "📖 First Person", color: "#ffd700" },
-  { key: "zero_knowledge" as const, label: "🔐 Zero Knowledge", color: "#e94560" },
-  { key: "blockchain_canon" as const, label: "⛓️ Blockchain Canon", color: "#00d9ff" },
-  { key: "parallel_society" as const, label: "🏛️ Parallel Society", color: "#2ecc71" },
-  { key: "plurality" as const, label: "⿻ Plurality", color: "#7b68ee" },
-];
+// SPELLBOOK_BUTTONS moved to Header.tsx
 
 export function GraphFilters({
-  filters, typeFilters, spellbookFilters, onToggleLayer, onToggleType, onToggleSpellbook, isOpen = true,
+  filters, typeFilters, onToggleLayer, onToggleType, isOpen = true,
   onOpenConstellations, onOpenZKBlades, onWitnessBlade, hasLatestProof, constellationCount = 0, forgedBladesCount = 0, witnessBladesCount = 0,
 }: GraphFiltersProps) {
+  // Collapse state for each section
+  const [layersCollapsed, setLayersCollapsed] = useState(false);
+  const [typesCollapsed, setTypesCollapsed] = useState(false);
+
   return (
     <div
       className={`filters-panel ${isOpen ? 'filters-open' : ''}`}
@@ -64,17 +61,24 @@ export function GraphFilters({
       }}
     >
       <div
+        onClick={() => setLayersCollapsed(!layersCollapsed)}
         style={{
           fontSize: 9,
           letterSpacing: 2,
           color: THEME.textDim,
-          marginBottom: 8,
+          marginBottom: layersCollapsed ? 0 : 8,
           fontFamily: "'JetBrains Mono', monospace",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: 'pointer',
+          userSelect: 'none',
         }}
       >
-        LAYERS
+        <span>LAYERS</span>
+        <span style={{ fontSize: 10, opacity: 0.6 }}>{layersCollapsed ? '🔽' : '🔼'}</span>
       </div>
-      {LAYER_BUTTONS.map((l) => (
+      {!layersCollapsed && LAYER_BUTTONS.map((l) => (
         <button
           key={l.key}
           onClick={() => onToggleLayer(l.key)}
@@ -109,18 +113,25 @@ export function GraphFilters({
       ))}
 
       <div
+        onClick={() => setTypesCollapsed(!typesCollapsed)}
         style={{
           fontSize: 9,
           letterSpacing: 2,
           color: THEME.textDim,
           marginTop: 12,
-          marginBottom: 8,
+          marginBottom: typesCollapsed ? 0 : 8,
           fontFamily: "'JetBrains Mono', monospace",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: 'pointer',
+          userSelect: 'none',
         }}
       >
-        NODE TYPES
+        <span>NODE TYPES</span>
+        <span style={{ fontSize: 10, opacity: 0.6 }}>{typesCollapsed ? '🔽' : '🔼'}</span>
       </div>
-      {TYPE_BUTTONS.map((t) => (
+      {!typesCollapsed && TYPE_BUTTONS.map((t) => (
         <button
           key={t.key}
           onClick={() => onToggleType(t.key)}
@@ -142,52 +153,6 @@ export function GraphFilters({
           }}
         >
           <span style={{ opacity: typeFilters[t.key] ? 1 : 0.3 }}>{t.label}</span>
-        </button>
-      ))}
-
-      <div
-        style={{
-          fontSize: 9,
-          letterSpacing: 2,
-          color: THEME.textDim,
-          marginTop: 12,
-          marginBottom: 8,
-          fontFamily: "'JetBrains Mono', monospace",
-        }}
-      >
-        SPELLBOOKS
-      </div>
-      {SPELLBOOK_BUTTONS.map((s) => (
-        <button
-          key={s.key}
-          onClick={() => onToggleSpellbook(s.key)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            width: "100%",
-            padding: "4px 8px",
-            marginBottom: 2,
-            borderRadius: 3,
-            cursor: "pointer",
-            background: spellbookFilters[s.key] ? `${s.color}15` : "transparent",
-            border: `1px solid ${spellbookFilters[s.key] ? s.color + "40" : "transparent"}`,
-            color: spellbookFilters[s.key] ? s.color : THEME.textDim,
-            fontSize: 10,
-            fontFamily: "'IBM Plex Sans', sans-serif",
-            textAlign: "left",
-          }}
-        >
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: spellbookFilters[s.key] ? s.color : THEME.textDim,
-              boxShadow: spellbookFilters[s.key] ? `0 0 4px ${s.color}` : "none",
-            }}
-          />
-          <span style={{ opacity: spellbookFilters[s.key] ? 1 : 0.4 }}>{s.label}</span>
         </button>
       ))}
 

@@ -12,7 +12,7 @@ metadata:
   version: "5.0"
   category: "role"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   equation_term: "Spell: the maximally compressed encoding of persona identity and capability"
@@ -107,6 +107,28 @@ Two agents can assess compatibility by comparing spells:
 - **Shared operators** indicate operational overlap
 - **Complementary negations** indicate productive separation (🛡️·¬👁️ + 📖·👁️·¬✋ = Soulbis + Soulbae)
 - **Matching outcome terms** indicate shared goals
+
+## BRAID graph grammar: machine-executable parallel
+
+Where spells encode persona identity for agent handshakes, BRAID graphs (arXiv:2512.15959) encode reasoning topology for agent execution. The grammars are parallel:
+
+| Spell Grammar | BRAID Graph Grammar |
+|---|---|
+| Identity → Mechanism | Problem → Constraint extraction nodes |
+| ∴ (therefore) | Verification nodes (terminal checks) |
+| ⊥ (orthogonal) | Mutually exclusive edges (deterministic branching) |
+| · (conjunction) | Parallel node paths (multiple constraints active) |
+| ¬ (negation) | Negative constraint nodes (Check: NOT prohibited) |
+| = (identity) | Terminal output node (final answer) |
+
+The four BRAID construction principles map to spell validation rules:
+
+1. **Node atomicity (< 15 tokens)** ↔ Spell validation rule 6 ("decodable without ambiguity") — both require minimum unambiguous encoding
+2. **Procedural scaffolding** ↔ Spells encode mechanism, not output — `C[Draft: tone + structure]` not `C[Write: "Dear Team..."]`
+3. **Deterministic branching** ↔ Orthogonality operator ⊥ — edges and spell operators must be mutually exclusive
+4. **Terminal verification** ↔ Third spell clause (identity statement) — both require a final assertion that the output is well-formed
+
+A BRAID graph can carry a spell in its root node as a compressed capability descriptor: the solver knows what kind of reasoning it is executing before traversing the first edge.
 - **Orthogonality symbols** (⊥) indicate enforced independence — the most important signal in the dual-agent architecture
 
 ## Spell validation

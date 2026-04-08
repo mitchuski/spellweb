@@ -2,7 +2,7 @@
 // SPELLWEB TYPE DEFINITIONS
 // ═══════════════════════════════════════════════════════════════
 
-export type NodeType = 'document' | 'concept' | 'theorem' | 'spell' | 'act' | 'persona' | 'term' | 'skill';
+export type NodeType = 'document' | 'concept' | 'theorem' | 'spell' | 'act' | 'persona' | 'term' | 'skill' | 'chronicle';
 
 // ═══════════════════════════════════════════════════════════════
 // HEXAGRAM SYSTEM (64-Tetrahedra Lattice Mapping)
@@ -111,7 +111,7 @@ export type Domain = 'swordsman' | 'mage' | 'first_person' | 'shared';
 
 export type Spellbook = 'first_person' | 'zero_knowledge' | 'blockchain_canon' | 'parallel_society' | 'plurality';
 
-export type Layer = 'knowledge' | 'narrative';
+export type Layer = 'knowledge' | 'narrative' | 'chronicle';
 
 export type EdgeType =
   | 'defines'
@@ -123,7 +123,19 @@ export type EdgeType =
   | 'references'
   | 'compresses_to'
   | 'contradicts'
-  | 'persona_knows';
+  | 'persona_knows'
+  | 'parent_of'
+  | 'embodies'
+  | 'requires'
+  | 'introduces'
+  | 'teaches'
+  | 'relates_to'
+  // Celestial hierarchy edges (Act XXXI cosmology)
+  | 'generates'        // Sun generates light
+  | 'delegates_via'    // Earth delegates via Theia/Life
+  | 'manifests_as'     // Life manifests as Human
+  | 'reflects_through' // Moon reflects through Swordsman
+  | 'remembers';       // Moonkeeper remembers the forgetting
 
 export interface SpellwebNode {
   id: string;
@@ -132,7 +144,9 @@ export interface SpellwebNode {
   domain: Domain;
   layer: Layer;
   desc: string;
-  version?: string;
+  version?: string;       // PVM version (e.g., "5.3" for canonical personas)
+  tier?: number;          // Persona tier (0 = canonical, 1 = base, 2 = specialized)
+  category?: string;      // Skill category ("privacy-layer" | "role")
   emoji?: string;
   proverb?: string;
   emojiSpell?: string;
@@ -193,6 +207,7 @@ export interface Theme {
     persona: NodeVisual;
     term: NodeVisual;
     skill: NodeVisual;
+    chronicle: NodeVisual;
   };
   edges: Record<EdgeType, EdgeStyle>;
 }
@@ -200,6 +215,7 @@ export interface Theme {
 export interface FilterState {
   knowledge: boolean;
   narrative: boolean;
+  chronicle: boolean;
 }
 
 export interface TypeFilterState {
@@ -211,6 +227,7 @@ export interface TypeFilterState {
   persona: boolean;
   term: boolean;
   skill: boolean;
+  chronicle: boolean;
 }
 
 export interface SpellbookFilterState {
@@ -226,3 +243,185 @@ export interface ConnectedNode {
   type: EdgeType;
   direction: 'in' | 'out';
 }
+
+// ═══════════════════════════════════════════════════════════════
+// STORAGE KEYS (Per Chronicle: Blade & Spell System Mirroring)
+// ═══════════════════════════════════════════════════════════════
+
+export const SPELLWEB_STORAGE_KEYS = {
+  forgedBlades: 'spellweb-forged-blades',
+  equippedBlade: 'spellweb-equipped-blade',
+  constellations: 'spellweb-constellations',
+  userEdges: 'spellweb-user-edges',
+  mageSpells: 'spellweb-mage-spells',
+} as const;
+
+// ═══════════════════════════════════════════════════════════════
+// BLADE VALIDATION (Per Chronicle: Verification Rules)
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Validate blade signature format: SPELL-{6chars}-{2char checksum}
+ */
+export function isValidBladeSignature(signature: string): boolean {
+  const pattern = /^SPELL-[A-Z0-9]{6}-[A-Z0-9]{2}$/;
+  return pattern.test(signature);
+}
+
+/**
+ * Validate hex is 2 characters in valid range (00-3F)
+ */
+export function isValidBladeHex(hex: string): boolean {
+  if (!/^[0-9A-F]{2}$/i.test(hex)) return false;
+  const val = parseInt(hex, 16);
+  return val >= 0 && val <= 0x3F;
+}
+
+/**
+ * Calculate stratum (Hamming weight) from hex
+ */
+export function hexToStratum(hex: string): number {
+  const val = parseInt(hex, 16) || 0;
+  let count = 0;
+  for (let i = 0; i < 6; i++) {
+    if ((val >> i) & 1) count++;
+  }
+  return count;
+}
+
+/**
+ * Calculate tier from stratum
+ */
+export function stratumToTier(stratum: number): 'light' | 'heavy' | 'dragon' {
+  if (stratum <= 2) return 'light';
+  if (stratum <= 4) return 'heavy';
+  return 'dragon';
+}
+
+
+/**
+ * MOON PHASE NOTATION
+ * ========================================================================
+ * The moon is the whole information space. The lit portion is disclosure.
+ * The dark portion is what remains private. The hex determines the phase.
+ * The stratum determines the illumination.
+ * 
+ * Per Chronicle: moon-phase-notation.md
+ * ========================================================================
+ */
+
+export const MOON_PHASES = {
+  0: { emoji: '🌑', name: 'New Moon',        meaning: 'Null blade, nothing reflected' },
+  1: { emoji: '🌒', name: 'Waxing Crescent', meaning: 'Minimal disclosure, one boundary' },
+  2: { emoji: '🌓', name: 'First Quarter',   meaning: 'Twin-edge, dual-agent vertex' },
+  3: { emoji: '🌔', name: 'Waxing Gibbous',  meaning: 'Half sovereignty, three axes' },
+  4: { emoji: '🌖', name: 'Waning Gibbous',  meaning: 'Substantial disclosure, four boundaries' },
+  5: { emoji: '🌗', name: 'Last Quarter',    meaning: 'Near-full, one dimension dark' },
+  6: { emoji: '🌕', name: 'Full Moon',       meaning: 'Full sovereignty reflected' },
+} as const;
+
+/**
+ * Convert stratum to moon phase emoji
+ * The dark part is the privacy. The lit part is the proof.
+ */
+export function stratumToMoonPhase(stratum: number): string {
+  const clamped = Math.max(0, Math.min(6, stratum));
+  return MOON_PHASES[clamped as keyof typeof MOON_PHASES].emoji;
+}
+
+/**
+ * Get full moon phase info from stratum
+ */
+export function getMoonPhaseInfo(stratum: number): { emoji: string; name: string; meaning: string } {
+  const clamped = Math.max(0, Math.min(6, stratum));
+  return MOON_PHASES[clamped as keyof typeof MOON_PHASES];
+}
+
+/**
+ * Convert hex directly to moon phase
+ */
+export function hexToMoonPhase(hex: string): string {
+  return stratumToMoonPhase(hexToStratum(hex));
+}
+/**
+ * Convert hex to 6 stance lines [L1, L2, L3, L4, L5, L6]
+ * Per Chronicle: hexToStanceLines for agentprivacy compatibility
+ */
+export function hexToStanceLines(hex: string): [0|1, 0|1, 0|1, 0|1, 0|1, 0|1] {
+  const val = parseInt(hex, 16) || 0;
+  return [
+    ((val >> 5) & 1) as 0|1,  // L1 (protection)
+    ((val >> 4) & 1) as 0|1,  // L2 (delegation)
+    ((val >> 3) & 1) as 0|1,  // L3 (memory)
+    ((val >> 2) & 1) as 0|1,  // L4 (connection)
+    ((val >> 1) & 1) as 0|1,  // L5 (computation)
+    (val & 1) as 0|1,         // L6 (value)
+  ];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SPELLWEB ↔ AGENTPRIVACY PAYLOAD (Per Chronicle: Import/Export)
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * URL payload for sending blades to agentprivacy.ai
+ */
+export interface SpellwebBladePayloadV1 {
+  v: 1;
+  bladeId: string;
+  name: string;
+  primaryEmoji: string;
+  markEmojis: string[];
+  proofSignature?: string;
+  isWitness?: boolean;
+}
+
+/**
+ * Encode blade payload for URL parameter
+ */
+export function encodeBladePayloadForUrl(payload: SpellwebBladePayloadV1): string {
+  const json = JSON.stringify(payload);
+  const bytes = new TextEncoder().encode(json);
+  let binary = '';
+  bytes.forEach((b) => { binary += String.fromCharCode(b); });
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/**
+ * Decode blade payload from URL parameter
+ */
+export function decodeBladePayloadFromUrl(token: string): SpellwebBladePayloadV1 | null {
+  try {
+    const base64 = token.replace(/-/g, '+').replace(/_/g, '/');
+    const binary = atob(base64);
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+    const json = new TextDecoder().decode(bytes);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DIMENSION MAPPING (Per Chronicle: Stance Line ↔ Dimension)
+// ═══════════════════════════════════════════════════════════════
+
+export const DIMENSION_MAPPING = {
+  L1: { name: 'protection', spellweb: 'd1Hide', agentprivacy: 'DO_NOT_TRACK', emoji: '🛡️' },
+  L2: { name: 'delegation', spellweb: 'd2Commit', agentprivacy: 'AGENT_DELEGATION', emoji: '🤝' },
+  L3: { name: 'memory', spellweb: 'd3Prove', agentprivacy: 'DATA_RESIDENCY', emoji: '📜' },
+  L4: { name: 'connection', spellweb: 'd4Connect', agentprivacy: 'MULTI_PARTY', emoji: '🔗' },
+  L5: { name: 'computation', spellweb: 'd5Reflect', agentprivacy: 'ZK_PROOF', emoji: '⚡' },
+  L6: { name: 'value', spellweb: 'd6Delegate', agentprivacy: 'ECONOMIC_FLOW', emoji: '💎' },
+} as const;
+
+/**
+ * Spellbook to source mapping for agentprivacy LearnedSpell
+ */
+export const SPELLBOOK_TO_SOURCE: Record<Spellbook, string> = {
+  first_person: 'story',
+  zero_knowledge: 'zk',
+  blockchain_canon: 'canon',
+  parallel_society: 'parallel',
+  plurality: 'plurality',
+};

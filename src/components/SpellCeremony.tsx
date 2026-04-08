@@ -35,16 +35,54 @@ export interface SpellProof {
   duration: number; // ms
   startedAt: number; // timestamp
   completedAt: number; // timestamp
-  constellationHash: string; // hash of node IDs
+  constellationHash: string; // SHA-256 hash of node IDs (first 12 hex chars)
   nodeCount: number;
-  chargeLevel: 'spark' | 'ember' | 'flame' | 'blaze' | 'inferno';
-  signature: string; // unique proof token
+  chargeLevel: 'spark' | 'ember' | 'flame' | 'inferno' | 'dragon';
+  signature: string; // unique proof token (SHA-256 based)
   spellsCast: number; // number of spell clicks during evoke (randomness attribute)
   // Blade Forge attributes
   bladeDimensions: BladeDimensions;
   bladeStratum: number;  // Hamming weight (0-6)
   bladeTier: BladeTier;
   bladeHex: string;      // 6-bit hex representation
+  // Hash chain attributes (blade lineage)
+  previousBladeHash: string | null; // null for inception blade
+  bladeHash: string; // SHA-256 of this blade's canonical data
+  chainLength: number; // position in the chain (1 = inception)
+  // Commitment scheme (pre-evocation lock)
+  commitment: string; // SHA-256(constellationHash + nonce) - locked at evoke start
+  commitmentNonce: string; // random nonce used in commitment
+  commitmentVerified: boolean; // true if reveal matches commitment
+  // Mage identity signature (added when blade is claimed/manifested)
+  mageSignature?: string;        // Ed25519 signature of blade data
+  mageId?: string;               // mage-{16hex} identifier
+  // Runecraft (dual-key binding - Mage + Swordsman)
+  runecrafted?: boolean;         // True if both signatures present
+  swordsmanSignature?: string;   // Ed25519 signature from agentprivacy Swordsman
+  swordsmanId?: string;          // ap-{16hex} identifier
+  runecraftedAt?: number;        // Timestamp when runecraft completed
+}
+
+// Equipped blade structure (swordsman's wielded blade - gives his orb emojis)
+export interface EquippedBladeData {
+  id: string;
+  name: string;
+  emoji: string;
+  constellationMarks: Array<{
+    nodeId: string;
+    emoji?: string;
+    emojiSpell?: string;
+  }>;
+}
+
+// Mage's learned spell (one of her 6 chosen - gives her orb emojis)
+export interface MageSpellData {
+  nodeId: string;
+  label: string;
+  emoji?: string;
+  emojiSpell?: string;
+  proverb?: string;
+  hexagramLine: number; // 0-5
 }
 
 interface SpellCeremonyProps {
@@ -56,6 +94,7 @@ interface SpellCeremonyProps {
   // Action bar props
   onClearConstellation?: () => void;
   onShine?: () => void;
+  isShineMode?: boolean; // Shine (100%) vs Shadow (15%)
   onSavePath?: () => void;
   onConnect?: () => void;
   onStartWaypoint?: () => void;
@@ -68,6 +107,32 @@ interface SpellCeremonyProps {
   // Orb control
   orbsAtHome?: boolean;
   onToggleOrbsHome?: () => void;
+  // Swordsman's equipped blade (his orb emojis come from this path)
+  equippedBlade?: EquippedBladeData | null;
+  // Mage's 6 chosen spells (her orb emojis come from these)
+  mageSpells?: MageSpellData[];
+  // Forge mode - show Forge button instead of Evoke when proof ready
+  hasProof?: boolean;
+  onForge?: () => void;
+  // Menu openers - Mage and Sword buttons open detailed modals
+  onOpenMageMenu?: () => void;
+  onOpenBladesModal?: () => void;
+  // Spell cast callback - called when clicking during ceremony to deduct mana
+  onSpellCast?: () => void;
+  // Casting mode toggle: 'constellation' (free) or 'mage' (costs mana)
+  castingMode?: 'constellation' | 'mage';
+  onToggleCastingMode?: () => void;
+  // Mana floor - below this, mage mode is greyed out
+  manaFloor?: number;
+  // Hovered node - displayed in ceremony panel instead of tooltip
+  hoveredNode?: { label: string; emoji?: string; type: string; desc?: string } | null;
+  // Selected spell for info bar (mage side)
+  selectedSpell?: { label: string; emoji?: string; proverb?: string } | null;
+  // Mana points for the info bar
+  manaPoints?: number;
+  maxMana?: number;
+  // Mobile minimize callback
+  onMinimize?: () => void;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -78,8 +143,9 @@ const SWORDSMAN_COLOR = '#e74c3c';
 const MAGE_COLOR = '#9b59b6';
 const GOLD = '#ffd700';
 
-const WAITING_WIDTH = 400;
-const WAITING_HEIGHT = 180;
+const WAITING_WIDTH = 440; // Wider for spell emojis to fit
+const WAITING_HEIGHT = 200; // Increased for info bar at bottom
+const WAITING_HEIGHT_MOBILE_EMPTY = 90; // Compact: just orbs circling
 const EVOKE_WIDTH = 800;
 const EVOKE_HEIGHT = 500;
 
@@ -94,36 +160,112 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
-// Simple hash function for constellation
-function hashConstellation(nodes: CircuitNode[]): string {
+// SHA-256 hash for constellation (cryptographic, collision-resistant)
+async function hashConstellation(nodes: CircuitNode[]): Promise<string> {
   const str = nodes.map(n => n.id).join(':');
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(36);
+  const data = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  // First 12 hex chars = 48 bits, readable but collision-resistant
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 12);
 }
 
-// Determine charge level based on laps
+// Determine charge level based on laps (Fibonacci progression)
+// spark(6) → ember(13) → flame(21) → inferno(38) → dragon(62)
 function getChargeLevel(laps: number): SpellProof['chargeLevel'] {
-  if (laps >= 10) return 'inferno';
-  if (laps >= 7) return 'blaze';
-  if (laps >= 4) return 'flame';
-  if (laps >= 2) return 'ember';
+  if (laps >= 62) return 'dragon';
+  if (laps >= 38) return 'inferno';
+  if (laps >= 21) return 'flame';
+  if (laps >= 13) return 'ember';
   return 'spark';
 }
 
-// Generate unique proof signature
-function generateSignature(nodes: CircuitNode[], laps: number, timestamp: number): string {
-  const data = `${hashConstellation(nodes)}-${laps}-${timestamp}`;
-  let hash = 0;
-  for (let i = 0; i < data.length; i++) {
-    hash = ((hash << 5) - hash) + data.charCodeAt(i);
-    hash = hash & hash;
+// Generate unique proof signature (SHA-256 based)
+async function generateSignature(nodes: CircuitNode[], laps: number, timestamp: number): Promise<string> {
+  const constellationHash = await hashConstellation(nodes);
+  const data = `${constellationHash}-${laps}-${timestamp}`;
+  const encoded = new TextEncoder().encode(data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  // Format: SPELL-[6 hex chars]-[lap count in base36]
+  return `SPELL-${hex.slice(0, 6).toUpperCase()}-${laps.toString(36).toUpperCase()}`;
+}
+
+// Compute blade hash for hash chain (SHA-256 of canonical blade data)
+async function computeBladeHash(
+  constellationHash: string,
+  laps: number,
+  duration: number,
+  bladeHex: string,
+  bladeStratum: number,
+  previousBladeHash: string | null,
+  timestamp: number
+): Promise<string> {
+  const canonical = JSON.stringify({
+    constellation: constellationHash,
+    laps,
+    duration,
+    hex: bladeHex,
+    stratum: bladeStratum,
+    previous: previousBladeHash,
+    timestamp
+  });
+  const encoded = new TextEncoder().encode(canonical);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Get previous blade hash and chain length from localStorage
+function getPreviousBladeInfo(): { previousHash: string | null; chainLength: number } {
+  try {
+    const stored = localStorage.getItem('spellweb_blade_chain');
+    if (stored) {
+      const chain = JSON.parse(stored);
+      return {
+        previousHash: chain.lastBladeHash || null,
+        chainLength: (chain.length || 0) + 1
+      };
+    }
+  } catch {
+    // Ignore parse errors
   }
-  return `SPELL-${Math.abs(hash).toString(36).toUpperCase()}-${laps.toString(36).toUpperCase()}`;
+  return { previousHash: null, chainLength: 1 };
+}
+
+// Update blade chain in localStorage
+function updateBladeChain(bladeHash: string, chainLength: number): void {
+  try {
+    localStorage.setItem('spellweb_blade_chain', JSON.stringify({
+      lastBladeHash: bladeHash,
+      length: chainLength
+    }));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+// Generate a random nonce for commitment scheme
+function generateNonce(): string {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Generate commitment: SHA-256(constellationHash + nonce)
+async function generateCommitment(constellationHash: string, nonce: string): Promise<string> {
+  const data = constellationHash + nonce;
+  const encoded = new TextEncoder().encode(data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Verify commitment matches reveal
+async function verifyCommitment(commitment: string, constellationHash: string, nonce: string): Promise<boolean> {
+  const computed = await generateCommitment(constellationHash, nonce);
+  return computed === commitment;
 }
 
 function easeInOutCubic(t: number): number {
@@ -136,27 +278,57 @@ function easeInOutCubic(t: number): number {
 
 /**
  * Calculate blade dimensions based on proof attributes
- * Each dimension activates based on ceremony performance
+ * Different ceremony styles produce different hexagram stances:
+ *
+ * QUICK STRIKE (few nodes, fast, few spells): Light blades, focused dimensions
+ * MEDITATIVE (longer time, steady pace): Memory/Value dimensions unlock
+ * SPELL-HEAVY (many spells cast): Delegation/Computation active
+ * EXPANSIVE (many nodes, many laps): Connection/Protection strong
+ *
+ * The hexagram reflects HOW you approached the ceremony, not just "more = better"
  */
 function calculateBladeDimensions(
   nodeCount: number,
   lapCount: number,
   duration: number,
-  chargeLevel: SpellProof['chargeLevel']
+  chargeLevel: SpellProof['chargeLevel'],
+  spellsCast: number = 0
 ): BladeDimensions {
+  const seconds = duration / 1000;
+  const minutes = duration / 60000;
+
+  // Ceremony style indicators
+  const isQuick = seconds < 20;
+  const isMeditative = minutes >= 1;
+  const isSpellHeavy = spellsCast >= 3;
+  const isExpansive = nodeCount >= 4;
+  const isDeep = lapCount >= 3;
+
   return {
-    // d1: Protection - boundaries forged (has path)
-    protection: nodeCount >= 1,
-    // d2: Delegation - agency transferred (shared across laps)
-    delegation: lapCount >= 2,
-    // d3: Memory - state accumulated (duration threshold)
-    memory: duration >= 30000, // 30+ seconds
-    // d4: Connection - multi-party coordination (3+ nodes)
-    connection: nodeCount >= 3,
-    // d5: Computation - ZK proof active (always true when proof generated)
-    computation: true,
-    // d6: Value - economic flow (high charge level)
-    value: chargeLevel === 'flame' || chargeLevel === 'blaze' || chargeLevel === 'inferno',
+    // d1: Protection (🛡️) - Boundaries forged
+    // Activates: Has a clear path with structure (not too simple)
+    protection: nodeCount >= 2 || lapCount >= 2,
+
+    // d2: Delegation (🤝) - Agency transferred
+    // Activates: Spell-casting focus OR deep iteration
+    delegation: isSpellHeavy || isDeep,
+
+    // d3: Memory (📜) - State accumulated
+    // Activates: Meditative time investment OR many interactions
+    memory: isMeditative || (seconds >= 30 && lapCount >= 2),
+
+    // d4: Connection (🔗) - Multi-party coordination
+    // Activates: Expansive constellation OR repeated traversal
+    connection: isExpansive || (nodeCount >= 3 && lapCount >= 2),
+
+    // d5: Computation (⚡) - ZK proof active
+    // Activates: Quick decisive action OR spell intensity
+    computation: isQuick || isSpellHeavy || nodeCount >= 1,
+
+    // d6: Value (💎) - Economic flow
+    // Activates: High charge from sustained presence, or meditative + spells
+    value: chargeLevel === 'flame' || chargeLevel === 'inferno' || chargeLevel === 'dragon'
+           || (isMeditative && spellsCast >= 1),
   };
 }
 
@@ -180,9 +352,15 @@ function calculateBladeStratum(dims: BladeDimensions): number {
  * - Heavy: 3-4 edges (substantial proofs)
  * - Dragon: 5-6 edges (full sovereignty)
  */
-function calculateBladeTier(stratum: number): BladeTier {
-  if (stratum >= 5) return 'dragon';
-  if (stratum >= 3) return 'heavy';
+/**
+ * Calculate blade tier from lap count (Fibonacci power thresholds)
+ * 6 laps → Light blade
+ * 21 laps → Heavy blade
+ * 62 laps → Dragon blade
+ */
+function calculateBladeTier(lapCount: number): BladeTier {
+  if (lapCount >= 62) return 'dragon';
+  if (lapCount >= 21) return 'heavy';
   return 'light';
 }
 
@@ -323,6 +501,7 @@ export function SpellCeremony({
   onToggleEvoke,
   onClearConstellation,
   onShine,
+  isShineMode,
   onSavePath,
   onConnect,
   onStartWaypoint,
@@ -334,7 +513,23 @@ export function SpellCeremony({
   waypointActive,
   orbsAtHome,
   onToggleOrbsHome,
+  equippedBlade,
+  mageSpells = [],
+  hasProof,
+  onForge,
+  onOpenMageMenu,
+  onOpenBladesModal,
+  onSpellCast,
+  castingMode = 'constellation',
+  onToggleCastingMode,
+  manaFloor = 7,
+  hoveredNode: _hoveredNode,
+  selectedSpell,
+  manaPoints = 0,
+  maxMana = 64,
+  onMinimize,
 }: SpellCeremonyProps) {
+  // hoveredNode is available via _hoveredNode if needed
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
@@ -356,9 +551,11 @@ export function SpellCeremony({
   const panelWidth = isCasting
     ? Math.min(windowSize.width - 32, EVOKE_WIDTH)
     : Math.min(windowSize.width - 32, WAITING_WIDTH);
+  // On mobile with no constellation, show compact orb-only view
+  const isEmptyMobile = isMobile && circuitNodes.length === 0;
   const panelHeight = isCasting
     ? (isMobile ? Math.min(windowSize.height - 250, 400) : EVOKE_HEIGHT)
-    : WAITING_HEIGHT;
+    : (isEmptyMobile ? WAITING_HEIGHT_MOBILE_EMPTY : WAITING_HEIGHT);
 
   // Orb state
   const swordsmanRef = useRef({ x: panelWidth / 2 - 40, y: panelHeight / 2, targetIndex: 0, progress: 0 });
@@ -372,6 +569,32 @@ export function SpellCeremony({
   const swordsmanStartNodeRef = useRef(0); // Track where swordsman started to count laps
   const lastLapNodeRef = useRef(-1); // Last node that triggered a lap count
 
+  // Commitment scheme - locks constellation at evoke start
+  const commitmentRef = useRef<string>('');
+  const commitmentNonceRef = useRef<string>('');
+
+  // Mana system - depletes per lap (blade mana), not per click
+  const [mana, setMana] = useState(100);
+
+  // Panel minimize state
+  const [isMinimized, setIsMinimized] = useState(false);
+  const MANA_COST_PER_LAP = 1; // Cost 1 mana per lap completed
+
+  // Spell tracking - per lap and total
+  const spellsCastThisLapRef = useRef(0);
+  const spellsPerLapRef = useRef<number[]>([]); // Track spells cast in each lap
+
+  // Imprints - spell emojis drawn on the chart when cast
+  const imprintsRef = useRef<Array<{
+    x: number;
+    y: number;
+    emoji: string;
+    opacity: number;
+    scale: number;
+    rotation: number;
+    createdAt: number;
+  }>>([]);
+
   // Particles
   const particlesRef = useRef<Array<{
     x: number; y: number; vx: number; vy: number;
@@ -382,9 +605,11 @@ export function SpellCeremony({
   // Current spell display - tracks which orb triggered it
   const [currentSpell, setCurrentSpell] = useState<{ node: CircuitNode; triggeredBy: 'swordsman' | 'mage' } | null>(null);
 
-  // Emoji queue for click-to-cast during evoke
-  const emojiQueueRef = useRef<string[]>([]);
-  const emojiQueueIndexRef = useRef(0);
+  // Separate emoji queues for swordsman (from equipped blade) and mage (from 6 spells)
+  const swordsmanEmojiQueueRef = useRef<string[]>([]);
+  const mageEmojiQueueRef = useRef<string[]>([]);
+  const swordsmanQueueIndexRef = useRef(0);
+  const mageQueueIndexRef = useRef(0);
   const lastEmitOrbRef = useRef<'swordsman' | 'mage'>('mage'); // Alternate between orbs
   const spellsCastRef = useRef(0); // Count spell clicks for randomness
 
@@ -416,23 +641,58 @@ export function SpellCeremony({
       lastLapNodeRef.current = -1;
       setLapCount(0);
       sessionInitializedRef.current = true;
+
+      // Generate commitment (pre-evocation lock)
+      // This proves the constellation was locked BEFORE the ceremony began
+      (async () => {
+        const constellationHash = await hashConstellation(circuitNodes);
+        const nonce = generateNonce();
+        const commitment = await generateCommitment(constellationHash, nonce);
+        commitmentRef.current = commitment;
+        commitmentNonceRef.current = nonce;
+      })();
       setCurrentSpell(null);
       particlesRef.current = [];
 
-      // Build emoji queue from all nodes' emojiSpell fields
-      const allEmojis: string[] = [];
+      // Build SEPARATE emoji queues for swordsman and mage
       const emojiRegex = /\p{Emoji_Presentation}|\p{Emoji}\uFE0F/gu;
-      circuitNodes.forEach(node => {
-        const spellString = node.emojiSpell || node.emoji || '';
+
+      // SWORDSMAN: Emojis from equipped blade's constellation path
+      const swordsmanEmojis: string[] = [];
+      if (equippedBlade?.constellationMarks) {
+        equippedBlade.constellationMarks.forEach(mark => {
+          const spellString = mark.emojiSpell || mark.emoji || '';
+          const matches = spellString.match(emojiRegex);
+          if (matches) swordsmanEmojis.push(...matches);
+        });
+      }
+      // Fallback to circuit nodes if no blade equipped
+      if (swordsmanEmojis.length === 0) {
+        circuitNodes.forEach(node => {
+          const spellString = node.emojiSpell || node.emoji || '';
+          const matches = spellString.match(emojiRegex);
+          if (matches) swordsmanEmojis.push(...matches);
+        });
+      }
+      swordsmanEmojiQueueRef.current = swordsmanEmojis.length > 0 ? swordsmanEmojis : ['⚔️', '🗡️', '🔥', '⚡'];
+
+      // MAGE: Emojis from her 6 chosen spells
+      const mageEmojis: string[] = [];
+      mageSpells.forEach(spell => {
+        const spellString = spell.emojiSpell || spell.emoji || '';
         const matches = spellString.match(emojiRegex);
-        if (matches) {
-          allEmojis.push(...matches);
-        }
+        if (matches) mageEmojis.push(...matches);
       });
-      emojiQueueRef.current = allEmojis.length > 0 ? allEmojis : ['✦', '⚔️', '🔮', '💫'];
-      emojiQueueIndexRef.current = 0;
+      mageEmojiQueueRef.current = mageEmojis.length > 0 ? mageEmojis : ['✦', '🔮', '💫', '🌟', '✨', '🌙'];
+
+      swordsmanQueueIndexRef.current = 0;
+      mageQueueIndexRef.current = 0;
       lastEmitOrbRef.current = 'mage';
       spellsCastRef.current = 0; // Reset spell click counter
+      spellsCastThisLapRef.current = 0; // Reset per-lap counter
+      spellsPerLapRef.current = []; // Reset lap tracking
+      setMana(100); // Reset mana to full (blade mana)
+      imprintsRef.current = []; // Clear imprints
     } else if (!isCasting && wasCastingRef.current) {
       // Stopping evoke - reset to waiting mode
       const waitW = Math.min(windowSize.width - 32, WAITING_WIDTH);
@@ -456,63 +716,149 @@ export function SpellCeremony({
       const duration = completedAt - ceremonyStartRef.current;
       const chargeLevel = getChargeLevel(lapCount);
 
-      // Calculate blade forge attributes
+      // Calculate blade forge attributes based on ceremony style
       const bladeDimensions = calculateBladeDimensions(
         circuitNodes.length,
         lapCount,
         duration,
-        chargeLevel
+        chargeLevel,
+        spellsCastRef.current
       );
       const bladeStratum = calculateBladeStratum(bladeDimensions);
-      const bladeTier = calculateBladeTier(bladeStratum);
+      const bladeTier = calculateBladeTier(lapCount);
       const bladeHex = bladeToHex(bladeDimensions);
 
-      const proof: SpellProof = {
-        lapCount,
-        duration,
-        startedAt: ceremonyStartRef.current,
-        completedAt,
-        constellationHash: hashConstellation(circuitNodes),
-        nodeCount: circuitNodes.length,
-        chargeLevel,
-        signature: generateSignature(circuitNodes, lapCount, ceremonyStartRef.current),
-        spellsCast: spellsCastRef.current,
-        // Blade Forge attributes
-        bladeDimensions,
-        bladeStratum,
-        bladeTier,
-        bladeHex,
-      };
-      onProofGenerated?.(proof);
+      // Generate cryptographic hashes asynchronously
+      (async () => {
+        const [constellationHash, signature] = await Promise.all([
+          hashConstellation(circuitNodes),
+          generateSignature(circuitNodes, lapCount, ceremonyStartRef.current)
+        ]);
+
+        // Get hash chain info
+        const { previousHash, chainLength } = getPreviousBladeInfo();
+
+        // Compute blade hash for the chain
+        const bladeHash = await computeBladeHash(
+          constellationHash,
+          lapCount,
+          duration,
+          bladeHex,
+          bladeStratum,
+          previousHash,
+          completedAt
+        );
+
+        // Verify commitment (the constellation hash at end should match what was locked at start)
+        const commitmentVerified = await verifyCommitment(
+          commitmentRef.current,
+          constellationHash,
+          commitmentNonceRef.current
+        );
+
+        const proof: SpellProof = {
+          lapCount,
+          duration,
+          startedAt: ceremonyStartRef.current,
+          completedAt,
+          constellationHash,
+          nodeCount: circuitNodes.length,
+          chargeLevel,
+          signature,
+          spellsCast: spellsCastRef.current,
+          // Blade Forge attributes
+          bladeDimensions,
+          bladeStratum,
+          bladeTier,
+          bladeHex,
+          // Hash chain attributes
+          previousBladeHash: previousHash,
+          bladeHash,
+          chainLength,
+          // Commitment scheme attributes
+          commitment: commitmentRef.current,
+          commitmentNonce: commitmentNonceRef.current,
+          commitmentVerified,
+        };
+
+        // Update the chain for next blade
+        updateBladeChain(bladeHash, chainLength);
+
+        onProofGenerated?.(proof);
+      })();
     }
     prevCastingRef.current = isCasting;
   }, [isCasting, lapCount, circuitNodes, onProofGenerated]);
 
-  // Click handler - emit next emoji from orbs during evoke
-  const handleCeremonyClick = () => {
-    if (!isCasting || emojiQueueRef.current.length === 0) return;
+  // Click handler - cast spell, consume mana, imprint on chart
+  const handleCeremonyClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isCasting) return;
 
-    // Track spell clicks for randomness attribute
+    // Check casting mode and mana
+    // Mage mode: uses selected spell from inventory, costs mana
+    // Constellation mode: uses path spells from orb queues, free
+    const useMageMode = castingMode === 'mage' && manaPoints >= manaFloor && selectedSpell?.emoji;
+
+    if (useMageMode && onSpellCast) {
+      onSpellCast(); // Deduct mana in SpellWeb
+    }
+
+    // Track spell clicks
+    spellsCastThisLapRef.current++;
     spellsCastRef.current++;
 
-    // Get next emoji (loop around)
-    const emoji = emojiQueueRef.current[emojiQueueIndexRef.current % emojiQueueRef.current.length];
-    emojiQueueIndexRef.current++;
+    // Determine which emoji to cast based on mode
+    let emoji: string;
+    let color: string;
 
-    // Alternate between orbs
-    const emitOrb = lastEmitOrbRef.current === 'swordsman' ? 'mage' : 'swordsman';
-    lastEmitOrbRef.current = emitOrb;
+    if (useMageMode && selectedSpell?.emoji) {
+      // Mage mode: cast the selected spell from inventory (costs mana)
+      emoji = selectedSpell.emoji;
+      color = MAGE_COLOR;
+    } else {
+      // Constellation mode: use path spells (free)
+      // Alternate between swordsman and mage orb queues
+      const emitOrb = lastEmitOrbRef.current === 'swordsman' ? 'mage' : 'swordsman';
+      lastEmitOrbRef.current = emitOrb;
 
-    const orbPos = emitOrb === 'swordsman' ? swordsmanRef.current : mageRef.current;
-    const color = emitOrb === 'swordsman' ? SWORDSMAN_COLOR : MAGE_COLOR;
+      if (emitOrb === 'swordsman') {
+        const queue = swordsmanEmojiQueueRef.current;
+        if (queue.length === 0) return;
+        emoji = queue[swordsmanQueueIndexRef.current % queue.length];
+        swordsmanQueueIndexRef.current++;
+        color = SWORDSMAN_COLOR;
+      } else {
+        const queue = mageEmojiQueueRef.current;
+        if (queue.length === 0) return;
+        emoji = queue[mageQueueIndexRef.current % queue.length];
+        mageQueueIndexRef.current++;
+        color = MAGE_COLOR;
+      }
+    }
 
-    // Emit burst of particles with the emoji
+    // Get click position relative to canvas
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    // Imprint the spell emoji on the chart at click position
+    imprintsRef.current.push({
+      x: clickX,
+      y: clickY,
+      emoji,
+      opacity: 1,
+      scale: 1.2,
+      rotation: (Math.random() - 0.5) * 0.3,
+      createdAt: Date.now(),
+    });
+
+    // Emit burst of particles from click position
     for (let i = 0; i < 5; i++) {
       const angle = (Math.PI * 2 * i) / 5 + Math.random() * 0.3;
       const speed = 2 + Math.random() * 3;
       particlesRef.current.push({
-        x: orbPos.x + (Math.random() - 0.5) * 15,
-        y: orbPos.y + (Math.random() - 0.5) * 15,
+        x: clickX + (Math.random() - 0.5) * 15,
+        y: clickY + (Math.random() - 0.5) * 15,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - 2,
         emoji,
@@ -622,6 +968,11 @@ export function SpellCeremony({
             // Check for lap completion - when swordsman returns to start node
             if (swordsman.targetIndex === 0 && lastLapNodeRef.current !== 0) {
               setLapCount(prev => prev + 1);
+              // Deduct mana per lap
+              setMana(prev => Math.max(0, prev - MANA_COST_PER_LAP));
+              // Record spells cast this lap
+              spellsPerLapRef.current.push(spellsCastThisLapRef.current);
+              spellsCastThisLapRef.current = 0; // Reset for next lap
               lastLapNodeRef.current = 0;
             } else if (swordsman.targetIndex !== 0) {
               lastLapNodeRef.current = swordsman.targetIndex;
@@ -659,26 +1010,26 @@ export function SpellCeremony({
         mage.x = lerp(mappedNodes[mageFromIdx].x, mappedNodes[mage.targetIndex].x, mageEased);
         mage.y = lerp(mappedNodes[mageFromIdx].y, mappedNodes[mage.targetIndex].y, mageEased);
 
-        // No particle trails - keep constellation clean
-
       } else {
-        // === WAITING MODE: Orbs orbit peacefully at bottom ===
+        // === WAITING MODE: Orbs orbit peacefully ===
         const time = timestamp * 0.001;
-        const orbitRadius = 45;
+        // Compact mobile: smaller orbit, centered vertically
+        const isCompact = panelHeight <= WAITING_HEIGHT_MOBILE_EMPTY;
+        const orbitRadius = isCompact ? 35 : 45;
         const centerX = panelWidth / 2;
-        const orbY = panelHeight - 35; // Orbs at bottom
+        const orbY = isCompact ? panelHeight / 2 : panelHeight - 35; // Center on compact, bottom otherwise
 
         swordsmanRef.current.x = centerX + Math.cos(time * 0.8) * orbitRadius;
-        swordsmanRef.current.y = orbY + Math.sin(time * 0.8) * 10;
+        swordsmanRef.current.y = orbY + Math.sin(time * 0.8) * (isCompact ? 8 : 10);
 
         mageRef.current.x = centerX + Math.cos(time * 0.8 + Math.PI) * orbitRadius;
-        mageRef.current.y = orbY + Math.sin(time * 0.8 + Math.PI) * 10;
+        mageRef.current.y = orbY + Math.sin(time * 0.8 + Math.PI) * (isCompact ? 8 : 10);
 
         // Draw subtle glow path under orbs
         ctx.beginPath();
-        ctx.ellipse(centerX, orbY, orbitRadius, 10, 0, 0, Math.PI * 2);
+        ctx.ellipse(centerX, orbY, orbitRadius, isCompact ? 8 : 10, 0, 0, Math.PI * 2);
         ctx.strokeStyle = GOLD + '15';
-        ctx.lineWidth = 20;
+        ctx.lineWidth = isCompact ? 15 : 20;
         ctx.stroke();
       }
 
@@ -711,6 +1062,37 @@ export function SpellCeremony({
         ctx.restore();
       });
 
+      // Draw imprints - spell emojis cast on the chart
+      const now = Date.now();
+      imprintsRef.current = imprintsRef.current
+        .map(imp => {
+          const age = now - imp.createdAt;
+          const fadeStart = 8000; // Start fading after 8 seconds
+          const fadeTime = 4000; // Fade over 4 seconds
+          const opacity = age > fadeStart
+            ? Math.max(0, 1 - (age - fadeStart) / fadeTime)
+            : 1;
+          return { ...imp, opacity };
+        })
+        .filter(imp => imp.opacity > 0);
+
+      imprintsRef.current.forEach(imp => {
+        ctx.save();
+        ctx.globalAlpha = imp.opacity * 0.85;
+        ctx.translate(imp.x, imp.y);
+        ctx.rotate(imp.rotation);
+        ctx.scale(imp.scale, imp.scale);
+        ctx.shadowColor = MAGE_COLOR;
+        ctx.shadowBlur = 12;
+        ctx.font = '24px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(imp.emoji, 0, 0);
+        ctx.restore();
+      });
+
+      // Mana depletes per lap - no regeneration during evoke
+
       // Draw orbs - bigger in evoke mode!
       drawOrb(ctx, swordsmanRef.current.x, swordsmanRef.current.y, '⚔️', SWORDSMAN_COLOR, '#ff6b6b', isCasting ? 22 : 13);
       drawOrb(ctx, mageRef.current.x, mageRef.current.y, '✦', MAGE_COLOR, '#a78bfa', isCasting ? 22 : 13);
@@ -724,6 +1106,55 @@ export function SpellCeremony({
   }, [isActive, isCasting, panelWidth, panelHeight, mappedNodes, circuitNodes.length]);
 
   if (!isActive) return null;
+
+  // Minimized view - just a small expandable bar
+  if (isMinimized) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 30,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 200,
+        }}
+      >
+        <button
+          onClick={() => setIsMinimized(false)}
+          style={{
+            padding: '10px 24px',
+            borderRadius: 20,
+            background: 'linear-gradient(135deg, rgba(30, 30, 50, 0.95), rgba(20, 20, 35, 0.98))',
+            border: '1px solid #444',
+            color: '#aaa',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: '"JetBrains Mono", monospace',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            backdropFilter: 'blur(12px)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = '#666';
+            e.currentTarget.style.color = '#ddd';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = '#444';
+            e.currentTarget.style.color = '#aaa';
+          }}
+        >
+          <span>⚔️</span>
+          <span>Ceremony</span>
+          <span>✦</span>
+          <span style={{ marginLeft: 8, fontSize: 16 }}>▲</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -740,6 +1171,7 @@ export function SpellCeremony({
       }}
     >
       {/* PROOF BAR - Top of display when casting */}
+      {/* PROOF BAR - Lap count and charge level */}
       {isCasting && (
         <div
           style={{
@@ -765,29 +1197,155 @@ export function SpellCeremony({
               overflow: 'hidden',
             }}>
               <div style={{
-                width: `${Math.min(100, (lapCount / 10) * 100)}%`,
+                width: lapCount >= 42 ? '100%' : `${Math.min(100, (lapCount / 10) * 100)}%`,
                 height: '100%',
-                background: `linear-gradient(90deg, ${SWORDSMAN_COLOR}, ${GOLD}, ${MAGE_COLOR})`,
+                background: lapCount >= 42
+                  ? 'linear-gradient(90deg, #7b68ee, #ffd700, #7b68ee)'
+                  : `linear-gradient(90deg, ${SWORDSMAN_COLOR}, ${GOLD}, ${MAGE_COLOR})`,
                 borderRadius: 5,
                 transition: 'width 0.3s ease-out',
-                boxShadow: lapCount > 0 ? `0 0 15px ${GOLD}` : 'none',
+                boxShadow: lapCount >= 42
+                  ? '0 0 20px #7b68ee, 0 0 40px #ffd700'
+                  : lapCount > 0 ? `0 0 15px ${GOLD}` : 'none',
               }} />
             </div>
             <span style={{ fontSize: 20 }}>✨</span>
           </div>
           <div style={{
             fontSize: 14,
-            color: lapCount >= 7 ? '#ff6b6b' : lapCount >= 4 ? GOLD : '#aaa',
+            color: lapCount >= 42 ? '#7b68ee' : lapCount >= 7 ? '#ff6b6b' : lapCount >= 4 ? GOLD : '#aaa',
             fontFamily: '"JetBrains Mono", monospace',
             fontWeight: lapCount >= 4 ? 'bold' : 'normal',
             letterSpacing: 1,
           }}>
             {lapCount} {lapCount === 1 ? 'LAP' : 'LAPS'} • {getChargeLevel(lapCount).toUpperCase()}
           </div>
-        </div>
-      )}
 
-      {/* ACTION BUTTONS BAR - Below ceremony panel */}
+          {/* Mana Bar - tracks spell casts during evoke */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '4px 12px',
+            background: 'rgba(155, 89, 182, 0.1)',
+            borderRadius: 12,
+            border: `1px solid ${manaPoints > 0 ? MAGE_COLOR + '50' : '#ff444450'}`,
+          }}>
+            <span style={{ fontSize: 14 }}>🔮</span>
+            <div style={{
+              width: 60,
+              height: 6,
+              background: 'rgba(155, 89, 182, 0.2)',
+              borderRadius: 3,
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                width: `${Math.min(100, (manaPoints / maxMana) * 100)}%`,
+                height: '100%',
+                background: manaPoints > maxMana / 2
+                  ? `linear-gradient(90deg, ${MAGE_COLOR}, #a78bfa)`
+                  : manaPoints > maxMana / 4
+                    ? 'linear-gradient(90deg, #9b59b6, #e74c3c)'
+                    : 'linear-gradient(90deg, #e74c3c, #ff4444)',
+                borderRadius: 3,
+                transition: 'width 0.15s ease-out',
+                boxShadow: manaPoints > 0 ? `0 0 6px ${MAGE_COLOR}` : 'none',
+              }} />
+            </div>
+            <span style={{
+              fontSize: 11,
+              color: manaPoints > 0 ? MAGE_COLOR : '#ff6666',
+              fontFamily: '"JetBrains Mono", monospace',
+              minWidth: 32,
+            }}>
+              {manaPoints}/{maxMana}
+            </span>
+          </div>
+
+          {/* Casting Mode Toggle - Stars (constellation/free) vs Crystal (mage/mana) */}
+          {onToggleCastingMode && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '4px 8px',
+              background: 'rgba(30, 30, 40, 0.8)',
+              borderRadius: 16,
+              border: '1px solid #444',
+            }}>
+              {/* Constellation mode - free spells from path */}
+              <button
+                onClick={() => castingMode !== 'constellation' && onToggleCastingMode()}
+                title="Constellation spells (free)"
+                style={{
+                  padding: '4px 8px',
+                  borderRadius: 12,
+                  background: castingMode === 'constellation'
+                    ? 'linear-gradient(135deg, #ffd70030, #ffd70020)'
+                    : 'transparent',
+                  border: castingMode === 'constellation' ? '1px solid #ffd700' : '1px solid transparent',
+                  cursor: 'pointer',
+                  fontSize: 16,
+                  opacity: castingMode === 'constellation' ? 1 : 0.5,
+                  transition: 'all 0.2s',
+                }}
+              >
+                ✨
+              </button>
+              {/* Mage mode - inventory spells, costs mana */}
+              <button
+                onClick={() => castingMode !== 'mage' && manaPoints >= manaFloor && onToggleCastingMode()}
+                title={manaPoints < manaFloor ? `Need ${manaFloor}+ mana` : "Mage spells (costs mana)"}
+                disabled={manaPoints < manaFloor}
+                style={{
+                  padding: '4px 8px',
+                  borderRadius: 12,
+                  background: castingMode === 'mage' && manaPoints >= manaFloor
+                    ? 'linear-gradient(135deg, #9b59b630, #9b59b620)'
+                    : 'transparent',
+                  border: castingMode === 'mage' && manaPoints >= manaFloor
+                    ? `1px solid ${MAGE_COLOR}`
+                    : '1px solid transparent',
+                  cursor: manaPoints < manaFloor ? 'not-allowed' : 'pointer',
+                  fontSize: 16,
+                  opacity: manaPoints < manaFloor ? 0.3 : castingMode === 'mage' ? 1 : 0.5,
+                  filter: manaPoints < manaFloor ? 'grayscale(100%)' : 'none',
+                  transition: 'all 0.2s',
+                }}
+              >
+                🔮
+              </button>
+            </div>
+          )}
+        </div>
+      )}{/* FORGE BLADE - Prominent button at top after evoke completes */}
+{hasProof && !isCasting && onForge && (
+  <button
+    onClick={onForge}
+    style={{
+      padding: '16px 32px',
+      borderRadius: 25,
+      background: 'linear-gradient(135deg, #ffd70060, #ff660050, #ffd70060)',
+      border: '2px solid #ffd700',
+      color: '#ffd700',
+      fontSize: 16,
+      fontWeight: 700,
+      cursor: 'pointer',
+      fontFamily: '"JetBrains Mono", monospace',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      letterSpacing: 2,
+      transition: 'all 0.2s',
+      boxShadow: '0 0 30px #ffd70050, 0 0 60px #ffd70030',
+      animation: 'forgeGlow 2s ease-in-out infinite',
+    }}
+  >
+    <span style={{ fontSize: 20 }}>??</span> FORGE BLADE <span style={{ fontSize: 20 }}>??</span>
+  </button>
+)}
+
+{/* ACTION BUTTONS BAR - Below ceremony panel */}
       <div
         style={{
           order: 2, // Place after ceremony panel
@@ -803,16 +1361,46 @@ export function SpellCeremony({
           flexWrap: 'wrap',
         }}
       >
-        {/* Shine - Reset everything to fresh state */}
-        {onShine && (
+        {/* Minimize button - on mobile, also hides panel entirely */}
+        <button
+          onClick={() => {
+            setIsMinimized(true);
+            // On mobile, call parent minimize to hide panel
+            if (isMobile && onMinimize) {
+              onMinimize();
+            }
+          }}
+          title="Minimize ceremony panel"
+          style={{
+            padding: '8px 10px',
+            borderRadius: 18,
+            background: 'rgba(60, 60, 80, 0.5)',
+            border: '1px solid #555',
+            color: '#888',
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: '"JetBrains Mono", monospace',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            transition: 'all 0.2s',
+          }}
+        >
+          <span style={{ fontSize: 10 }}>▼</span>
+        </button>
+
+        {/* Sword [s] - Open blades modal */}
+        {onOpenBladesModal && (
           <button
-            onClick={onShine}
+            onClick={onOpenBladesModal}
+            title="Open Blades inventory [s to cycle]"
             style={{
-              padding: '8px 14px',
+              padding: '8px 12px',
               borderRadius: 18,
-              background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 180, 0, 0.15))',
-              border: '1px solid #ffd700',
-              color: '#ffd700',
+              background: 'linear-gradient(135deg, rgba(231, 76, 60, 0.15), rgba(231, 76, 60, 0.1))',
+              border: `1px solid ${SWORDSMAN_COLOR}60`,
+              color: SWORDSMAN_COLOR,
               fontSize: 12,
               fontWeight: 600,
               cursor: 'pointer',
@@ -821,10 +1409,47 @@ export function SpellCeremony({
               alignItems: 'center',
               gap: 6,
               transition: 'all 0.2s',
-              boxShadow: '0 0 12px rgba(255, 215, 0, 0.2)',
             }}
           >
-            <span style={{ fontSize: 14 }}>✨</span> Shine
+            <span style={{ fontSize: 14 }}>⚔️</span> Sword
+          </button>
+        )}
+
+        {/* Shine/Shadow toggle - simple lights on/off */}
+        {onShine && (
+          <button
+            onClick={onShine}
+            disabled={isCasting}
+            title={isCasting ? "Cannot toggle while evoking" : (isShineMode ? "Switch to Shadow (15%)" : "Switch to Shine (100%)")}
+            style={{
+              padding: '8px 14px',
+              borderRadius: 18,
+              background: isCasting
+                ? (isShineMode ? 'rgba(255, 215, 0, 0.05)' : 'rgba(180, 190, 210, 0.05)')
+                : (isShineMode
+                    ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 180, 0, 0.15))'
+                    : 'linear-gradient(135deg, rgba(100, 120, 160, 0.25), rgba(60, 70, 100, 0.2))'),
+              border: `1px solid ${isCasting
+                ? (isShineMode ? '#ffd70030' : '#8090b030')
+                : (isShineMode ? '#ffd700' : '#8090b0')}`,
+              color: isCasting
+                ? (isShineMode ? '#ffd70040' : '#8090b040')
+                : (isShineMode ? '#ffd700' : '#b0c0d8'),
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: isCasting ? 'not-allowed' : 'pointer',
+              fontFamily: '"JetBrains Mono", monospace',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              transition: 'all 0.2s',
+              boxShadow: isCasting ? 'none' : (isShineMode
+                ? '0 0 12px rgba(255, 215, 0, 0.2)'
+                : '0 0 12px rgba(140, 160, 200, 0.15)'),
+              opacity: isCasting ? 0.5 : 1,
+            }}
+          >
+            {isShineMode ? "✨" : "🌑"} {isShineMode ? "Shine" : "Shadow"}
           </button>
         )}
 
@@ -985,8 +1610,57 @@ export function SpellCeremony({
           </button>
         )}
 
-        {/* RIGHT: EVOKE Button - Always visible, prominent */}
-        {onToggleEvoke && (
+        {/* Mage [m] - Open mage spells menu */}
+        {onOpenMageMenu && (
+          <button
+            onClick={onOpenMageMenu}
+            title="Open Mage spells [m to cycle]"
+            style={{
+              padding: '8px 12px',
+              borderRadius: 18,
+              background: 'linear-gradient(135deg, rgba(155, 89, 182, 0.15), rgba(155, 89, 182, 0.1))',
+              border: `1px solid ${MAGE_COLOR}60`,
+              color: MAGE_COLOR,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: '"JetBrains Mono", monospace',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              transition: 'all 0.2s',
+            }}
+          >
+            <span style={{ fontSize: 14 }}>✦</span> Mage
+          </button>
+        )}
+
+        {/* RIGHT: EVOKE/FORGE Button - Shows Forge when proof is ready */}
+        {hasProof && !isCasting && onForge ? (
+          <button
+            onClick={onForge}
+            style={{
+              padding: '10px 20px',
+              borderRadius: 20,
+              background: 'linear-gradient(135deg, #ffd70050, #ff660040)',
+              border: '1px solid #ffd700',
+              color: '#ffd700',
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: '"JetBrains Mono", monospace',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              letterSpacing: 1,
+              transition: 'all 0.2s',
+              boxShadow: '0 0 20px #ffd70040',
+              animation: 'pulse 2s ease-in-out infinite',
+            }}
+          >
+            <span style={{ fontSize: 14 }}>🔥</span> FORGE BLADE
+          </button>
+        ) : onToggleEvoke && (
           <button
             onClick={onToggleEvoke}
             disabled={circuitNodes.length === 0 && !isCasting}
@@ -1042,14 +1716,15 @@ export function SpellCeremony({
       />
 
       {/* Waiting state UI - Evoke button and constellation preview */}
-      {!isCasting && (
+      {/* Hidden on compact mobile empty state (just show orbs) */}
+      {!isCasting && !isEmptyMobile && (
         <div
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
-            bottom: 60, // Leave space for orbs at bottom
+            bottom: 100, // Leave space for orbs at bottom, taller info area
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -1084,25 +1759,20 @@ export function SpellCeremony({
             </div>
           )}
 
-          {/* Empty state */}
-          {circuitNodes.length === 0 && (
-            <div style={{
-              fontSize: 13,
-              color: '#666',
-              fontFamily: '"JetBrains Mono", monospace',
-              textAlign: 'center',
-              padding: '20px 0',
-            }}>
-              Create a constellation to begin
-            </div>
-          )}
+
         </div>
       )}
 
-      {/* Spell display - ABOVE the panel */}
+      {/* Spell display - ABOVE the panel - Click to learn/copy spell */}
       {isCasting && currentSpell && (
         <div
           key={`${currentSpell.node.id}-${currentSpell.triggeredBy}`}
+          onClick={() => {
+            const spellText = currentSpell.node.emojiSpell || currentSpell.node.emoji || currentSpell.node.label;
+            navigator.clipboard.writeText(spellText);
+            // Visual feedback - could add a toast notification here
+          }}
+          title="Click to learn spell (copy to clipboard)"
           style={{
             position: 'absolute',
             bottom: '100%',
@@ -1110,12 +1780,13 @@ export function SpellCeremony({
             transform: 'translateX(-50%)',
             marginBottom: 20,
             maxWidth: 650,
-            padding: '18px 28px',
+            padding: '18px 28px 14px',
             background: 'rgba(5, 5, 15, 0.97)',
             borderRadius: 14,
             border: `1px solid ${currentSpell.triggeredBy === 'swordsman' ? SWORDSMAN_COLOR : MAGE_COLOR}50`,
             boxShadow: `0 6px 40px rgba(0, 0, 0, 0.6), 0 0 60px ${currentSpell.triggeredBy === 'swordsman' ? SWORDSMAN_COLOR : MAGE_COLOR}25`,
             animation: 'spellAppear 0.4s ease-out',
+            cursor: 'pointer',
           }}
         >
           {/* Orb indicator + Node label */}
@@ -1167,10 +1838,55 @@ export function SpellCeremony({
               textAlign: 'center',
               lineHeight: 1.7,
               opacity: 0.9,
+              marginBottom: 10,
             }}>
               "{currentSpell.node.proverb}"
             </div>
           )}
+
+          {/* MANA BAR - Attached to spell display */}
+          <div style={{
+            marginTop: 12,
+            padding: '8px 12px',
+            background: 'rgba(155, 89, 182, 0.08)',
+            borderRadius: 10,
+            border: `1px solid ${MAGE_COLOR}30`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            justifyContent: 'center',
+          }}>
+            <span style={{ fontSize: 14 }}>{selectedSpell?.emoji || '🔮'}</span>
+            <div style={{
+              width: 100,
+              height: 6,
+              background: 'rgba(155, 89, 182, 0.15)',
+              borderRadius: 3,
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                width: `${mana}%`,
+                height: '100%',
+                background: mana > 50
+                  ? `linear-gradient(90deg, ${MAGE_COLOR}, #a78bfa)`
+                  : mana > 20
+                    ? 'linear-gradient(90deg, #9b59b6, #e74c3c)'
+                    : 'linear-gradient(90deg, #e74c3c, #ff4444)',
+                borderRadius: 3,
+                transition: 'width 0.1s ease-out',
+                boxShadow: mana > 50 ? `0 0 6px ${MAGE_COLOR}` : 'none',
+              }} />
+            </div>
+            <span style={{
+              fontSize: 10,
+              color: mana > 50 ? MAGE_COLOR : mana > 20 ? '#888' : '#ff6666',
+              fontFamily: '"JetBrains Mono", monospace',
+              minWidth: 28,
+            }}>
+              {Math.round(mana)}%
+            </span>
+            <span style={{ fontSize: 10, color: '#666' }}>MANA</span>
+          </div>
         </div>
       )}
 
@@ -1178,6 +1894,10 @@ export function SpellCeremony({
         @keyframes spellAppear {
           from { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.95); }
           to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+        }
+        @keyframes forgeGlow {
+          0%, 100% { box-shadow: 0 0 30px #ffd70050, 0 0 60px #ffd70030; }
+          50% { box-shadow: 0 0 50px #ffd70080, 0 0 100px #ffd70050; }
         }
         @keyframes emojiGlow {
           0%, 100% {
@@ -1193,6 +1913,116 @@ export function SpellCeremony({
         }
       `}</style>
       </div>
+
+      {/* INFO BAR - Bottom of ceremony panel showing blade/spell/mana */}
+      {!isCasting && (
+        <div
+          style={{
+            order: 3,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 16,
+            padding: '8px 16px',
+            background: 'rgba(10, 10, 20, 0.9)',
+            borderRadius: 16,
+            border: `1px solid #444`,
+            backdropFilter: 'blur(12px)',
+            minWidth: 320,
+          }}
+        >
+          {/* Equipped Blade (Swordsman side) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 14, color: SWORDSMAN_COLOR }}>⚔️</span>
+            {equippedBlade ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 16 }}>{equippedBlade.emoji}</span>
+                <span style={{
+                  fontSize: 10,
+                  color: '#e74c3c',
+                  fontFamily: '"JetBrains Mono", monospace',
+                }}>
+                  {equippedBlade.name.slice(0, 12)}
+                </span>
+              </div>
+            ) : (
+              <span style={{
+                fontSize: 10,
+                color: '#666',
+                fontFamily: '"JetBrains Mono", monospace',
+              }}>
+                NO BLADE
+              </span>
+            )}
+          </div>
+
+          {/* Mana Bar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 14 }}>💜</span>
+            <div style={{
+              width: 80,
+              height: 6,
+              background: 'rgba(155, 89, 182, 0.2)',
+              borderRadius: 3,
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                width: `${Math.min(100, (manaPoints / maxMana) * 100)}%`,
+                height: '100%',
+                background: manaPoints > maxMana / 2
+                  ? `linear-gradient(90deg, ${MAGE_COLOR}, #a78bfa)`
+                  : manaPoints > maxMana / 4
+                    ? 'linear-gradient(90deg, #9b59b6, #e74c3c)'
+                    : 'linear-gradient(90deg, #e74c3c, #ff4444)',
+                borderRadius: 3,
+                transition: 'width 0.2s ease-out',
+                boxShadow: manaPoints > 0 ? `0 0 6px ${MAGE_COLOR}` : 'none',
+              }} />
+            </div>
+            <span style={{
+              fontSize: 10,
+              color: manaPoints > 0 ? MAGE_COLOR : '#666',
+              fontFamily: '"JetBrains Mono", monospace',
+              minWidth: 24,
+            }}>
+              {manaPoints}
+            </span>
+          </div>
+
+          {/* Selected Spell (Mage side) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 14, color: MAGE_COLOR }}>✦</span>
+            {selectedSpell ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 16 }}>{selectedSpell.emoji || '🔮'}</span>
+                <span style={{
+                  fontSize: 10,
+                  color: '#9b59b6',
+                  fontFamily: '"JetBrains Mono", monospace',
+                }}>
+                  {selectedSpell.label?.slice(0, 12) || 'SPELL'}
+                </span>
+              </div>
+            ) : mageSpells.length > 0 ? (
+              <span style={{
+                fontSize: 10,
+                color: '#666',
+                fontFamily: '"JetBrains Mono", monospace',
+              }}>
+                {mageSpells.length}/8 spells
+              </span>
+            ) : (
+              <span style={{
+                fontSize: 10,
+                color: '#666',
+                fontFamily: '"JetBrains Mono", monospace',
+              }}>
+                NO SPELLS
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

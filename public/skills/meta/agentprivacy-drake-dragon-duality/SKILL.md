@@ -11,7 +11,7 @@ metadata:
   version: "4.0"
   category: "meta"
   origin: "0xagentprivacy"
-  author: "privacymage"
+  author: "Mitchell Travers"
   status: "philosophical_foundation"
   target_context: "All contexts — the origin story of the model's geometry"
   equation_term: "The relationship between V1 (Drake) and V4 (Dragon)"
