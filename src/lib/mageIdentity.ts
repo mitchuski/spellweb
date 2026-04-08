@@ -369,9 +369,9 @@ export function importMageKeyBackup(backup: MageKeyBackup): boolean {
   }
 
   try {
-    // Verify key pair matches
-    const privateKey = hexToBytes(backup.privateKeyHex);
-    const publicKey = hexToBytes(backup.publicKeyHex);
+    // Verify key pair format is valid (hexToBytes throws if invalid)
+    hexToBytes(backup.privateKeyHex);
+    hexToBytes(backup.publicKeyHex);
 
     // Save keys
     localStorage.setItem(KEYS.PRIVATE_KEY, backup.privateKeyHex);
