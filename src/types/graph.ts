@@ -121,6 +121,7 @@ export type EdgeType =
   | 'narrates'
   | 'follows'
   | 'references'
+  | 'referenced_in'    // Inverse of references
   | 'compresses_to'
   | 'contradicts'
   | 'persona_knows'
@@ -130,6 +131,8 @@ export type EdgeType =
   | 'introduces'
   | 'teaches'
   | 'relates_to'
+  | 'measured_by'      // Betweenness/centrality measurement
+  | 'names'            // Naming relationship
   // Celestial hierarchy edges (Act XXXI cosmology)
   | 'generates'        // Sun generates light
   | 'delegates_via'    // Earth delegates via Theia/Life
@@ -157,6 +160,10 @@ export interface SpellwebNode {
   dimensions?: NodeDimensions;
   // Computed hexagram info (derived from dimensions)
   hexagram?: HexagramInfo;
+  // V5.4 betweenness/Selene properties
+  betweenness_interpretation?: string;
+  pvm_section?: string;
+  selene_proof_role?: string;
   // D3 simulation properties (added at runtime)
   x?: number;
   y?: number;

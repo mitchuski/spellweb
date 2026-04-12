@@ -36,6 +36,7 @@ export const THEME: Theme = {
     narrates: { color: "#2ecc71", width: 1.5, dash: "4,4" },
     follows: { color: "#2ecc71", width: 3, dash: null },
     references: { color: "#444460", width: 0.8, dash: "2,4" },
+    referenced_in: { color: "#444460", width: 0.8, dash: "2,4" },
     compresses_to: { color: "#ffd700", width: 2, dash: "6,3" },
     contradicts: { color: "#ff4444", width: 1.5, dash: "2,2" },
     persona_knows: { color: "#a78bfa", width: 1, dash: "3,3" },
@@ -45,6 +46,8 @@ export const THEME: Theme = {
     introduces: { color: "#2ecc71", width: 1.5, dash: null },
     teaches: { color: "#f39c12", width: 1.2, dash: "3,3" },
         relates_to: { color: "#666680", width: 1, dash: "2,3" },
+    measured_by: { color: "#00bcd4", width: 1.5, dash: "3,2" },
+    names: { color: "#a78bfa", width: 1.2, dash: null },
     // Celestial hierarchy edges (Act XXXI cosmology)
     generates: { color: "#ffd700", width: 2.5, dash: null },
     delegates_via: { color: "#4169e1", width: 2, dash: "4,2" },
