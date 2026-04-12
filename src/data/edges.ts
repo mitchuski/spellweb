@@ -1241,6 +1241,23 @@ export const EDGES: SpellwebEdge[] = [
   { source: "con-atlas-resonance", target: "con-holographic-bound", type: "implements" },
   { source: "con-prism-spectrum", target: "con-ring-algebra", type: "extends" },
 
+  // ══════════════════════════════════════════════════════════════
+  // V5.4 EDGES (April 12, 2026) — Betweenness Centrality & Selene's Proof
+  // ══════════════════════════════════════════════════════════════
+  // Betweenness Centrality relationships
+  { source: "con-betweenness-centrality", target: "con-gap", type: "defines" },
+  { source: "con-betweenness-centrality", target: "doc-privacy-value-v5", type: "referenced_in" },
+  { source: "con-gap", target: "con-betweenness-centrality", type: "measured_by" },
+  { source: "con-betweenness-centrality", target: "con-promisetheory", type: "relates_to" },
+  // Selene's Proof relationships
+  { source: "con-selenes-proof", target: "con-zk-orbit", type: "names" },
+  { source: "con-selenes-proof", target: "con-amnesia-protocol", type: "proves" },
+  { source: "con-selenes-proof", target: "per-moon", type: "defines" },
+  { source: "per-theia", target: "con-selenes-proof", type: "proves" },
+  { source: "con-selenes-proof", target: "con-zkproofs", type: "relates_to" },
+  { source: "con-zk-orbit", target: "con-selenes-proof", type: "compresses_to" },
+  { source: "con-selenes-proof", target: "con-gap", type: "relates_to" },
+
   // New document connections
   { source: "doc-what-agentprivacy-is", target: "con-paradox", type: "defines" },
   { source: "doc-what-agentprivacy-is", target: "con-dualagent", type: "defines" },
