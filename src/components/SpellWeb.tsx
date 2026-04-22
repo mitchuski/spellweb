@@ -1578,12 +1578,15 @@ export default function SpellWeb() {
 
   // Load a saved constellation
   const handleLoadConstellation = useCallback((saved: SavedConstellation) => {
+    // Lock constellation during active evocation to prevent breaking proof generation
+    if (incantationActive) return;
+
     setConstellation(saved.marks);
     setConstellationConnections(saved.connections);
     setActiveConstellationId(saved.id);
     setCastingSpells(true);
     setIsShineMode(true);
-  }, []);
+  }, [incantationActive]);
 
 
   // Handle witness blade file import
@@ -2221,6 +2224,9 @@ export default function SpellWeb() {
                     <button
                       key={preset.id}
                       onClick={() => {
+                        // Lock constellation during active evocation
+                        if (incantationActive) return;
+
                         // Load preset constellation - find node labels from NODES
                         const marks = preset.marks.map(m => {
                           const node = NODES.find(n => n.id === m.nodeId);
@@ -2250,9 +2256,11 @@ export default function SpellWeb() {
                         borderRadius: 6,
                         background: preset.ceremony === 'sun'
                           ? 'linear-gradient(135deg, #ffd70015, #ff8c0010)'
-                          : 'linear-gradient(135deg, #7b68ee15, #9b59b610)',
-                        border: `1px solid ${preset.ceremony === 'sun' ? '#ffd700' : '#7b68ee'}`,
-                        color: preset.ceremony === 'sun' ? '#ffd700' : '#7b68ee',
+                          : preset.ceremony === 'moon'
+                            ? 'linear-gradient(135deg, #7b68ee15, #9b59b610)'
+                            : 'linear-gradient(135deg, #00d4ff15, #20b2aa10)', // celestial / Aether — cyan-teal
+                        border: `1px solid ${preset.ceremony === 'sun' ? '#ffd700' : preset.ceremony === 'moon' ? '#7b68ee' : '#00d4ff'}`,
+                        color: preset.ceremony === 'sun' ? '#ffd700' : preset.ceremony === 'moon' ? '#7b68ee' : '#00d4ff',
                         fontSize: 10,
                         cursor: 'pointer',
                         display: 'flex',
@@ -2811,6 +2819,9 @@ export default function SpellWeb() {
                     {/* Sun Preset */}
                     <button
                       onClick={() => {
+                        // Lock constellation during active evocation
+                        if (incantationActive) return;
+
                         const preset = CONSTELLATION_PRESETS[0];
                         const marks = preset.marks.map(m => {
                           const node = NODES.find(n => n.id === m.nodeId);
@@ -2851,28 +2862,58 @@ export default function SpellWeb() {
                     >
                       ☀️
                     </button>
-                    {/* Gap indicator */}
-                    <div
-                      title="⊥ The Gap — the irreducible separation"
+                    {/* Aether Preset — the medium Sun and Moon travel through */}
+                    <button
+                      onClick={() => {
+                        // Lock constellation during active evocation
+                        if (incantationActive) return;
+
+                        const preset = CONSTELLATION_PRESETS[2];
+                        const marks = preset.marks.map(m => {
+                          const node = NODES.find(n => n.id === m.nodeId);
+                          return {
+                            nodeId: m.nodeId,
+                            nodeLabel: node?.label || m.nodeId,
+                            emoji: m.emoji || '✦',
+                            note: m.note || '',
+                            emojiSpell: m.emojiSpell,
+                          };
+                        });
+                        setConstellation(marks);
+                        setConstellationConnections(preset.connections.map(c => ({
+                          sourceId: c.sourceId,
+                          targetId: c.targetId,
+                          note: c.note || '',
+                        })));
+                        setInscribedSpell(preset.inscribedSpell);
+                        setConstellationReflection(preset.reflection || '');
+                        setConstellationName(preset.name);
+                        setCastingSpells(true);
+                        setIsShineMode(true);
+                      }}
+                      title={`⿻ Aether — The Drake-Rising Path\n"Aether is the medium between disclosure and reflection."\n14 nodes • Dragon tier\n\nAether and the Gap are the same substance named twice: the medium Sun and Moon travel through, the Quintessence of the architecture.`}
                       style={{
                         width: slotSize,
-                        height: 16,
-                        borderRadius: 4,
-                        background: '#22222280',
-                        border: '1px solid #444',
+                        height: slotSize,
+                        borderRadius: 6,
+                        background: 'linear-gradient(135deg, #00d4ff25, #20b2aa15)',
+                        border: '1px solid #00d4ff50',
+                        cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: 10,
-                        color: '#666',
-                        fontFamily: '"JetBrains Mono", monospace',
+                        fontSize: 20,
+                        transition: 'all 0.15s',
                       }}
                     >
-                      ⊥
-                    </div>
+                      ⿻
+                    </button>
                     {/* Moon Preset */}
                     <button
                       onClick={() => {
+                        // Lock constellation during active evocation
+                        if (incantationActive) return;
+
                         const preset = CONSTELLATION_PRESETS[1];
                         const marks = preset.marks.map(m => {
                           const node = NODES.find(n => n.id === m.nodeId);
@@ -2896,7 +2937,7 @@ export default function SpellWeb() {
                         setCastingSpells(true);
                         setIsShineMode(true);
                       }}
-                      title={`🌙 The Amnesia Path\n"The amnesia is the protocol. The wound is the trust."\n15 nodes • Dragon tier`}
+                      title={`🌙 The Amnesia Path\n"The amnesia is the protocol. The wound is the trust."\n17 nodes • Dragon tier\n\nv10.2: Selene's Proof (cosmological ZK) and V(π,t) Dragon Equation now anchor the path between separation and the master inscription.`}
                       style={{
                         width: slotSize,
                         height: slotSize,
@@ -2933,6 +2974,9 @@ export default function SpellWeb() {
                       </div>
                       <button
                         onClick={() => {
+                          // Lock constellation during active evocation
+                          if (incantationActive) return;
+
                           const preset = CONSTELLATION_PRESETS[0];
                           const marks = preset.marks.map(m => {
                             const node = NODES.find(n => n.id === m.nodeId);
@@ -2979,18 +3023,64 @@ export default function SpellWeb() {
                       />
                     </div>
 
-                    {/* Gap */}
+                    {/* Aether Ceremony — the medium between disclosure and reflection */}
                     <div style={{
-                      padding: '6px 12px',
-                      borderRadius: 4,
-                      background: '#22222280',
-                      border: '1px solid #444',
-                      textAlign: 'center',
+                      padding: 8,
+                      borderRadius: 8,
+                      background: 'linear-gradient(135deg, #00d4ff15, #20b2aa08)',
+                      border: '1px solid #00d4ff40',
                     }}>
-                      <div style={{ fontSize: 12, color: '#666' }}>⊥</div>
-                      <div style={{ fontSize: 8, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>
-                        The irreducible separation
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <span style={{ fontSize: 18 }}>⿻</span>
+                        <div>
+                          <div style={{ fontSize: 11, color: '#00d4ff', fontWeight: 500 }}>Aether Ceremony</div>
+                          <div style={{ fontSize: 9, color: '#888' }}>14 nodes • The Drake-Rising Path</div>
+                        </div>
                       </div>
+                      <button
+                        onClick={() => {
+                          // Lock constellation during active evocation
+                          if (incantationActive) return;
+
+                          const preset = CONSTELLATION_PRESETS[2];
+                          const marks = preset.marks.map(m => {
+                            const node = NODES.find(n => n.id === m.nodeId);
+                            return {
+                              nodeId: m.nodeId,
+                              nodeLabel: node?.label || m.nodeId,
+                              emoji: m.emoji || '✦',
+                              note: m.note || '',
+                              emojiSpell: m.emojiSpell,
+                            };
+                          });
+                          setConstellation(marks);
+                          setConstellationConnections(preset.connections.map(c => ({
+                            sourceId: c.sourceId,
+                            targetId: c.targetId,
+                            note: c.note || '',
+                          })));
+                          setInscribedSpell(preset.inscribedSpell);
+                          setConstellationReflection(preset.reflection || '');
+                          setConstellationName(preset.name);
+                          setCastingSpells(true);
+                          setIsShineMode(true);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '6px 10px',
+                          marginBottom: 8,
+                          borderRadius: 6,
+                          background: '#00d4ff20',
+                          border: '1px solid #00d4ff',
+                          color: '#00d4ff',
+                          fontSize: 10,
+                          cursor: 'pointer',
+                          fontFamily: "'JetBrains Mono', monospace",
+                        }}
+                      >
+                        Load Constellation
+                      </button>
+                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>🐲→🐉 Drake becomes Dragon · V(π,t) as Quintessence</div>
                     </div>
 
                     {/* Moon Ceremony */}
@@ -3004,11 +3094,14 @@ export default function SpellWeb() {
                         <span style={{ fontSize: 18 }}>🌙</span>
                         <div>
                           <div style={{ fontSize: 11, color: '#7b68ee', fontWeight: 500 }}>Moon Ceremony</div>
-                          <div style={{ fontSize: 9, color: '#888' }}>15 nodes • The Amnesia Path</div>
+                          <div style={{ fontSize: 9, color: '#888' }}>17 nodes • The Amnesia Path</div>
                         </div>
                       </div>
                       <button
                         onClick={() => {
+                          // Lock constellation during active evocation
+                          if (incantationActive) return;
+
                           const preset = CONSTELLATION_PRESETS[1];
                           const marks = preset.marks.map(m => {
                             const node = NODES.find(n => n.id === m.nodeId);
@@ -4176,6 +4269,9 @@ export default function SpellWeb() {
           onOpenMageMenu={() => setShowMageMenu(true)}
           onOpenBladesModal={() => setShowBladesModal(true)}
           onLoadSunConstellation={() => {
+            // Lock constellation during active evocation
+            if (incantationActive) return;
+
             const preset = CONSTELLATION_PRESETS[0];
             const marks = preset.marks.map(m => {
               const node = NODES.find(n => n.id === m.nodeId);
@@ -4200,7 +4296,37 @@ export default function SpellWeb() {
             setIsShineMode(true);
           }}
           onLoadMoonConstellation={() => {
+            // Lock constellation during active evocation
+            if (incantationActive) return;
+
             const preset = CONSTELLATION_PRESETS[1];
+            const marks = preset.marks.map(m => {
+              const node = NODES.find(n => n.id === m.nodeId);
+              return {
+                nodeId: m.nodeId,
+                nodeLabel: node?.label || m.nodeId,
+                emoji: m.emoji || '✦',
+                note: m.note || '',
+                emojiSpell: m.emojiSpell,
+              };
+            });
+            setConstellation(marks);
+            setConstellationConnections(preset.connections.map(c => ({
+              sourceId: c.sourceId,
+              targetId: c.targetId,
+              note: c.note || '',
+            })));
+            setInscribedSpell(preset.inscribedSpell);
+            setConstellationReflection(preset.reflection || '');
+            setConstellationName(preset.name);
+            setCastingSpells(true);
+            setIsShineMode(true);
+          }}
+          onLoadAetherConstellation={() => {
+            // Lock constellation during active evocation
+            if (incantationActive) return;
+
+            const preset = CONSTELLATION_PRESETS[2];
             const marks = preset.marks.map(m => {
               const node = NODES.find(n => n.id === m.nodeId);
               return {
@@ -4260,7 +4386,9 @@ export default function SpellWeb() {
           height={dimensions.h}
           isEvoking={incantationActive}
           waypointNodes={
-            // When tracing a blade, scale constellation to fit above ceremony panel
+            // When tracing a blade, scale constellation to a compact floating region.
+            // Anchored to middle-top-right of the viewport with tight sizing so the trace
+            // reads as a focused constellation, not a drifting ghost.
             bladeTraceActive && activeBlade?.constellationMarks
               ? (() => {
                   // Get raw node positions
@@ -4271,7 +4399,7 @@ export default function SpellWeb() {
 
                   if (rawNodes.length === 0) return rawNodes;
 
-                  // Calculate bounding box
+                  // Calculate bounding box of the blade's nodes at their current force-graph positions
                   const minX = Math.min(...rawNodes.map(n => n.x));
                   const maxX = Math.max(...rawNodes.map(n => n.x));
                   const minY = Math.min(...rawNodes.map(n => n.y));
@@ -4279,13 +4407,35 @@ export default function SpellWeb() {
                   const width = maxX - minX || 1;
                   const height = maxY - minY || 1;
 
-                  // Target area: center of upper-left quadrant
-                  const targetCenterX = dimensions.w / 4;
-                  const targetCenterY = dimensions.h / 3;
-                  const targetSize = 180; // Max size of trace area
+                  // Tight, compact target size — the trace reads as a focused sigil, not a sprawl.
+                  // Clamped 90-140px regardless of viewport; scales gently with smaller dimension.
+                  const maxTargetSize = 140;
+                  const minTargetSize = 90;
+                  const targetSize = Math.max(
+                    minTargetSize,
+                    Math.min(maxTargetSize, Math.min(dimensions.w, dimensions.h) * 0.14)
+                  );
                   const scale = Math.min(targetSize / width, targetSize / height, 1);
+                  const scaledHalfW = (width * scale) / 2;
+                  const scaledHalfH = (height * scale) / 2;
 
-                  // Scale and center
+                  // Middle-top-right anchor — upper portion, right of centre, with right-edge clamp.
+                  // Not flush-right; feels like a floating compass in the upper-right quadrant.
+                  const rightPadding = 32;
+                  const topPadding = 32;
+                  const targetCenterX = Math.min(
+                    dimensions.w * 0.72,                        // aim at ~72% across
+                    dimensions.w - rightPadding - scaledHalfW   // but don't clip the right edge
+                  );
+                  const targetCenterY = Math.max(
+                    topPadding + scaledHalfH,                   // don't clip the top
+                    Math.min(
+                      dimensions.h * 0.22,                      // aim at top ~22%
+                      dimensions.h - 180 - scaledHalfH          // don't collide with ceremony panel
+                    )
+                  );
+
+                  // Scale and re-centre the nodes to the target region
                   const sourceCenterX = (minX + maxX) / 2;
                   const sourceCenterY = (minY + maxY) / 2;
 

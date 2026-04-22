@@ -133,12 +133,14 @@ interface SpellCeremonyProps {
   maxMana?: number;
   // Mobile minimize callback
   onMinimize?: () => void;
-  // Mobile ceremony presets - sun/moon constellation loading
+  // Mobile ceremony presets - sun/moon/aether constellation loading
   onLoadSunConstellation?: () => void;
   onLoadMoonConstellation?: () => void;
+  onLoadAetherConstellation?: () => void;
   // Audio URLs for R2 narrations (played on long-press)
   sunAudioUrl?: string;
   moonAudioUrl?: string;
+  aetherAudioUrl?: string;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -536,8 +538,10 @@ export function SpellCeremony({
   onMinimize,
   onLoadSunConstellation,
   onLoadMoonConstellation,
+  onLoadAetherConstellation,
   sunAudioUrl = 'https://voice.agentprivacy.ai/The_Emissary_Who_Forgot_the_Master.mp3',
   moonAudioUrl = 'https://voice.agentprivacy.ai/The_Amnesia_Protocol.mp3',
+  aetherAudioUrl,
 }: SpellCeremonyProps) {
   // hoveredNode is available via _hoveredNode if needed
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -586,6 +590,7 @@ export function SpellCeremony({
   // Audio refs for R2 narrations (mobile long-press)
   const sunAudioRef = useRef<HTMLAudioElement | null>(null);
   const moonAudioRef = useRef<HTMLAudioElement | null>(null);
+  const aetherAudioRef = useRef<HTMLAudioElement | null>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const LONG_PRESS_DURATION = 500; // ms before audio starts
 
@@ -1818,6 +1823,69 @@ export function SpellCeremony({
             }}
           >
             🌙
+          </button>
+        )}
+
+        {/* MOBILE: Aether ceremony button (the medium Sun and Moon travel through) */}
+        {isMobile && onLoadAetherConstellation && (
+          <button
+            onClick={() => {
+              if (longPressTimerRef.current) {
+                clearTimeout(longPressTimerRef.current);
+                longPressTimerRef.current = null;
+              }
+              onLoadAetherConstellation();
+            }}
+            onTouchStart={() => {
+              longPressTimerRef.current = setTimeout(() => {
+                // Long press - play audio if an Aether URL was provided
+                if (aetherAudioUrl) {
+                  if (!aetherAudioRef.current) {
+                    aetherAudioRef.current = new Audio(aetherAudioUrl);
+                  }
+                  // Stop sibling audio if playing
+                  if (sunAudioRef.current) {
+                    sunAudioRef.current.pause();
+                    sunAudioRef.current.currentTime = 0;
+                  }
+                  if (moonAudioRef.current) {
+                    moonAudioRef.current.pause();
+                    moonAudioRef.current.currentTime = 0;
+                  }
+                  aetherAudioRef.current.play();
+                }
+                longPressTimerRef.current = null;
+              }, LONG_PRESS_DURATION);
+            }}
+            onTouchEnd={() => {
+              if (longPressTimerRef.current) {
+                clearTimeout(longPressTimerRef.current);
+                longPressTimerRef.current = null;
+              }
+            }}
+            onTouchCancel={() => {
+              if (longPressTimerRef.current) {
+                clearTimeout(longPressTimerRef.current);
+                longPressTimerRef.current = null;
+              }
+            }}
+            title="⿻ Aether Ceremony — the medium between disclosure and reflection (Drake-Rising Path)"
+            style={{
+              padding: '10px 14px',
+              borderRadius: 18,
+              background: 'linear-gradient(135deg, #00d4ff25, #20b2aa15)',
+              border: '1px solid #00d4ff60',
+              color: '#00d4ff',
+              fontSize: 18,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+              boxShadow: '0 0 10px rgba(0, 212, 255, 0.15)',
+            }}
+          >
+            ⿻
           </button>
         )}
       </div>

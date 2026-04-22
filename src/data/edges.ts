@@ -721,12 +721,32 @@ export const EDGES: SpellwebEdge[] = [
   { source: "spellbook-firstperson", target: "fp-act-17", type: "defines" },
   { source: "spellbook-firstperson", target: "fp-act-21", type: "defines" },
 
+  { source: "spellbook-zk", target: "zk-tale-2", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-3", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-4", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-5", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-6", type: "defines" },
   { source: "spellbook-zk", target: "zk-tale-7", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-8", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-9", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-10", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-11", type: "defines" },
   { source: "spellbook-zk", target: "zk-tale-13", type: "defines" },
   { source: "spellbook-zk", target: "zk-tale-14", type: "defines" },
   { source: "spellbook-zk", target: "zk-tale-15", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-16", type: "defines" },
   { source: "spellbook-zk", target: "zk-tale-17", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-18", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-19", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-20", type: "defines" },
   { source: "spellbook-zk", target: "zk-tale-21", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-22", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-24", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-25", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-26", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-27", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-28", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-29", type: "defines" },
 
   { source: "spellbook-canon", target: "canon-ch-0", type: "defines" },
   { source: "spellbook-canon", target: "canon-ch-4", type: "defines" },
@@ -1472,4 +1492,129 @@ export const EDGES: SpellwebEdge[] = [
 
   // Progressive Trust extends to Runecraft
   { source: "con-progressive-trust", target: "con-runecraft-notation", type: "extends" },
+
+  // ══════════════════════════════════════════════════════════════
+  // V10.2 / ZERO v2.0 EDGES (April 22, 2026)
+  // Persona cameos, V(π,t) term anchors, spec references, chronicles, MyTerms
+  // ══════════════════════════════════════════════════════════════
+
+  // ─── Persona → Zero Tale cameos (from CHRONICLE_ZERO_SPELLBOOK_V2 §7) ───
+  // Cipher: ZKP Protocol Engineer in arithmetization + circuit tales
+  { source: "per-cipher", target: "zk-tale-5", type: "narrates" },
+  { source: "per-cipher", target: "zk-tale-6", type: "narrates" },
+  { source: "per-cipher", target: "zk-tale-8", type: "narrates" },
+  { source: "per-cipher", target: "zk-tale-21", type: "narrates" },
+  // Architect: System designer in zkVM + ecosystem tales
+  { source: "per-architect", target: "zk-tale-19", type: "narrates" },
+  { source: "per-architect", target: "zk-tale-20", type: "narrates" },
+  { source: "per-architect", target: "zk-tale-22", type: "narrates" },
+  // Sentinel: Infra security in toxic-waste + vulnerability tales
+  { source: "per-sentinel", target: "zk-tale-18", type: "narrates" },
+  { source: "per-sentinel", target: "zk-tale-26", type: "narrates" },
+  // Ranger: Dark forest navigator in the Tornado mixing tale
+  { source: "per-ranger", target: "zk-tale-24", type: "narrates" },
+
+  // ─── Zero Tale → V(π,t) canonical term anchors ───
+  // Umbrella equation — Tale 30 is the full synthesis
+  { source: "zk-tale-30", target: "con-v-pi-t-equation", type: "implements" },
+  { source: "zk-tale-30", target: "con-three-axis-separation", type: "narrates" },
+  { source: "zk-tale-30", target: "con-betweenness-centrality", type: "narrates" },
+  { source: "zk-tale-30", target: "con-selenes-proof", type: "narrates" },
+  { source: "zk-tale-30", target: "con-holographic-bound", type: "narrates" },
+  { source: "zk-tale-30", target: "con-drake-dragon-transformation", type: "narrates" },
+  // P^1.5 — Tale 7 seeds, Tale 23 is canonical, Tale 24 extends via anonymity set
+  { source: "zk-tale-7", target: "con-p-1-5", type: "introduces" },
+  { source: "zk-tale-23", target: "con-p-1-5", type: "implements" },
+  { source: "zk-tale-24", target: "con-p-1-5", type: "extends" },
+  // A_h(τ) — Tale 11 whispers, Tale 12 canonical (IVC folding), Tales 15/16 extend, Tale 27 ecosystem-scale
+  { source: "zk-tale-11", target: "con-a-h-tau", type: "introduces" },
+  { source: "zk-tale-12", target: "con-a-h-tau", type: "implements" },
+  { source: "zk-tale-15", target: "con-a-h-tau", type: "extends" },
+  { source: "zk-tale-16", target: "con-a-h-tau", type: "extends" },
+  { source: "zk-tale-27", target: "con-a-h-tau", type: "extends" },
+  // ρ — Tale 8 first whisper, compounds through scaling/ceremony tales
+  { source: "zk-tale-8", target: "con-rho-maturity", type: "introduces" },
+  { source: "zk-tale-15", target: "con-rho-maturity", type: "extends" },
+  { source: "zk-tale-17", target: "con-rho-maturity", type: "extends" },
+  { source: "zk-tale-27", target: "con-rho-maturity", type: "extends" },
+  // Φ(Σ) — Tale 25 first operational (rollup architecture = sovereignty geometry)
+  { source: "zk-tale-25", target: "con-phi-sigma", type: "implements" },
+  { source: "zk-tale-28", target: "con-phi-sigma", type: "extends" },
+  { source: "con-phi-sigma", target: "con-three-axis-separation", type: "relates_to" },
+  // T_∫(π) — zkVM trace tales carry the path integral
+  { source: "zk-tale-19", target: "con-t-int-pi", type: "implements" },
+  { source: "zk-tale-20", target: "con-t-int-pi", type: "extends" },
+  { source: "zk-tale-22", target: "con-t-int-pi", type: "extends" },
+  { source: "zk-tale-25", target: "con-t-int-pi", type: "extends" },
+  // R(d) — Tale 18 canonical (Toxic Waste Dragon); Tale 26 catalogue
+  { source: "zk-tale-18", target: "con-r-d", type: "implements" },
+  { source: "zk-tale-26", target: "con-r-d", type: "extends" },
+  { source: "zk-tale-18", target: "con-drake-dragon-transformation", type: "narrates" },
+
+  // ─── V(π,t) umbrella relationships ───
+  { source: "con-v-pi-t-equation", target: "con-p-1-5", type: "defines" },
+  { source: "con-v-pi-t-equation", target: "con-a-h-tau", type: "defines" },
+  { source: "con-v-pi-t-equation", target: "con-rho-maturity", type: "defines" },
+  { source: "con-v-pi-t-equation", target: "con-phi-sigma", type: "defines" },
+  { source: "con-v-pi-t-equation", target: "con-t-int-pi", type: "defines" },
+  { source: "con-v-pi-t-equation", target: "con-r-d", type: "defines" },
+  { source: "con-p-1-5", target: "con-holographic-bound", type: "relates_to" },
+  { source: "con-drake-dragon-transformation", target: "con-v-pi-t-equation", type: "relates_to" },
+
+  // ─── Zero Tale 1 → cosmological grounding ───
+  { source: "zk-tale-1", target: "con-selenes-proof", type: "narrates" },
+  { source: "zk-tale-1", target: "con-amnesia-protocol", type: "narrates" },
+
+  // ─── Moon Phase notation grounded in Zero tales (all carry a phase) ───
+  { source: "con-moon-phase-notation", target: "spellbook-zk", type: "implements" },
+  { source: "doc-moon-phase-notation", target: "con-moon-phase-notation", type: "defines" },
+
+  // ─── Last Page → Four Lines inscription ───
+  { source: "con-four-lines", target: "spellbook-zk", type: "relates_to" },
+  { source: "con-four-lines", target: "doc-celestial-ceremonies", type: "relates_to" },
+  { source: "con-four-lines", target: "con-amnesia-protocol", type: "references" },
+
+  // ─── ZK Blade Forge SPECIFICATION v1.0.1 ───
+  { source: "doc-zk-blade-forge-spec", target: "con-betweenness-centrality", type: "references" },
+  { source: "doc-zk-blade-forge-spec", target: "con-selenes-proof", type: "references" },
+  { source: "doc-zk-blade-forge-spec", target: "con-three-axis-separation", type: "defines" },
+  { source: "doc-zk-blade-forge-spec", target: "con-moon-phase-notation", type: "defines" },
+  { source: "doc-zk-blade-forge-spec", target: "doc-zk-blade-forge", type: "extends" },
+  { source: "fp-act-27", target: "doc-zk-blade-forge-spec", type: "implements" },
+  { source: "zk-tale-30", target: "doc-zk-blade-forge-spec", type: "references" },
+
+  // ─── Grimoire v10.2 doc node ───
+  { source: "doc-privacymage-grimoire-v10-2", target: "spellbook-firstperson", type: "defines" },
+  { source: "doc-privacymage-grimoire-v10-2", target: "spellbook-zk", type: "defines" },
+  { source: "doc-privacymage-grimoire-v10-2", target: "con-v-pi-t-equation", type: "references" },
+
+  // ─── Chronicle nodes ───
+  { source: "doc-chronicle-zk-v2", target: "spellbook-zk", type: "references" },
+  { source: "doc-chronicle-zk-v2", target: "doc-privacymage-grimoire-v10-2", type: "references" },
+  { source: "doc-chronicle-zk-v2", target: "con-drake-dragon-transformation", type: "references" },
+  { source: "doc-chronicle-v10-2-deploy", target: "doc-chronicle-zk-v2", type: "extends" },
+  { source: "doc-chronicle-v10-2-deploy", target: "doc-privacymage-grimoire-v10-2", type: "references" },
+  { source: "doc-chronicle-v10-2-deploy", target: "spellbook-firstperson", type: "references" },
+
+  // ─── MyTerms / IEEE 7012 integration ───
+  { source: "doc-myterms-alliance-application", target: "con-myterms", type: "references" },
+  { source: "doc-ieee7012-integration-plan", target: "con-myterms", type: "implements" },
+  { source: "doc-ieee7012-integration-plan", target: "con-three-axis-separation", type: "references" },
+  { source: "doc-privacy-is-value-equation", target: "con-v-pi-t-equation", type: "defines" },
+  { source: "doc-privacy-is-value-equation", target: "doc-ieee7012-integration-plan", type: "references" },
+  { source: "per-soulbis", target: "doc-ieee7012-integration-plan", type: "persona_knows" },
+  { source: "per-architect", target: "doc-ieee7012-integration-plan", type: "persona_knows" },
+
+  // ─── Persona embodiments of V(π,t) terms ───
+  // Soulbis anchors Protect-heavy terms; Soulbae anchors Project-heavy terms
+  { source: "per-soulbis", target: "con-p-1-5", type: "embodies" },
+  { source: "per-soulbis", target: "con-r-d", type: "embodies" },
+  { source: "per-soulbae", target: "con-t-int-pi", type: "embodies" },
+  { source: "per-soulbae", target: "con-rho-maturity", type: "embodies" },
+  // Cosmological persona anchors
+  { source: "per-moonkeeper", target: "con-selenes-proof", type: "embodies" },
+  { source: "per-theia", target: "con-amnesia-protocol", type: "embodies" },
+  { source: "per-topologist", target: "con-betweenness-centrality", type: "embodies" },
+  { source: "per-holonic-architect", target: "con-holographic-bound", type: "embodies" },
+  { source: "per-holonic-architect", target: "con-three-axis-separation", type: "embodies" },
 ];
