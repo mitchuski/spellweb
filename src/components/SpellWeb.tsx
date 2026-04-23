@@ -2129,6 +2129,26 @@ export default function SpellWeb() {
                     style={{ width: '100%', height: 32 }}
                   />
                 </div>
+                {/* Tide Path (Aether) */}
+                <div style={{
+                  flex: 1,
+                  padding: 12,
+                  background: 'linear-gradient(135deg, #00d4ff15, #20b2aa08)',
+                  borderRadius: 8,
+                  border: '1px solid #00d4ff40',
+                }}>
+                  <div style={{ fontSize: 10, color: '#00d4ff', marginBottom: 8, fontFamily: "'JetBrains Mono', monospace" }}>
+                    ⿻ TIDE PATH
+                  </div>
+                  <div style={{ fontSize: 9, color: '#888', marginBottom: 8 }}>
+                    The Tide Proves Orbit Keeps Selene
+                  </div>
+                  <audio
+                    controls
+                    src="https://voice.agentprivacy.ai/The_Tide_Proves_Orbit_Keeps_Selene.mp3"
+                    style={{ width: '100%', height: 32 }}
+                  />
+                </div>
                 {/* Amnesia Path (Moon) */}
                 <div style={{
                   flex: 1,
@@ -3080,7 +3100,13 @@ export default function SpellWeb() {
                       >
                         Load Constellation
                       </button>
-                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>🐲→🐉 Drake becomes Dragon · V(π,t) as Quintessence</div>
+                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>🎙️ The Tide Proves Orbit Keeps Selene</div>
+                      <audio
+                        controls
+                        src="https://voice.agentprivacy.ai/The_Tide_Proves_Orbit_Keeps_Selene.mp3"
+                        style={{ width: '100%', height: 32 }}
+                      />
+                      <div style={{ fontSize: 9, color: '#888', marginTop: 8, marginBottom: 4 }}>🐲→🐉 Drake becomes Dragon · V(π,t) as Quintessence</div>
                     </div>
 
                     {/* Moon Ceremony */}

@@ -541,7 +541,7 @@ export function SpellCeremony({
   onLoadAetherConstellation,
   sunAudioUrl = 'https://voice.agentprivacy.ai/The_Emissary_Who_Forgot_the_Master.mp3',
   moonAudioUrl = 'https://voice.agentprivacy.ai/The_Amnesia_Protocol.mp3',
-  aetherAudioUrl,
+  aetherAudioUrl = 'https://voice.agentprivacy.ai/The_Tide_Proves_Orbit_Keeps_Selene.mp3',
 }: SpellCeremonyProps) {
   // hoveredNode is available via _hoveredNode if needed
   const canvasRef = useRef<HTMLCanvasElement>(null);
