@@ -1302,9 +1302,11 @@ export const EDGES: SpellwebEdge[] = [
   // Document connections
   { source: "doc-celestial-ceremonies", target: "con-sun-ceremony", type: "defines" },
   { source: "doc-celestial-ceremonies", target: "con-moon-ceremony", type: "defines" },
+  { source: "doc-celestial-ceremonies", target: "con-aether-ceremony", type: "defines" },
   { source: "doc-celestial-ceremonies", target: "con-celestial-key", type: "defines" },
   { source: "doc-celestial-ceremonies", target: "doc-emissary-poem", type: "references" },
   { source: "doc-celestial-ceremonies", target: "doc-amnesia-poems", type: "references" },
+  { source: "doc-celestial-ceremonies", target: "doc-tide-selene-poem", type: "references" },
   { source: "doc-celestial-key-guide", target: "con-celestial-key", type: "implements" },
   { source: "doc-celestial-key-guide", target: "skill-ceremonial-forge", type: "implements" },
   { source: "doc-celestial-key-guide", target: "con-progressive-trust", type: "defines" },
@@ -1332,9 +1334,28 @@ export const EDGES: SpellwebEdge[] = [
   { source: "con-moon-ceremony", target: "doc-amnesia-poems", type: "references" },
   { source: "con-moon-ceremony", target: "con-amnesia-protocol", type: "implements" },
 
+  // Aether Ceremony concept relationships — the between, the third voice
+  { source: "con-aether-ceremony", target: "con-gap", type: "implements" },
+  { source: "con-aether-ceremony", target: "con-betweenness-centrality", type: "requires" },
+  { source: "con-aether-ceremony", target: "con-selenes-proof", type: "defines" },
+  { source: "con-aether-ceremony", target: "spell-aether-ceremony", type: "compresses_to" },
+  { source: "con-aether-ceremony", target: "doc-tide-selene-poem", type: "references" },
+  { source: "con-aether-ceremony", target: "con-amnesia-protocol", type: "relates_to" },
+  { source: "con-sun-ceremony", target: "con-aether-ceremony", type: "extends" },
+  { source: "con-moon-ceremony", target: "con-aether-ceremony", type: "extends" },
+
+  // Tide/Orbit/Selene poem relationships
+  { source: "doc-tide-selene-poem", target: "con-selenes-proof", type: "defines" },
+  { source: "doc-tide-selene-poem", target: "con-gap", type: "relates_to" },
+  { source: "doc-tide-selene-poem", target: "con-amnesia-protocol", type: "relates_to" },
+  { source: "doc-tide-selene-poem", target: "spell-aether-ceremony", type: "compresses_to" },
+  { source: "per-cosmologist", target: "doc-tide-selene-poem", type: "persona_knows" },
+  { source: "per-chronicler", target: "doc-tide-selene-poem", type: "persona_knows" },
+
   // Celestial Key relationships
   { source: "con-celestial-key", target: "con-sun-ceremony", type: "implements" },
   { source: "con-celestial-key", target: "con-moon-ceremony", type: "implements" },
+  { source: "con-celestial-key", target: "con-aether-ceremony", type: "implements" },
   { source: "con-celestial-key", target: "spell-celestial-key", type: "compresses_to" },
   { source: "con-celestial-key", target: "skill-trust-graph-formation", type: "implements" },
   { source: "con-celestial-key", target: "con-bilateral-witness", type: "defines" },
@@ -1342,6 +1363,7 @@ export const EDGES: SpellwebEdge[] = [
   // Ceremony propagation
   { source: "con-propagation", target: "con-sun-ceremony", type: "narrates" },
   { source: "con-propagation", target: "con-moon-ceremony", type: "narrates" },
+  { source: "con-propagation", target: "con-aether-ceremony", type: "narrates" },
   { source: "con-propagation", target: "con-emissary-recursion", type: "implements" },
 
   // Disclosure/Reflection concepts
@@ -1484,6 +1506,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "con-celestial-ceremony-notation", target: "con-celestial-key", type: "implements" },
   { source: "con-celestial-ceremony-notation", target: "con-sun-ceremony", type: "references" },
   { source: "con-celestial-ceremony-notation", target: "con-moon-ceremony", type: "references" },
+  { source: "con-celestial-ceremony-notation", target: "con-aether-ceremony", type: "references" },
 
   // Runecraft Notation
   { source: "con-runecraft-notation", target: "fp-act-27", type: "narrates" },
