@@ -635,6 +635,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "zk-tale-27", target: "zk-tale-28", type: "follows" },
   { source: "zk-tale-28", target: "zk-tale-29", type: "follows" },
   { source: "zk-tale-29", target: "zk-tale-30", type: "follows" },
+  { source: "zk-tale-30", target: "zk-tale-31", type: "follows" },
 
   // More ZK Tale → Concept connections
   { source: "zk-tale-5", target: "skill-crypto-zkp", type: "narrates" },
@@ -747,6 +748,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "spellbook-zk", target: "zk-tale-27", type: "defines" },
   { source: "spellbook-zk", target: "zk-tale-28", type: "defines" },
   { source: "spellbook-zk", target: "zk-tale-29", type: "defines" },
+  { source: "spellbook-zk", target: "zk-tale-31", type: "defines" },
 
   { source: "spellbook-canon", target: "canon-ch-0", type: "defines" },
   { source: "spellbook-canon", target: "canon-ch-4", type: "defines" },
@@ -1605,6 +1607,19 @@ export const EDGES: SpellwebEdge[] = [
   { source: "doc-zk-blade-forge-spec", target: "doc-zk-blade-forge", type: "extends" },
   { source: "fp-act-27", target: "doc-zk-blade-forge-spec", type: "implements" },
   { source: "zk-tale-30", target: "doc-zk-blade-forge-spec", type: "references" },
+
+  // ─── Zero Tale 31 (Naming of the Unnamed / Blade 38 Lethe) ───
+  // Complement edge (bnot): Blade 25 ⊥ Blade 38, XOR = Blade 63
+  { source: "zk-tale-31", target: "zk-tale-25", type: "relates_to" },
+  { source: "zk-tale-31", target: "zk-tale-7", type: "references" },
+  { source: "zk-tale-31", target: "zk-tale-30", type: "references" },
+  // V(π,t) term anchors — Tale 31 extends Φ(Σ), A_h(τ), ρ (disclosure-φ as sovereignty proportion)
+  { source: "zk-tale-31", target: "con-phi-sigma", type: "extends" },
+  { source: "zk-tale-31", target: "con-a-h-tau", type: "extends" },
+  { source: "zk-tale-31", target: "con-rho-maturity", type: "extends" },
+  // The proem: the Tide/Orbit/Selene poem opens the naming
+  { source: "zk-tale-31", target: "doc-tide-selene-poem", type: "references" },
+  { source: "zk-tale-31", target: "doc-zk-blade-forge-spec", type: "references" },
 
   // ─── Grimoire v10.2 doc node ───
   { source: "doc-privacymage-grimoire-v10-2", target: "spellbook-firstperson", type: "defines" },
