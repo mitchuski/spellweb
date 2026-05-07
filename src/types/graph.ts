@@ -151,6 +151,7 @@ export interface SpellwebNode {
   tier?: number;          // Persona tier (0 = canonical, 1 = base, 2 = specialized)
   category?: string;      // Skill category ("privacy-layer" | "role")
   emoji?: string;
+  poetic?: string;
   proverb?: string;
   emojiSpell?: string;
   matchScore?: number;

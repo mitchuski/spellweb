@@ -517,13 +517,16 @@ export default function SpellWeb() {
 
     // Clone all data for D3 mutation (use ALL nodes initially)
     nodeDataRef.current = NODES.map((n) => ({ ...n, x: graphW / 2 + (Math.random() - 0.5) * 200, y: h / 2 + (Math.random() - 0.5) * 200 }));
-    // Include both static EDGES and userEdges
+    // Include both static EDGES and userEdges; filter stale references so D3 never sees an unknown node ID
+    const validNodeIds = new Set(nodeDataRef.current.map((n) => n.id));
     const allEdges = [...EDGES, ...userEdges];
-    edgeDataRef.current = allEdges.map((e) => ({
-      ...e,
-      source: typeof e.source === "string" ? e.source : e.source.id,
-      target: typeof e.target === "string" ? e.target : e.target.id,
-    }));
+    edgeDataRef.current = allEdges
+      .map((e) => ({
+        ...e,
+        source: typeof e.source === "string" ? e.source : e.source.id,
+        target: typeof e.target === "string" ? e.target : e.target.id,
+      }))
+      .filter((e) => validNodeIds.has(e.source as string) && validNodeIds.has(e.target as string));
 
     // Force simulation with all nodes
     const sim = d3
