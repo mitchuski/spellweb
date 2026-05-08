@@ -20,9 +20,11 @@ interface HeaderProps {
   hasConstellation?: boolean;
   onClearConstellation?: () => void;
   windowWidth?: number;
+  isFocusMode?: boolean;
+  onToggleFocus?: () => void;
 }
 
-export function Header({ searchQuery, onSearchChange, nodeCount, edgeCount, spellbookFilters, onToggleSpellbook, hasConstellation, onClearConstellation, windowWidth = 1200 }: HeaderProps) {
+export function Header({ searchQuery, onSearchChange, nodeCount, edgeCount, spellbookFilters, onToggleSpellbook, hasConstellation, onClearConstellation, windowWidth = 1200, isFocusMode = false, onToggleFocus }: HeaderProps) {
   const [showSpellbooks, setShowSpellbooks] = useState(false);
   const isMobile = windowWidth < 768;
   return (
@@ -352,6 +354,41 @@ export function Header({ searchQuery, onSearchChange, nodeCount, edgeCount, spel
             <span>🔮</span>
             <span>SHARE</span>
           </a>
+        )}
+
+        {/* Desktop: Focus mode toggle */}
+        {!isMobile && onToggleFocus && (
+          <button
+            onClick={onToggleFocus}
+            title="Toggle focus mode (F)"
+            style={{
+              padding: "4px 8px",
+              borderRadius: 4,
+              background: isFocusMode ? "rgba(255, 215, 0, 0.12)" : "transparent",
+              border: `1px solid ${isFocusMode ? '#ffd700' : THEME.panelBorder}`,
+              color: isFocusMode ? '#ffd700' : THEME.textDim,
+              fontSize: 10,
+              cursor: "pointer",
+              fontFamily: "'JetBrains Mono', monospace",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              if (isFocusMode) return;
+              e.currentTarget.style.borderColor = '#ffd700';
+              e.currentTarget.style.color = '#ffd700';
+            }}
+            onMouseLeave={(e) => {
+              if (isFocusMode) return;
+              e.currentTarget.style.borderColor = THEME.panelBorder;
+              e.currentTarget.style.color = THEME.textDim;
+            }}
+          >
+            <span>◆</span>
+            <span>{isFocusMode ? 'EXIT FOCUS' : 'FOCUS [F]'}</span>
+          </button>
         )}
 
         {/* Node/edge count - hide on mobile */}

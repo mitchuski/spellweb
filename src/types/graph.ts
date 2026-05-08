@@ -260,6 +260,7 @@ export const SPELLWEB_STORAGE_KEYS = {
   equippedBlade: 'spellweb-equipped-blade',
   constellations: 'spellweb-constellations',
   userEdges: 'spellweb-user-edges',
+  canonicalEdges: 'spellweb-canonical-edges',
   mageSpells: 'spellweb-mage-spells',
 } as const;
 

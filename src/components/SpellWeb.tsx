@@ -12,6 +12,7 @@ import { Legend } from './Legend';
 import { HoverTooltip } from './HoverTooltip';
 import { NodeInspector } from './NodeInspector';
 import { SpellCeremony, type SpellProof } from './SpellCeremony';
+import { hashCanonicalDeviations } from '../lib/forge';
 import { WanderingOrbs } from './WanderingOrbs';
 import { SwordsmanImport } from './SwordsmanImport';
 
@@ -131,6 +132,16 @@ export default function SpellWeb() {
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
+  // Canonical edge keys — order-independent "src::tgt::type" strings of edges
+  // the user has chained (🔗) to mark as preserved. Read by graph rendering
+  // for visual emphasis and by the export to flag canonical deviations.
+  const [canonicalEdgeKeys, setCanonicalEdgeKeys] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.canonicalEdges);
+      return new Set(saved ? JSON.parse(saved) as string[] : []);
+    } catch { return new Set(); }
+  });
+  const [showConnectionsList, setShowConnectionsList] = useState(false);
   const [savedConstellations, setSavedConstellations] = useState<SavedConstellation[]>(() => {
     try {
       const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.constellations);
@@ -167,6 +178,7 @@ export default function SpellWeb() {
   const [showSwordsmanImport, setShowSwordsmanImport] = useState(false); // Swordsman identity import modal
   const [showMageMenu, setShowMageMenu] = useState(false); // Mage spell menu (M key)
   const [showCeremonyMenu, setShowCeremonyMenu] = useState(false); // Ceremony menu (Y key) - ☯️ Sun/Moon poems
+  const [isFocusMode, setIsFocusMode] = useState(false); // Focus mode (F key) - hides chrome, runs gravity orbit
   const [latestProof, setLatestProof] = useState<SpellProof | null>(null);
   const [forgePhase, setForgePhase] = useState<'ignite' | 'forge' | 'temper' | 'complete' | 'naming' | 'manifesting'>('ignite');
   const [bladeName, setBladeName] = useState('');
@@ -315,6 +327,26 @@ export default function SpellWeb() {
     localStorage.setItem(SPELLWEB_STORAGE_KEYS.userEdges, JSON.stringify(userEdges));
   }, [userEdges]);
 
+  // Persist canonicalEdgeKeys to localStorage (Set serialized as string[])
+  useEffect(() => {
+    localStorage.setItem(
+      SPELLWEB_STORAGE_KEYS.canonicalEdges,
+      JSON.stringify(Array.from(canonicalEdgeKeys)),
+    );
+  }, [canonicalEdgeKeys]);
+
+  // Reactively hash the canonical deviation set so SpellCeremony can fold it
+  // into the bladeHash at forge time. Empty set → '' → bladeHash unchanged
+  // from pre-deviations builds (preserves witness interoperability).
+  const [canonicalDeviationHash, setCanonicalDeviationHash] = useState<string>('');
+  useEffect(() => {
+    let cancelled = false;
+    hashCanonicalDeviations(Array.from(canonicalEdgeKeys)).then(h => {
+      if (!cancelled) setCanonicalDeviationHash(h);
+    });
+    return () => { cancelled = true; };
+  }, [canonicalEdgeKeys]);
+
   // Persist forgedBlades to localStorage
   useEffect(() => {
     localStorage.setItem(SPELLWEB_STORAGE_KEYS.forgedBlades, JSON.stringify(forgedBlades));
@@ -368,17 +400,63 @@ export default function SpellWeb() {
         e.preventDefault();
         // Toggle ceremony menu (yin-yang / sun-moon poems)
         setShowCeremonyMenu(prev => !prev);
+      } else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        // Toggle focus mode (chromeless graph + gravity orbit)
+        setIsFocusMode(prev => !prev);
       } else if (e.key === 'Escape') {
         setShowMageMenu(false);
         setShowBladesModal(false);
         setShowCeremonyMenu(false);
         setSelectedSpellIndex(null);
+        setIsFocusMode(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [mageSpells.length, forgedBlades, equippedBlade]);
+
+  // Focus-mode gravity orbit: while focus mode is on, a moving attractor traces
+  // a slow Lissajous around the canvas and pulls graph nodes toward it. The
+  // graph breathes/shifts as the orbit travels. No persistence — pure ambient.
+  useEffect(() => {
+    if (!isFocusMode) return;
+    let raf = 0;
+    const t0 = performance.now();
+    const tick = () => {
+      const sim = simRef.current;
+      if (!sim) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      const elapsed = (performance.now() - t0) / 1000;
+      const period = 16; // seconds for one full Lissajous cycle
+      const t = (elapsed / period) * Math.PI * 2;
+      const cx = dimensions.w / 2;
+      const cy = dimensions.h / 2;
+      const rx = dimensions.w * 0.28;
+      const ry = dimensions.h * 0.28;
+      // 3:2 Lissajous, same family as mobile's preset constellation layout
+      const ox = cx + rx * Math.sin(3 * t);
+      const oy = cy + ry * Math.sin(2 * t);
+
+      const pull = 0.45; // gentle nudge per frame
+      const nodes = sim.nodes();
+      for (const n of nodes) {
+        if (n.fx != null || n.fy != null) continue; // skip pinned nodes
+        const dx = ox - (n.x ?? cx);
+        const dy = oy - (n.y ?? cy);
+        const dist = Math.sqrt(dx * dx + dy * dy) + 1;
+        n.vx = (n.vx ?? 0) + (dx / dist) * pull;
+        n.vy = (n.vy ?? 0) + (dy / dist) * pull;
+      }
+      sim.alpha(Math.max(sim.alpha(), 0.08)).restart();
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [isFocusMode, dimensions.w, dimensions.h]);
 
   // Persist savedConstellations to localStorage
   useEffect(() => {
@@ -941,11 +1019,26 @@ export default function SpellWeb() {
     const linkEnter = link.enter().append("line");
     const linkMerge = linkEnter.merge(link);
 
+    // Build a SimulationEdge → canonical lookup that's robust to source/target
+    // being either a string id or a node object (post-force-resolution).
+    const isCanonicalEdge = (d: SimulationEdge): boolean => {
+      const s = typeof d.source === 'string' ? d.source : (d.source as SimulationNode)?.id;
+      const t = typeof d.target === 'string' ? d.target : (d.target as SimulationNode)?.id;
+      if (!s || !t) return false;
+      const [a, b] = s < t ? [s, t] : [t, s];
+      return canonicalEdgeKeys.has(`${a}::${b}::${d.type}`);
+    };
+
     linkMerge
-      .attr("stroke", (d) => getEdgeStyle(d.type as any).color)
-      .attr("stroke-width", (d) => getEdgeStyle(d.type as any).width)
-      .attr("stroke-dasharray", (d) => getEdgeStyle(d.type as any).dash || null)
-      .attr("stroke-opacity", 0.35)
+      .attr("stroke", (d) =>
+        isCanonicalEdge(d) ? "#ffd700" : getEdgeStyle(d.type as any).color)
+      .attr("stroke-width", (d) => {
+        const base = getEdgeStyle(d.type as any).width;
+        return isCanonicalEdge(d) ? base * 2.2 : base;
+      })
+      .attr("stroke-dasharray", (d) =>
+        isCanonicalEdge(d) ? null : (getEdgeStyle(d.type as any).dash || null))
+      .attr("stroke-opacity", (d) => isCanonicalEdge(d) ? 0.85 : 0.35)
       .attr("marker-end", (d) =>
         ["proves", "follows", "implements"].includes(d.type) ? `url(#arrow-${d.type})` : null
       );
@@ -968,7 +1061,7 @@ export default function SpellWeb() {
         .attr("y2", (d) => (d.target as SimulationNode).y);
     });
 
-  }, [userEdges, filters, typeFilters, spellbookFilters]);
+  }, [userEdges, canonicalEdgeKeys, filters, typeFilters, spellbookFilters]);
 
   // Constellation node IDs for quick lookup
   const constellationNodeIds = useMemo(() => new Set(constellation.map(m => m.nodeId)), [constellation]);
@@ -1247,6 +1340,48 @@ export default function SpellWeb() {
     if (found) setSelectedNode(found);
   }, []);
 
+  // Order-independent key for a SpellwebEdge — used to track canonical state
+  // and to test edge equality regardless of source/target order.
+  const edgeKey = useCallback((edge: SpellwebEdge): string => {
+    const s = typeof edge.source === 'string' ? edge.source : edge.source.id;
+    const t = typeof edge.target === 'string' ? edge.target : edge.target.id;
+    const [a, b] = s < t ? [s, t] : [t, s];
+    return `${a}::${b}::${edge.type}`;
+  }, []);
+
+  // 🗡️ Cut a user-edge: drop it from userEdges, drop the canonical mark, and
+  // clean it out of the active constellation connections so the ceremony path
+  // doesn't reference a deleted edge.
+  const handleCutUserEdge = useCallback((edge: SpellwebEdge) => {
+    const key = edgeKey(edge);
+    setUserEdges(prev => prev.filter(e => edgeKey(e) !== key));
+    setCanonicalEdgeKeys(prev => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+    const s = typeof edge.source === 'string' ? edge.source : edge.source.id;
+    const t = typeof edge.target === 'string' ? edge.target : edge.target.id;
+    setConstellationConnections(prev => prev.filter(c =>
+      !((c.sourceId === s && c.targetId === t) ||
+        (c.sourceId === t && c.targetId === s)),
+    ));
+  }, [edgeKey]);
+
+  // 🔗 Chain (toggle canonical): mark or unmark this user-edge as canonical.
+  // Canonical edges render with a thicker / golden stroke and survive bulk
+  // resets in the future.
+  const handleChainUserEdge = useCallback((edge: SpellwebEdge) => {
+    const key = edgeKey(edge);
+    setCanonicalEdgeKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, [edgeKey]);
+
   // Action handlers
   const handleCancelConnect = useCallback(() => {
     setConnectionMode({ active: false, sourceNode: null });
@@ -1501,6 +1636,7 @@ export default function SpellWeb() {
         `Hex: ${saved.proof.bladeHex}`,
         `Blade Hash: ${saved.proof.bladeHash}`,
         `Chain: #${saved.proof.chainLength}${saved.proof.previousBladeHash ? ` (prev: ${saved.proof.previousBladeHash.slice(0,8)}...)` : ' (inception)'}`,
+        ...(saved.proof.deviationHash ? [`Deviation Hash: ${saved.proof.deviationHash}`] : []),
         "```",
         "",
       ] : []),
@@ -1553,6 +1689,22 @@ export default function SpellWeb() {
         }),
         "",
       ] : []),
+      ...(userEdges.length > 0 ? [
+        "## Deviations from Root Spellweb",
+        `*${userEdges.length} user-drawn edge${userEdges.length === 1 ? '' : 's'} attached to this mage key · ${canonicalEdgeKeys.size} marked canonical (🔗)*`,
+        "",
+        "| | Source | Type | Target |",
+        "|---|--------|------|--------|",
+        ...userEdges.map(edge => {
+          const sId = typeof edge.source === 'string' ? edge.source : edge.source.id;
+          const tId = typeof edge.target === 'string' ? edge.target : edge.target.id;
+          const sNode = NODES.find(n => n.id === sId);
+          const tNode = NODES.find(n => n.id === tId);
+          const isCanonical = canonicalEdgeKeys.has(edgeKey(edge));
+          return `| ${isCanonical ? '🔗' : '·'} | ${sNode?.emoji || '◆'} ${sNode?.label || sId} | ${edge.type} | ${tNode?.emoji || '◆'} ${tNode?.label || tId} |`;
+        }),
+        "",
+      ] : []),
       "---",
       `*Forged in the 64-Tetrahedra Lattice*`,
       `*(⚔️⊥⿻⊥🧙)🙂*`,
@@ -1574,7 +1726,7 @@ export default function SpellWeb() {
     if (saved.inscribedSpell) {
       window.navigator.clipboard.writeText(saved.inscribedSpell).catch(() => {});
     }
-  }, [forgedBlades, mageSpells]);
+  }, [forgedBlades, mageSpells, userEdges, canonicalEdgeKeys, edgeKey]);
 
   // Load a saved constellation
   const handleLoadConstellation = useCallback((saved: SavedConstellation) => {
@@ -1732,17 +1884,21 @@ export default function SpellWeb() {
         position: "relative",
       }}
     >
-      <Header
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        nodeCount={filteredNodes.length}
-        edgeCount={filteredEdges.length}
-        spellbookFilters={spellbookFilters}
-        onToggleSpellbook={toggleSpellbook}
-        hasConstellation={constellation.length > 0}
-        onClearConstellation={() => setShowClearMapModal(true)}
-        windowWidth={dimensions.w}
-      />
+      {!isFocusMode && (
+        <Header
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          nodeCount={filteredNodes.length}
+          edgeCount={filteredEdges.length}
+          spellbookFilters={spellbookFilters}
+          onToggleSpellbook={toggleSpellbook}
+          hasConstellation={constellation.length > 0}
+          onClearConstellation={() => setShowClearMapModal(true)}
+          windowWidth={dimensions.w}
+          isFocusMode={isFocusMode}
+          onToggleFocus={() => setIsFocusMode(prev => !prev)}
+        />
+      )}
 
       {/* Mage Modal - Full screen popup like Blades (M key) */}
       {showMageMenu && (
@@ -2426,30 +2582,32 @@ export default function SpellWeb() {
         </div>
       )}
 
-      <GraphFilters
-        filters={filters}
-        typeFilters={typeFilters}
-        onToggleLayer={toggleLayer}
-        onToggleType={toggleType}
-        isOpen={mobileFiltersOpen}
-        // Mobile action props
-        onOpenConstellations={() => { setShowMageMenu(true); setMobileFiltersOpen(false); }}
-        onOpenZKBlades={() => {
-          if (latestProof) {
-            setForgePhase('ignite');
-            setShowForgeModal(true);
-            setTimeout(() => setForgePhase('forge'), 800);
-            setTimeout(() => setForgePhase('temper'), 2000);
-            setTimeout(() => setForgePhase('complete'), 3500);
-            setMobileFiltersOpen(false);
-          }
-        }}
-        onWitnessBlade={handleWitnessBladeFile}
-        hasLatestProof={!!latestProof}
-        constellationCount={savedConstellations.length}
-        forgedBladesCount={forgedBlades.filter(b => !b.isWitness).length}
-        witnessBladesCount={forgedBlades.filter(b => b.isWitness).length}
-      />
+      {!isFocusMode && (
+        <GraphFilters
+          filters={filters}
+          typeFilters={typeFilters}
+          onToggleLayer={toggleLayer}
+          onToggleType={toggleType}
+          isOpen={mobileFiltersOpen}
+          // Mobile action props
+          onOpenConstellations={() => { setShowMageMenu(true); setMobileFiltersOpen(false); }}
+          onOpenZKBlades={() => {
+            if (latestProof) {
+              setForgePhase('ignite');
+              setShowForgeModal(true);
+              setTimeout(() => setForgePhase('forge'), 800);
+              setTimeout(() => setForgePhase('temper'), 2000);
+              setTimeout(() => setForgePhase('complete'), 3500);
+              setMobileFiltersOpen(false);
+            }
+          }}
+          onWitnessBlade={handleWitnessBladeFile}
+          hasLatestProof={!!latestProof}
+          constellationCount={savedConstellations.length}
+          forgedBladesCount={forgedBlades.filter(b => !b.isWitness).length}
+          witnessBladesCount={forgedBlades.filter(b => b.isWitness).length}
+        />
+      )}
 
       {/* Mobile Menu Toggle Button */}
       <button
@@ -2474,7 +2632,7 @@ export default function SpellWeb() {
         {mobileFiltersOpen ? '✕' : '☰'}
       </button>
 
-      <Legend hasSelectedNode={!!selectedNode} />
+      {!isFocusMode && <Legend hasSelectedNode={!!selectedNode} />}
 
       {/* Show HoverTooltip only when constellation exists (otherwise shows in ceremony panel) */}
       {hoveredNode && !selectedNode && constellation.length > 0 && <HoverTooltip node={hoveredNode} />}
@@ -2674,7 +2832,7 @@ export default function SpellWeb() {
 
 
       {/* Left Side: Mage + Blades Inventories (Side by Side) */}
-      {(() => {
+      {!isFocusMode && (() => {
         const mageColor = '#9b59b6';
         const bladesColor = '#e74c3c';
         const allBlades = forgedBlades;
@@ -3318,6 +3476,215 @@ export default function SpellWeb() {
 
 
       {/* Connect Modal - Edge Drawing */}
+      {/* Connections list popup — opened by clicking Connect with no node
+          selected. Lists every user-created edge ("deviation" from the root
+          spellweb) with cut (🗡️) and chain (🔗) actions per row. */}
+      {showConnectionsList && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.7)",
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "center",
+            paddingTop: 80,
+            zIndex: 300,
+          }}
+          onClick={() => setShowConnectionsList(false)}
+        >
+          <div
+            style={{
+              background: THEME.panelBg,
+              border: "1px solid #ffd70080",
+              borderRadius: 12,
+              padding: 24,
+              width: 540,
+              maxWidth: "92%",
+              maxHeight: "78vh",
+              overflowY: "auto",
+              fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 16,
+              }}
+            >
+              <h3
+                style={{
+                  margin: 0,
+                  color: "#ffd700",
+                  fontSize: 18,
+                  fontFamily: "'Cormorant Garamond', serif",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <span>🔗</span> Your Deviations
+              </h3>
+              <button
+                onClick={() => setShowConnectionsList(false)}
+                style={{
+                  background: "transparent",
+                  border: `1px solid ${THEME.panelBorder}`,
+                  borderRadius: 6,
+                  color: THEME.textDim,
+                  fontSize: 12,
+                  padding: "4px 10px",
+                  cursor: "pointer",
+                  fontFamily: "'JetBrains Mono', monospace",
+                }}
+              >
+                close
+              </button>
+            </div>
+
+            <div
+              style={{
+                fontSize: 11,
+                color: THEME.textDim,
+                lineHeight: 1.6,
+                marginBottom: 14,
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: 0.5,
+              }}
+            >
+              {userEdges.length === 0
+                ? "you haven't drawn any deviations yet — select a node in the graph and tap Connect to add one."
+                : <>connections you've drawn into the graph beyond its canonical edges. <span style={{ color: '#ffd700' }}>🔗 chain</span> to mark canonical · <span style={{ color: '#e74c3c' }}>🗡️ cut</span> to remove</>}
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {userEdges.map((edge) => {
+                const sId = typeof edge.source === 'string' ? edge.source : edge.source.id;
+                const tId = typeof edge.target === 'string' ? edge.target : edge.target.id;
+                const sNode = NODES.find(n => n.id === sId);
+                const tNode = NODES.find(n => n.id === tId);
+                const key = edgeKey(edge);
+                const isCanonical = canonicalEdgeKeys.has(key);
+                return (
+                  <div
+                    key={key}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "10px 12px",
+                      background: isCanonical
+                        ? "linear-gradient(90deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02))"
+                        : "rgba(20, 20, 35, 0.6)",
+                      border: `1px solid ${isCanonical ? '#ffd70066' : THEME.panelBorder}`,
+                      borderRadius: 8,
+                    }}
+                  >
+                    {/* Canonical star indicator */}
+                    <span
+                      style={{
+                        width: 14,
+                        textAlign: "center",
+                        fontSize: 12,
+                        color: isCanonical ? "#ffd700" : "transparent",
+                      }}
+                      title={isCanonical ? "canonical" : ""}
+                    >
+                      ★
+                    </span>
+
+                    {/* Source → Target with edge type */}
+                    <div style={{ flex: 1, minWidth: 0, fontSize: 13 }}>
+                      <div
+                        style={{
+                          color: THEME.text,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <span>{sNode?.emoji ?? '◆'}</span>
+                        <span style={{ fontWeight: 500 }}>{sNode?.label ?? sId}</span>
+                        <span style={{ color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>
+                          ──{edge.type}──▸
+                        </span>
+                        <span>{tNode?.emoji ?? '◆'}</span>
+                        <span style={{ fontWeight: 500 }}>{tNode?.label ?? tId}</span>
+                      </div>
+                    </div>
+
+                    {/* Chain (toggle canonical) */}
+                    <button
+                      onClick={() => handleChainUserEdge(edge)}
+                      title={isCanonical ? "remove canonical mark" : "chain as canonical"}
+                      style={{
+                        background: isCanonical ? "rgba(255,215,0,0.15)" : "transparent",
+                        border: `1px solid ${isCanonical ? '#ffd700' : THEME.panelBorder}`,
+                        borderRadius: 6,
+                        padding: "6px 10px",
+                        color: isCanonical ? "#ffd700" : THEME.text,
+                        cursor: "pointer",
+                        fontSize: 14,
+                      }}
+                    >
+                      🔗
+                    </button>
+
+                    {/* Cut */}
+                    <button
+                      onClick={() => handleCutUserEdge(edge)}
+                      title="cut this connection"
+                      style={{
+                        background: "transparent",
+                        border: `1px solid ${THEME.panelBorder}`,
+                        borderRadius: 6,
+                        padding: "6px 10px",
+                        color: THEME.text,
+                        cursor: "pointer",
+                        fontSize: 14,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = '#e74c3c';
+                        e.currentTarget.style.color = '#e74c3c';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = THEME.panelBorder;
+                        e.currentTarget.style.color = THEME.text;
+                      }}
+                    >
+                      🗡️
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {userEdges.length > 0 && (
+              <div
+                style={{
+                  marginTop: 14,
+                  fontSize: 10,
+                  color: THEME.textDim,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  letterSpacing: 0.5,
+                  textAlign: "right",
+                }}
+              >
+                {userEdges.length} deviation{userEdges.length === 1 ? '' : 's'} ·{' '}
+                {canonicalEdgeKeys.size} canonical
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {showConnectModal && connectionMode.sourceNode && connectTarget && (
         <div
           style={{
@@ -4218,15 +4585,22 @@ export default function SpellWeb() {
             }
           }}
           onConnect={() => {
+            // Contextual: with a node selected, kick off the create flow
+            // (existing behavior). Without a selection, open the list popup
+            // of all userEdges so the user can review / cut / chain them.
             if (selectedNode) {
               setConnectionMode({ active: true, sourceNode: selectedNode });
+            } else {
+              setShowConnectionsList(true);
             }
           }}
           onStartWaypoint={handleStartWaypoint}
           onClosePortal={handleClosePortal}
           canStartWaypoint={!waypoint.active && !!selectedNode}
           canClosePortal={waypoint.active && waypoint.path.length > 0}
-          canConnect={!!selectedNode && !connectionMode.active}
+          // Always enabled now (unless mid-create) — meaning differs by context.
+          canConnect={!connectionMode.active}
+          canonicalDeviationHash={canonicalDeviationHash}
           canSave={constellation.length > 0 && !activeConstellationId && !bladeTraceActive}
           waypointActive={waypoint.active}
           orbsAtHome={orbsAtHome}
@@ -4381,7 +4755,7 @@ export default function SpellWeb() {
       </div>
 
       {/* Node Inspector */}
-      {selectedNode && (
+      {selectedNode && !isFocusMode && (
         <NodeInspector
           node={selectedNode}
           edges={EDGES}
@@ -4965,7 +5339,7 @@ export default function SpellWeb() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h3 style={{ margin: 0, color: "#ffd700", fontSize: 20, fontFamily: "'Cormorant Garamond', serif" }}>
-                ⚔️ Blades
+                ⚔️ Sword
               </h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {/* Send to Soulbis - when blade is equipped */}
@@ -6377,6 +6751,45 @@ export default function SpellWeb() {
           100% { opacity: 0; }
         }
       `}</style>
+
+      {/* Focus-mode hint pill — sits above the SpellCeremony minimized button
+          (which lives at bottom: 30, ~38px tall). Positioned at bottom: 80 so
+          it floats just above without overlap. The SpellCeremony component
+          itself handles the ceremony-control surface; this pill is purely the
+          focus-mode indicator + exit affordance. */}
+      {isFocusMode && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 80,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 200,
+            padding: "8px 14px",
+            background: "rgba(10, 10, 20, 0.6)",
+            border: "1px solid rgba(255, 215, 0, 0.25)",
+            borderRadius: 999,
+            color: "#c8c8d8",
+            fontSize: 11,
+            fontFamily: "'JetBrains Mono', monospace",
+            letterSpacing: 1,
+            backdropFilter: "blur(6px)",
+            pointerEvents: "none",
+            userSelect: "none",
+            animation: "focusPillDrop 0.35s ease-out",
+          }}
+        >
+          ◆ focus · [F] or [Esc] to exit
+        </div>
+      )}
+
+      <style>{`
+        @keyframes focusPillDrop {
+          0% { opacity: 0; transform: translate(-50%, 16px); }
+          100% { opacity: 1; transform: translate(-50%, 0); }
+        }
+      `}</style>
+
     </div>
   );
 }

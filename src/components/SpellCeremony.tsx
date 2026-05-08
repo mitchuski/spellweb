@@ -6,6 +6,21 @@
  */
 
 import { useState, useEffect, useRef, useMemo } from 'react';
+import {
+  hashConstellation,
+  getChargeLevel,
+  generateSignature,
+  computeBladeHash,
+  getPreviousBladeInfo,
+  updateBladeChain,
+  generateNonce,
+  generateCommitment,
+  verifyCommitment,
+  calculateBladeDimensions,
+  calculateBladeStratum,
+  calculateBladeTier,
+  bladeToHex,
+} from '../lib/forge';
 
 interface CircuitNode {
   id: string;
@@ -49,6 +64,11 @@ export interface SpellProof {
   previousBladeHash: string | null; // null for inception blade
   bladeHash: string; // SHA-256 of this blade's canonical data
   chainLength: number; // position in the chain (1 = inception)
+  // Personal annotation layer — 12-char hash of the forger's chained (🔗)
+  // user-edges at forge time. Empty/missing means no deviations were chained.
+  // Bound to bladeHash; constellationHash and signature unaffected so the same
+  // constellation remains witnessable across mages with different deviations.
+  deviationHash?: string;
   // Commitment scheme (pre-evocation lock)
   commitment: string; // SHA-256(constellationHash + nonce) - locked at evoke start
   commitmentNonce: string; // random nonce used in commitment
@@ -104,6 +124,9 @@ interface SpellCeremonyProps {
   canConnect?: boolean;
   canSave?: boolean;
   waypointActive?: boolean;
+  // 12-char hash of canonical (🔗) user-edges at forge time. Bound to
+  // bladeHash; empty/undefined → bladeHash matches pre-deviations builds.
+  canonicalDeviationHash?: string;
   // Orb control
   orbsAtHome?: boolean;
   onToggleOrbsHome?: () => void;
@@ -168,224 +191,8 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
-// SHA-256 hash for constellation (cryptographic, collision-resistant)
-async function hashConstellation(nodes: CircuitNode[]): Promise<string> {
-  const str = nodes.map(n => n.id).join(':');
-  const data = new TextEncoder().encode(str);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  // First 12 hex chars = 48 bits, readable but collision-resistant
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 12);
-}
-
-// Determine charge level based on laps (Fibonacci progression)
-// spark(6) → ember(13) → flame(21) → inferno(38) → dragon(62)
-function getChargeLevel(laps: number): SpellProof['chargeLevel'] {
-  if (laps >= 62) return 'dragon';
-  if (laps >= 38) return 'inferno';
-  if (laps >= 21) return 'flame';
-  if (laps >= 13) return 'ember';
-  return 'spark';
-}
-
-// Generate unique proof signature (SHA-256 based)
-async function generateSignature(nodes: CircuitNode[], laps: number, timestamp: number): Promise<string> {
-  const constellationHash = await hashConstellation(nodes);
-  const data = `${constellationHash}-${laps}-${timestamp}`;
-  const encoded = new TextEncoder().encode(data);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  // Format: SPELL-[6 hex chars]-[lap count in base36]
-  return `SPELL-${hex.slice(0, 6).toUpperCase()}-${laps.toString(36).toUpperCase()}`;
-}
-
-// Compute blade hash for hash chain (SHA-256 of canonical blade data)
-async function computeBladeHash(
-  constellationHash: string,
-  laps: number,
-  duration: number,
-  bladeHex: string,
-  bladeStratum: number,
-  previousBladeHash: string | null,
-  timestamp: number
-): Promise<string> {
-  const canonical = JSON.stringify({
-    constellation: constellationHash,
-    laps,
-    duration,
-    hex: bladeHex,
-    stratum: bladeStratum,
-    previous: previousBladeHash,
-    timestamp
-  });
-  const encoded = new TextEncoder().encode(canonical);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// Get previous blade hash and chain length from localStorage
-function getPreviousBladeInfo(): { previousHash: string | null; chainLength: number } {
-  try {
-    const stored = localStorage.getItem('spellweb_blade_chain');
-    if (stored) {
-      const chain = JSON.parse(stored);
-      return {
-        previousHash: chain.lastBladeHash || null,
-        chainLength: (chain.length || 0) + 1
-      };
-    }
-  } catch {
-    // Ignore parse errors
-  }
-  return { previousHash: null, chainLength: 1 };
-}
-
-// Update blade chain in localStorage
-function updateBladeChain(bladeHash: string, chainLength: number): void {
-  try {
-    localStorage.setItem('spellweb_blade_chain', JSON.stringify({
-      lastBladeHash: bladeHash,
-      length: chainLength
-    }));
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-// Generate a random nonce for commitment scheme
-function generateNonce(): string {
-  const array = new Uint8Array(16);
-  crypto.getRandomValues(array);
-  return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// Generate commitment: SHA-256(constellationHash + nonce)
-async function generateCommitment(constellationHash: string, nonce: string): Promise<string> {
-  const data = constellationHash + nonce;
-  const encoded = new TextEncoder().encode(data);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// Verify commitment matches reveal
-async function verifyCommitment(commitment: string, constellationHash: string, nonce: string): Promise<boolean> {
-  const computed = await generateCommitment(constellationHash, nonce);
-  return computed === commitment;
-}
-
 function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-
-// ═══════════════════════════════════════════════════════════════
-// BLADE FORGE CALCULATIONS
-// ═══════════════════════════════════════════════════════════════
-
-/**
- * Calculate blade dimensions based on proof attributes
- * Different ceremony styles produce different hexagram stances:
- *
- * QUICK STRIKE (few nodes, fast, few spells): Light blades, focused dimensions
- * MEDITATIVE (longer time, steady pace): Memory/Value dimensions unlock
- * SPELL-HEAVY (many spells cast): Delegation/Computation active
- * EXPANSIVE (many nodes, many laps): Connection/Protection strong
- *
- * The hexagram reflects HOW you approached the ceremony, not just "more = better"
- */
-function calculateBladeDimensions(
-  nodeCount: number,
-  lapCount: number,
-  duration: number,
-  chargeLevel: SpellProof['chargeLevel'],
-  spellsCast: number = 0
-): BladeDimensions {
-  const seconds = duration / 1000;
-  const minutes = duration / 60000;
-
-  // Ceremony style indicators
-  const isQuick = seconds < 20;
-  const isMeditative = minutes >= 1;
-  const isSpellHeavy = spellsCast >= 3;
-  const isExpansive = nodeCount >= 4;
-  const isDeep = lapCount >= 3;
-
-  return {
-    // d1: Protection (🛡️) - Boundaries forged
-    // Activates: Has a clear path with structure (not too simple)
-    protection: nodeCount >= 2 || lapCount >= 2,
-
-    // d2: Delegation (🤝) - Agency transferred
-    // Activates: Spell-casting focus OR deep iteration
-    delegation: isSpellHeavy || isDeep,
-
-    // d3: Memory (📜) - State accumulated
-    // Activates: Meditative time investment OR many interactions
-    memory: isMeditative || (seconds >= 30 && lapCount >= 2),
-
-    // d4: Connection (🔗) - Multi-party coordination
-    // Activates: Expansive constellation OR repeated traversal
-    connection: isExpansive || (nodeCount >= 3 && lapCount >= 2),
-
-    // d5: Computation (⚡) - ZK proof active
-    // Activates: Quick decisive action OR spell intensity
-    computation: isQuick || isSpellHeavy || nodeCount >= 1,
-
-    // d6: Value (💎) - Economic flow
-    // Activates: High charge from sustained presence, or meditative + spells
-    value: chargeLevel === 'flame' || chargeLevel === 'inferno' || chargeLevel === 'dragon'
-           || (isMeditative && spellsCast >= 1),
-  };
-}
-
-/**
- * Calculate stratum (Hamming weight) from blade dimensions
- */
-function calculateBladeStratum(dims: BladeDimensions): number {
-  return [
-    dims.protection,
-    dims.delegation,
-    dims.memory,
-    dims.connection,
-    dims.computation,
-    dims.value,
-  ].filter(Boolean).length;
-}
-
-/**
- * Determine blade tier from stratum
- * - Light: 1-2 edges (simple proofs)
- * - Heavy: 3-4 edges (substantial proofs)
- * - Dragon: 5-6 edges (full sovereignty)
- */
-/**
- * Calculate blade tier from lap count (Fibonacci power thresholds)
- * 6 laps → Light blade
- * 21 laps → Heavy blade
- * 62 laps → Dragon blade
- */
-function calculateBladeTier(lapCount: number): BladeTier {
-  if (lapCount >= 62) return 'dragon';
-  if (lapCount >= 21) return 'heavy';
-  return 'light';
-}
-
-/**
- * Convert blade dimensions to 6-bit hex representation
- */
-function bladeToHex(dims: BladeDimensions): string {
-  const bits = [
-    dims.protection,
-    dims.delegation,
-    dims.memory,
-    dims.connection,
-    dims.computation,
-    dims.value,
-  ];
-  const value = bits.reduce((acc, bit, i) => acc | (bit ? (1 << (5 - i)) : 0), 0);
-  return value.toString(16).toUpperCase().padStart(2, '0');
 }
 
 // Map constellation positions to panel, preserving shape
@@ -519,6 +326,7 @@ export function SpellCeremony({
   canConnect,
   canSave,
   waypointActive,
+  canonicalDeviationHash,
   orbsAtHome,
   onToggleOrbsHome,
   equippedBlade,
@@ -759,7 +567,9 @@ export function SpellCeremony({
         // Get hash chain info
         const { previousHash, chainLength } = getPreviousBladeInfo();
 
-        // Compute blade hash for the chain
+        // Compute blade hash for the chain. canonicalDeviationHash is the
+        // forger's chained 🔗 user-edges; empty/undefined → bladeHash output
+        // matches pre-deviations builds for backwards compatibility.
         const bladeHash = await computeBladeHash(
           constellationHash,
           lapCount,
@@ -767,7 +577,8 @@ export function SpellCeremony({
           bladeHex,
           bladeStratum,
           previousHash,
-          completedAt
+          completedAt,
+          canonicalDeviationHash,
         );
 
         // Verify commitment (the constellation hash at end should match what was locked at start)
@@ -796,6 +607,8 @@ export function SpellCeremony({
           previousBladeHash: previousHash,
           bladeHash,
           chainLength,
+          // Personal annotation layer (chained 🔗 deviations); undefined when empty
+          deviationHash: canonicalDeviationHash || undefined,
           // Commitment scheme attributes
           commitment: commitmentRef.current,
           commitmentNonce: commitmentNonceRef.current,

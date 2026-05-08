@@ -347,9 +347,12 @@ export function WanderingOrbs({
       width={width}
       height={height}
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
+        // absolute (not fixed) so the canvas anchors to its nearest positioned
+        // ancestor — full viewport on desktop SpellWeb, the ceremony orbs box
+        // on mobile. Without this the orbs trace at viewport (0,0), missing
+        // the constellation entirely on mobile.
+        position: 'absolute',
+        inset: 0,
         pointerEvents: 'none',
         zIndex: 50,
       }}
