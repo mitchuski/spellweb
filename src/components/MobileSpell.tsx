@@ -11,7 +11,7 @@
  * component, and the preset data.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import * as d3 from 'd3';
 import {
   CONSTELLATION_PRESETS,
@@ -182,6 +182,33 @@ export default function MobileSpell() {
   // In-memory deformation captured from the immersive Web screen. Resets on reload.
   const [gravityField, setGravityField] = useState<GravityField | null>(null);
 
+  // Lifted audio state — survives picker ↔ ceremony transitions so the poem
+  // narration can keep playing while the user evokes / forges. Single shared
+  // <Audio> element, only one ceremony track plays at a time.
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playingCeremony, setPlayingCeremony] = useState<PresetConstellation['ceremony'] | null>(null);
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setPlayingCeremony(null);
+  };
+
+  const toggleAudioFor = (ceremony: PresetConstellation['ceremony']) => {
+    if (playingCeremony === ceremony) {
+      stopAudio();
+      return;
+    }
+    if (audioRef.current) audioRef.current.pause();
+    const audio = new Audio(AUDIO_URLS[ceremony]);
+    audio.addEventListener('ended', () => setPlayingCeremony(null));
+    audio.addEventListener('error', () => setPlayingCeremony(null));
+    audioRef.current = audio;
+    audio.play().then(() => setPlayingCeremony(ceremony)).catch(() => setPlayingCeremony(null));
+  };
+
   const handlePickPreset = (preset: PresetConstellation) => {
     setActive({ preset, isWitness: false });
     setProof(null);
@@ -232,6 +259,8 @@ export default function MobileSpell() {
           onOpenMage={() => setMode('mage')}
           onOpenSword={() => setMode('sword')}
           gravityActive={gravityField !== null && gravityField.size > 0}
+          playingCeremony={playingCeremony}
+          onToggleAudio={toggleAudioFor}
         />
       )}
       {mode === 'ceremony' && active && (
@@ -240,6 +269,8 @@ export default function MobileSpell() {
           onProof={handleProof}
           onCancel={handleForgeAnother}
           gravityField={gravityField}
+          playingCeremony={playingCeremony}
+          onToggleAudio={toggleAudioFor}
         />
       )}
       {mode === 'forge' && active && proof && (
@@ -275,6 +306,8 @@ function PickerScreen({
   onOpenMage,
   onOpenSword,
   gravityActive,
+  playingCeremony,
+  onToggleAudio,
 }: {
   onPick: (preset: PresetConstellation) => void;
   onWitness: (preset: PresetConstellation, source: string) => void;
@@ -283,43 +316,21 @@ function PickerScreen({
   onOpenMage: () => void;
   onOpenSword: () => void;
   gravityActive: boolean;
+  playingCeremony: PresetConstellation['ceremony'] | null;
+  onToggleAudio: (ceremony: PresetConstellation['ceremony']) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importError, setImportError] = useState<string | null>(null);
 
-  // Single shared audio element — only one preset narration plays at a time
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [playingId, setPlayingId] = useState<string | null>(null);
-
-  const stopAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    setPlayingId(null);
-  };
-
+  // Audio is owned by MobileSpell root now — pickers and ceremony share one
+  // <Audio> element, so the poem narration carries through into the evoke.
   const togglePlay = (preset: PresetConstellation) => {
-    if (playingId === preset.id) {
-      stopAudio();
-      return;
-    }
-    stopAudio();
-    const url = AUDIO_URLS[preset.ceremony];
-    const audio = new Audio(url);
-    audio.addEventListener('ended', () => setPlayingId(null));
-    audio.addEventListener('error', () => setPlayingId(null));
-    audioRef.current = audio;
-    audio.play().then(() => setPlayingId(preset.id)).catch(() => setPlayingId(null));
+    onToggleAudio(preset.ceremony);
   };
 
-  // Stop audio when leaving picker
-  useEffect(() => {
-    return () => stopAudio();
-  }, []);
-
+  // Picking a preset no longer interrupts audio — the same track follows the
+  // user into the ceremony screen if they had it playing.
   const handlePick = (preset: PresetConstellation) => {
-    stopAudio();
     onPick(preset);
   };
 
@@ -332,7 +343,6 @@ function PickerScreen({
         setImportError('Could not parse a constellation from this file.');
         return;
       }
-      stopAudio();
       onWitness(parsed, content);
     } catch (e) {
       setImportError(e instanceof Error ? e.message : 'Failed to read file');
@@ -356,7 +366,7 @@ function PickerScreen({
             key={preset.id}
             preset={preset}
             onTap={() => handlePick(preset)}
-            isPlaying={playingId === preset.id}
+            isPlaying={playingCeremony === preset.ceremony}
             onTogglePlay={() => togglePlay(preset)}
           />
         ))}
@@ -581,13 +591,18 @@ function CeremonyScreen({
   onProof,
   onCancel,
   gravityField,
+  playingCeremony,
+  onToggleAudio,
 }: {
   active: ActiveCeremony;
   onProof: (p: SpellProof) => void;
   onCancel: () => void;
   gravityField: GravityField | null;
+  playingCeremony: PresetConstellation['ceremony'] | null;
+  onToggleAudio: (ceremony: PresetConstellation['ceremony']) => void;
 }) {
   const { preset, isWitness, witnessSource } = active;
+  const isPlayingThis = playingCeremony === preset.ceremony;
 
   // Canvas dimensions follow viewport
   const [dims, setDims] = useState(() => ({
@@ -746,6 +761,7 @@ function CeremonyScreen({
         style={{
           padding: '6px 16px 10px',
           display: 'flex',
+          alignItems: 'center',
           gap: 12,
           fontSize: 12,
           color: TEXT_DIM,
@@ -766,6 +782,32 @@ function CeremonyScreen({
           <span style={{ color: TEXT_BRIGHT, fontWeight: 600 }}>{spellsCast}</span>{' '}
           spells
         </span>
+        <span style={{ flex: 1 }} />
+        {/* Play / pause the preset's poem narration during the ceremony */}
+        <button
+          onClick={() => onToggleAudio(preset.ceremony)}
+          aria-label={isPlayingThis ? 'pause narration' : 'play narration'}
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: 15,
+            background: isPlayingThis
+              ? 'rgba(255, 215, 0, 0.18)'
+              : 'rgba(20, 20, 35, 0.6)',
+            border: `1px solid ${isPlayingThis ? GOLD : BORDER}`,
+            color: isPlayingThis ? GOLD : TEXT,
+            fontSize: 11,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'inherit',
+            padding: 0,
+            lineHeight: 1,
+          }}
+        >
+          {isPlayingThis ? '■' : '▶'}
+        </button>
       </div>
 
       <div
@@ -1232,6 +1274,25 @@ interface WebSimEdge extends d3.SimulationLinkDatum<WebSimNode> {
   type: string;
 }
 
+// Shared style for the WebScreen zoom-control buttons (＋ / − / ⊙).
+const zoomButtonStyle: CSSProperties = {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  background: 'rgba(10, 10, 25, 0.8)',
+  border: '1px solid rgba(255, 215, 0, 0.35)',
+  color: '#ffd700',
+  fontSize: 16,
+  fontFamily: 'inherit',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backdropFilter: 'blur(6px)',
+  userSelect: 'none',
+  padding: 0,
+};
+
 const NODE_COLOR_BY_TYPE: Record<NodeType, string> = {
   document: '#88c8ff',
   concept: '#ffd700',
@@ -1265,6 +1326,11 @@ function WebScreen({
   });
   const touchedRef = useRef<Set<string>>(new Set(initialField ? Array.from(initialField.keys()) : []));
 
+  // View transform: scale + translation applied to the canvas during draw.
+  // Pointer events are inverse-transformed so hit testing and pin placement
+  // stay in world (simulation) coordinates regardless of zoom.
+  const viewRef = useRef({ scale: 1, tx: 0, ty: 0 });
+
   const [dims, setDims] = useState(() => ({
     w: typeof window !== 'undefined' ? window.innerWidth : 360,
     h: typeof window !== 'undefined' ? window.innerHeight : 720,
@@ -1282,16 +1348,24 @@ function WebScreen({
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Render loop — draws edges underneath nodes
+  // Render loop — draws edges underneath nodes. Reset transform each frame to
+  // (dpr × view), so zoom controls take effect immediately and don't accumulate.
   const draw = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    const dpr = window.devicePixelRatio || 1;
     const { w, h } = dimsRef.current;
-    ctx.clearRect(0, 0, w, h);
+    const v = viewRef.current;
+
+    // Clear in device-pixel space first
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = BG;
     ctx.fillRect(0, 0, w, h);
+
+    // Compose dpr scaling + view transform for graph drawing
+    ctx.setTransform(dpr * v.scale, 0, 0, dpr * v.scale, dpr * v.tx, dpr * v.ty);
 
     // Edges first, so they sit beneath the nodes
     ctx.lineWidth = 0.6;
@@ -1442,26 +1516,61 @@ function WebScreen({
     onBack();
   };
 
+  // Map screen → world (simulation) coordinates by inverting the view transform.
+  const screenToWorld = (clientX: number, clientY: number) => {
+    const v = viewRef.current;
+    return {
+      x: (clientX - v.tx) / v.scale,
+      y: (clientY - v.ty) / v.scale,
+    };
+  };
+
+  // Zoom around the current viewport center, clamped so users can't get lost.
+  const zoomBy = (factor: number) => {
+    const { w, h } = dimsRef.current;
+    const cx = w / 2;
+    const cy = h / 2;
+    const old = viewRef.current;
+    const nextScale = Math.max(0.3, Math.min(3, old.scale * factor));
+    if (nextScale === old.scale) return;
+    const ratio = nextScale / old.scale;
+    viewRef.current = {
+      scale: nextScale,
+      tx: cx - (cx - old.tx) * ratio,
+      ty: cy - (cy - old.ty) * ratio,
+    };
+    draw();
+  };
+
+  const resetView = () => {
+    viewRef.current = { scale: 1, tx: 0, ty: 0 };
+    draw();
+  };
+
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const x = e.clientX;
     const y = e.clientY;
 
-    // Edge-swipe-down detection: pointerdown in top 56px of the screen
+    // Edge-swipe-down detection: pointerdown in top 56px of the screen.
+    // Stays in screen coords — independent of zoom.
     if (y < 56) {
       swipeRef.current = { startY: y, startX: x, topZone: true };
       return;
     }
 
-    // Find nearest node within ~50px tap radius and pin it.
+    // Find nearest node — convert pointer to world coords, scale hit radius
+    // so 50 px on screen stays the effective tap target at any zoom.
     const sim = simRef.current;
     if (!sim) return;
+    const v = viewRef.current;
+    const { x: wx, y: wy } = screenToWorld(x, y);
+    const screenHit = 50;
+    const worldHit = screenHit / v.scale;
     let nearest: WebSimNode | null = null;
-    let bestDistSq = 50 * 50;
+    let bestDistSq = worldHit * worldHit;
     for (const n of nodesRef.current) {
-      const nx = n.x ?? 0;
-      const ny = n.y ?? 0;
-      const dx = nx - x;
-      const dy = ny - y;
+      const dx = (n.x ?? 0) - wx;
+      const dy = (n.y ?? 0) - wy;
       const d = dx * dx + dy * dy;
       if (d < bestDistSq) {
         bestDistSq = d;
@@ -1469,8 +1578,8 @@ function WebScreen({
       }
     }
     if (nearest) {
-      nearest.fx = x;
-      nearest.fy = y;
+      nearest.fx = wx;
+      nearest.fy = wy;
       draggingRef.current.id = nearest.id;
       touchedRef.current.add(nearest.id);
       sim.alpha(0.85).restart();
@@ -1482,7 +1591,7 @@ function WebScreen({
     const x = e.clientX;
     const y = e.clientY;
 
-    // Edge-swipe-down: if started in top zone and dragged down >70px → exit
+    // Edge-swipe-down: still uses screen coords.
     if (swipeRef.current.topZone && swipeRef.current.startY !== null) {
       if (y - swipeRef.current.startY > 70) {
         swipeRef.current = { startY: null, startX: null, topZone: false };
@@ -1496,8 +1605,9 @@ function WebScreen({
     if (id) {
       const node = nodesRef.current.find(n => n.id === id);
       if (node) {
-        node.fx = x;
-        node.fy = y;
+        const { x: wx, y: wy } = screenToWorld(x, y);
+        node.fx = wx;
+        node.fy = wy;
         simRef.current?.alpha(Math.max(simRef.current.alpha(), 0.5)).restart();
       }
     }
@@ -1573,6 +1683,42 @@ function WebScreen({
         }}
       >
         ↓  swipe down from here to exit  ↓
+      </div>
+
+      {/* Zoom controls — sit above the bottom hint, right side. zIndex above
+          the orbs canvas (50) so they remain tappable. */}
+      <div
+        style={{
+          position: 'absolute',
+          right: 14,
+          bottom: 56,
+          zIndex: 70,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+        }}
+      >
+        <button
+          onClick={() => zoomBy(1.4)}
+          aria-label="zoom in"
+          style={zoomButtonStyle}
+        >
+          ＋
+        </button>
+        <button
+          onClick={() => zoomBy(1 / 1.4)}
+          aria-label="zoom out"
+          style={zoomButtonStyle}
+        >
+          −
+        </button>
+        <button
+          onClick={resetView}
+          aria-label="reset view"
+          style={zoomButtonStyle}
+        >
+          ⊙
+        </button>
       </div>
 
       {/* Bottom hint */}
