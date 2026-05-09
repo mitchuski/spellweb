@@ -156,6 +156,15 @@ interface SpellCeremonyProps {
   maxMana?: number;
   // Mobile minimize callback
   onMinimize?: () => void;
+  // External force-minimize: when true, the panel collapses to its button form
+  // regardless of internal isMinimized state. Used by desktop Focus mode so
+  // pressing F during evoke tucks the ceremony out of the way without dropping
+  // its internal "expanded" preference.
+  forceMinimize?: boolean;
+  // Live lap count tap — fires whenever the internal lapCount changes so a
+  // parent (e.g. a Focus-mode progress bar) can reflect the current count
+  // without owning the ceremony state.
+  onLapCountChange?: (count: number) => void;
   // Mobile ceremony presets - sun/moon/aether constellation loading
   onLoadSunConstellation?: () => void;
   onLoadMoonConstellation?: () => void;
@@ -327,6 +336,8 @@ export function SpellCeremony({
   canSave,
   waypointActive,
   canonicalDeviationHash,
+  forceMinimize,
+  onLapCountChange,
   orbsAtHome,
   onToggleOrbsHome,
   equippedBlade,
@@ -389,6 +400,11 @@ export function SpellCeremony({
   const [lapCount, setLapCount] = useState(0);
   const ceremonyStartRef = useRef<number>(0);
   const swordsmanStartNodeRef = useRef(0); // Track where swordsman started to count laps
+
+  // Tap lap-count changes for parent consumers (Focus-mode progress bar etc.)
+  useEffect(() => {
+    onLapCountChange?.(lapCount);
+  }, [lapCount, onLapCountChange]);
   const lastLapNodeRef = useRef(-1); // Last node that triggered a lap count
 
   // Commitment scheme - locks constellation at evoke start
@@ -942,51 +958,75 @@ export function SpellCeremony({
   if (!isActive) return null;
 
   // Minimized view - just a small expandable bar
-  if (isMinimized) {
+  // Treat as minimized when the user collapsed it OR when the parent forced it
+  // (e.g. desktop Focus mode during an active evoke).
+  const showAsMinimized = isMinimized || !!forceMinimize;
+  if (showAsMinimized) {
+    // We render the small button visually AND a hidden offscreen canvas
+    // bound to the same canvasRef so the animation loop (lap counting,
+    // mana deduction, charge level) keeps firing while the panel is tucked
+    // away — laps tick whether or not the user is watching.
     return (
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 30,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 200,
-        }}
-      >
-        <button
-          onClick={() => setIsMinimized(false)}
+      <>
+        <div
           style={{
-            padding: '10px 24px',
-            borderRadius: 20,
-            background: 'linear-gradient(135deg, rgba(30, 30, 50, 0.95), rgba(20, 20, 35, 0.98))',
-            border: '1px solid #444',
-            color: '#aaa',
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontFamily: '"JetBrains Mono", monospace',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            backdropFilter: 'blur(12px)',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#666';
-            e.currentTarget.style.color = '#ddd';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#444';
-            e.currentTarget.style.color = '#aaa';
+            position: 'fixed',
+            bottom: 30,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 200,
           }}
         >
-          <span>⚔️</span>
-          <span>Ceremony</span>
-          <span>✦</span>
-          <span style={{ marginLeft: 8, fontSize: 16 }}>▲</span>
-        </button>
-      </div>
+          <button
+            onClick={() => {
+              // While the parent is forcing minimize (Focus mode), the click
+              // is a no-op — user must exit Focus to expand the panel.
+              if (forceMinimize) return;
+              setIsMinimized(false);
+            }}
+            style={{
+              padding: '10px 24px',
+              borderRadius: 20,
+              background: 'linear-gradient(135deg, rgba(30, 30, 50, 0.95), rgba(20, 20, 35, 0.98))',
+              border: '1px solid #444',
+              color: '#aaa',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: '"JetBrains Mono", monospace',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              backdropFilter: 'blur(12px)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#666';
+              e.currentTarget.style.color = '#ddd';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = '#444';
+              e.currentTarget.style.color = '#aaa';
+            }}
+          >
+            <span>⚔️</span>
+            <span>Ceremony</span>
+            <span>✦</span>
+            <span style={{ marginLeft: 8, fontSize: 16 }}>▲</span>
+          </button>
+        </div>
+        {/* Hidden canvas keeps the animation loop alive while minimized so
+            laps continue ticking. requestAnimationFrame doesn't care about
+            display:none. */}
+        <canvas
+          ref={canvasRef}
+          width={panelWidth}
+          height={panelHeight}
+          style={{ display: 'none' }}
+          aria-hidden="true"
+        />
+      </>
     );
   }
 

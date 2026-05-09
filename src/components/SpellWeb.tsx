@@ -339,6 +339,8 @@ export default function SpellWeb() {
   // into the bladeHash at forge time. Empty set → '' → bladeHash unchanged
   // from pre-deviations builds (preserves witness interoperability).
   const [canonicalDeviationHash, setCanonicalDeviationHash] = useState<string>('');
+  // Live lap count from the ceremony. Surfaced in the Focus-mode progress bar.
+  const [currentLapCount, setCurrentLapCount] = useState<number>(0);
   useEffect(() => {
     let cancelled = false;
     hashCanonicalDeviations(Array.from(canonicalEdgeKeys)).then(h => {
@@ -2831,8 +2833,12 @@ export default function SpellWeb() {
       )}
 
 
-      {/* Left Side: Mage + Blades Inventories (Side by Side) */}
-      {!isFocusMode && (() => {
+      {/* Left Side: Mage + Blades Inventories (Side by Side).
+          The IIFE stays mounted regardless of focus mode so any <audio>
+          elements inside (e.g. the Y-key ceremony menu poem players) keep
+          playing across F toggles. We hide visually via display:none rather
+          than unmount, since unmount kills active audio. */}
+      {(() => {
         const mageColor = '#9b59b6';
         const bladesColor = '#e74c3c';
         const allBlades = forgedBlades;
@@ -2850,7 +2856,7 @@ export default function SpellWeb() {
               bottom: 20,
               left: 16,
               zIndex: 100,
-              display: 'flex',
+              display: isFocusMode ? 'none' : 'flex',
               gap: 12,
             }}
           >
@@ -4601,6 +4607,8 @@ export default function SpellWeb() {
           // Always enabled now (unless mid-create) — meaning differs by context.
           canConnect={!connectionMode.active}
           canonicalDeviationHash={canonicalDeviationHash}
+          forceMinimize={isFocusMode && incantationActive}
+          onLapCountChange={setCurrentLapCount}
           canSave={constellation.length > 0 && !activeConstellationId && !bladeTraceActive}
           waypointActive={waypoint.active}
           orbsAtHome={orbsAtHome}
@@ -6752,6 +6760,102 @@ export default function SpellWeb() {
         }
       `}</style>
 
+      {/* Constellation progress bar — visible only when Focus mode is engaged
+          during an active evoke. A slim row of N dots (one per constellation
+          mark), with two orbs (Swordsman red, Mage purple) walking left/right
+          across them. Sits ABOVE the focus pill and the SpellCeremony
+          minimized button so it reads as the foreground signal of evocation
+          while the chrome falls away. */}
+      {isFocusMode && incantationActive && constellation.length > 0 && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 124,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 201,
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            style={{
+              position: "relative",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "8px 20px",
+              background: "rgba(10, 10, 20, 0.55)",
+              border: "1px solid rgba(255, 215, 0, 0.22)",
+              borderRadius: 999,
+              backdropFilter: "blur(6px)",
+            }}
+          >
+            {/* Live lap count — laps continue ticking even though the panel
+                is hidden, this is the user's only signal of ceremony progress
+                while in Focus. */}
+            <span
+              style={{
+                color: "#ffd700",
+                fontSize: 11,
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: 1,
+                fontVariant: "small-caps",
+                paddingRight: 4,
+                borderRight: "1px solid rgba(255, 215, 0, 0.18)",
+                marginRight: 4,
+              }}
+            >
+              lap {currentLapCount}
+            </span>
+
+            {/* The N constellation node dots */}
+            {constellation.map((m, i) => (
+              <span
+                key={`${m.nodeId}-${i}`}
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: "rgba(255, 215, 0, 0.6)",
+                  display: "block",
+                }}
+                title={m.nodeLabel}
+              />
+            ))}
+            {/* Swordsman orb walks left → right and back */}
+            <span
+              style={{
+                position: "absolute",
+                width: 11,
+                height: 11,
+                borderRadius: "50%",
+                background: "#e74c3c",
+                top: "50%",
+                marginTop: -5.5,
+                left: 0,
+                animation: "constellationProgressOrb 6s ease-in-out infinite",
+                filter: "drop-shadow(0 0 7px rgba(231, 76, 60, 0.75))",
+              }}
+            />
+            {/* Mage orb walks right → left and back (180° offset) */}
+            <span
+              style={{
+                position: "absolute",
+                width: 11,
+                height: 11,
+                borderRadius: "50%",
+                background: "#9b59b6",
+                top: "50%",
+                marginTop: -5.5,
+                left: 0,
+                animation: "constellationProgressOrb 6s ease-in-out -3s infinite",
+                filter: "drop-shadow(0 0 7px rgba(155, 89, 182, 0.75))",
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Focus-mode hint pill — sits above the SpellCeremony minimized button
           (which lives at bottom: 30, ~38px tall). Positioned at bottom: 80 so
           it floats just above without overlap. The SpellCeremony component
@@ -6787,6 +6891,14 @@ export default function SpellWeb() {
         @keyframes focusPillDrop {
           0% { opacity: 0; transform: translate(-50%, 16px); }
           100% { opacity: 1; transform: translate(-50%, 0); }
+        }
+        /* Two orbs sweep back and forth across the constellation progress
+           bar. left animates from 0 to (parent width - 8px) — using calc on
+           a percent width keeps them inside the rounded container.            */
+        @keyframes constellationProgressOrb {
+          0%   { left: 5px; }
+          50%  { left: calc(100% - 16px); }
+          100% { left: 5px; }
         }
       `}</style>
 

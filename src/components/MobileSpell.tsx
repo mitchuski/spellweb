@@ -903,9 +903,98 @@ function CeremonyScreen({
           30% { opacity: 1; letter-spacing: 2.4px; }
           100% { opacity: 0.6; letter-spacing: 3px; }
         }
+        /* Two orbs walk back and forth across the mobile constellation
+           progress bar — same family as desktop's constellationProgressOrb. */
+        @keyframes mobileProgressOrb {
+          0%   { left: 5px; }
+          50%  { left: calc(100% - 15px); }
+          100% { left: 5px; }
+        }
       `}</style>
 
       <div style={{ flex: 1 }} />
+
+      {/* Constellation progress bar — mirrors the desktop Focus-mode widget.
+          Always visible during the mobile ceremony since the whole screen IS
+          the focus surface; sits just above the Cast / Stop & Forge buttons. */}
+      {circuit.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            padding: '4px 16px 8px',
+          }}
+        >
+          <div
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '7px 16px',
+              background: 'rgba(10, 10, 20, 0.55)',
+              border: `1px solid ${GOLD}38`,
+              borderRadius: 999,
+              backdropFilter: 'blur(6px)',
+            }}
+          >
+            <span
+              style={{
+                color: GOLD,
+                fontSize: 11,
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: 1,
+                fontVariant: 'small-caps',
+                paddingRight: 4,
+                borderRight: `1px solid ${GOLD}30`,
+                marginRight: 4,
+              }}
+            >
+              lap {lapCount}
+            </span>
+            {circuit.map((p, i) => (
+              <span
+                key={`${p.id}-${i}`}
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: '50%',
+                  background: `${GOLD}99`,
+                  display: 'block',
+                }}
+              />
+            ))}
+            <span
+              style={{
+                position: 'absolute',
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                background: SWORDSMAN,
+                top: '50%',
+                marginTop: -5,
+                left: 5,
+                animation: 'mobileProgressOrb 6s ease-in-out infinite',
+                filter: `drop-shadow(0 0 6px ${SWORDSMAN}b3)`,
+              }}
+            />
+            <span
+              style={{
+                position: 'absolute',
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                background: MAGE,
+                top: '50%',
+                marginTop: -5,
+                left: 5,
+                animation: 'mobileProgressOrb 6s ease-in-out -3s infinite',
+                filter: `drop-shadow(0 0 6px ${MAGE}b3)`,
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       <div
         style={{
