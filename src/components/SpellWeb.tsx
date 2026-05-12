@@ -2324,6 +2324,42 @@ export default function SpellWeb() {
         witnessedFrom: creatorName,
       });
 
+      // ── Direct witness intake: add the imported artefact to forgedBlades immediately
+      // when the file carries a real proof signature. This lets multiple cloaks /
+      // blades / tools of the same class accumulate without re-walking each one —
+      // each forged .md from another Sovereign drops straight into your inventory
+      // as a witness blade.
+      //
+      // Files without a proof signature (e.g. catalogue templates downloaded from
+      // a workshop page) continue to use the trace-and-forge path: they load into
+      // the canvas, you walk them, you forge your own. This avoids duplicate
+      // inventory entries when the user follows up an import with a forge.
+      //
+      // De-dup by proof.signature so re-importing the same .md doesn't double-count.
+      if (marks.length > 0 && proof) {
+        const importedName = bladeMatch ? bladeMatch[2] : (file.name.replace(/\.md$/i, '').replace(/[-_]/g, ' '));
+        const importedEmoji = bladeMatch ? bladeMatch[1] : (marks[0]?.emoji || '✦');
+        const witnessBlade: ForgedBlade = {
+          id: `witness-${proof.signature}`,
+          name: importedName,
+          emoji: importedEmoji,
+          tier: (tierMatch?.[1]?.toLowerCase() || proof.bladeTier || 'light') as 'light' | 'heavy' | 'dragon',
+          stratum: parseInt(stratumMatch?.[1] || String(proof.bladeStratum || 0), 10),
+          proof,
+          forgedAt: new Date().toISOString(),
+          constellationNodes: marks.length,
+          constellationMarks: [...marks],
+          constellationConnections: [...connections],
+          isWitness: true,
+          witnessOf: witnessHash,
+          witnessedFrom: creatorName,
+        };
+        setForgedBlades(prev => {
+          if (prev.some(b => b.proof.signature === proof.signature)) return prev;
+          return [...prev, witnessBlade];
+        });
+      }
+
       // Load constellation for tracing
       setConstellation(marks);
       setConstellationConnections(connections);
@@ -6459,10 +6495,14 @@ export default function SpellWeb() {
                     };
                     setForgedBlades(prev => [...prev, newBlade]);
                     setForgePhase('manifesting');
-                    // Clear witness mode and proof - longer timeout to complete the full animation lap
+                    // Capture the signature this manifest just consumed. The 10s
+                    // close-timer clears latestProof ONLY if it still matches the
+                    // proof we just forged — so a second evoke that completes
+                    // inside this window keeps its fresh proof intact.
+                    const consumedSignature = latestProof.signature;
                     setTimeout(() => {
                       setShowForgeModal(false);
-                      setLatestProof(null);
+                      setLatestProof(prev => (prev && prev.signature === consumedSignature) ? null : prev);
                       setWitnessMode(null); // Clear witness mode after forging
                     }, 10000);
                   }

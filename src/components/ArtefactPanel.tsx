@@ -59,13 +59,16 @@ const CLASS_GLYPH: Record<ArtefactClass, string> = {
 // Tabs: Forged sits first (the Sovereign's own inventory), then by class.
 type Tab = 'forged' | 'weapon' | 'trinket' | 'tool' | 'clothing' | 'tome';
 
+// Forge-system labels: the word "forge" sits at the panel level (eyebrow);
+// tabs are just the arguments. Reads as forge(t), forge(cloak), etc. when
+// projected onto the panel context. The catch-all umbrella is () — every arg.
 const TAB_LABEL: Record<Tab, string> = {
-  forged:   '🔥 Forged',
-  weapon:   '⚔️ Blades',
-  trinket:  '◇ Trinkets',
-  tool:     '⚙ Tools',
-  clothing: '🧣 Cloaks',
-  tome:     '📖 Tomes',
+  forged:   '🔥 ()',
+  weapon:   '⚔️ (t)',
+  trinket:  '◇ (trinket)',
+  tool:     '⚙ (tool)',
+  clothing: '🧣 (cloak)',
+  tome:     '📖 (tome)',
 };
 
 const TAB_ORDER: Tab[] = ['forged', 'weapon', 'trinket', 'tool', 'clothing', 'tome'];
@@ -94,11 +97,42 @@ export function ArtefactPanel({
     return byClass;
   }, []);
 
+  // Sovereign's forged inventory partitioned by class. Each forged blade's
+  // class is derived from the originating workshop (via its constellation
+  // marks): look up the workshop node, read its artefactClass. So a cloak
+  // forged at /tailor lands in the clothing tab, a witness blade in weapon,
+  // a memo stone in trinket, etc.
+  const forgedByClass = useMemo(() => {
+    const byClass: Record<Exclude<Tab, 'forged'>, ForgedArtefact[]> = {
+      weapon: [], trinket: [], tool: [], clothing: [], tome: [],
+    };
+    for (const blade of forgedBlades) {
+      let cls: ArtefactClass | null = null;
+      for (const m of blade.constellationMarks) {
+        const node = NODES.find(n => n.id === m.nodeId);
+        if (node?.artefactClass) { cls = node.artefactClass; break; }
+        if (node?.shopAnchor) {
+          const shopId = `shop-${node.shopAnchor.replace(/^\//, '')}`;
+          const shop = NODES.find(n => n.id === shopId);
+          if (shop?.artefactClass) { cls = shop.artefactClass; break; }
+        }
+      }
+      if (cls && cls in byClass) {
+        byClass[cls as Exclude<Tab, 'forged'>].push(blade);
+      } else {
+        // Default unclassed forged items to the weapon tab — historical
+        // "blade" semantics — so nothing is invisible.
+        byClass.weapon.push(blade);
+      }
+    }
+    return byClass;
+  }, [forgedBlades]);
+
   const forgedCount = forgedBlades.length;
   const witnessedCount = forgedBlades.filter(b => b.isWitness).length;
   const ownCount = forgedCount - witnessedCount;
 
-  const eyebrow = 'CITY OF MAGES · INVENTORY';
+  const eyebrow = 'CITY OF MAGES · forge() inventory';
   const headerLine = (
     <>
       Forged: <span style={{ color: '#ffd700' }}>{ownCount}</span> · Witnessed: <span style={{ color: '#3b82f6' }}>{witnessedCount}</span> · Workshops unlocked: <span style={{ color: '#d4af37' }}>{Object.keys(witnessedShops).length}/11</span>
@@ -136,7 +170,7 @@ export function ArtefactPanel({
                 letterSpacing: 0.5,
               }}
             >
-              <span>👁️</span> Witness Constellation
+              <span>👁️</span> Witness · forge(constellation)
               <input
                 type="file"
                 accept=".md"
@@ -157,7 +191,9 @@ export function ArtefactPanel({
       tabs={
         <>
           {TAB_ORDER.map(t => {
-            const count = t === 'forged' ? forgedCount : cataloguebyClass[t].length;
+            const count = t === 'forged'
+              ? forgedCount
+              : cataloguebyClass[t].length + forgedByClass[t].length;
             return (
               <button
                 key={t}
@@ -187,33 +223,64 @@ export function ArtefactPanel({
       {tab === 'forged' ? (
         forgedBlades.length === 0 ? (
           <div style={{ color: THEME.textDim, fontSize: 12, textAlign: 'center', padding: 24 }}>
-            No artefacts forged yet. Walk a tome constellation and complete the ceremony.
+            forges() = ∅ · walk a tome constellation and complete the ceremony.
           </div>
         ) : (
-          forgedBlades.slice().reverse().map(b => (
-            <ForgedArtefactCard
-              key={b.id}
-              artefact={b}
-              onExport={() => onExportArtefact(b)}
-            />
-          ))
+          <>
+            <div style={{ fontSize: 10, letterSpacing: 1.5, color: THEME.textDim, padding: '2px 4px 8px', textTransform: 'uppercase', fontFamily: "'JetBrains Mono', monospace" }}>
+              every forge() across every class · newest first
+            </div>
+            {forgedBlades.slice().reverse().map(b => (
+              <ForgedArtefactCard
+                key={b.id}
+                artefact={b}
+                onExport={() => onExportArtefact(b)}
+              />
+            ))}
+          </>
         )
       ) : (
         (() => {
-          const items = cataloguebyClass[tab];
-          if (items.length === 0) return (
+          const catalogue = cataloguebyClass[tab];
+          const sovereign = forgedByClass[tab];
+          if (catalogue.length === 0 && sovereign.length === 0) return (
             <div style={{ color: THEME.textDim, fontSize: 12, textAlign: 'center', padding: 24 }}>
               No artefacts in this catalogue.
             </div>
           );
-          return items.map(item => (
-            <CatalogueCard
-              key={item.id}
-              node={item}
-              witnessed={!!witnessedShops[item.id]}
-              onExport={() => onExportCatalogue(item)}
-            />
-          ));
+          return (
+            <>
+              {sovereign.length > 0 && (
+                <>
+                  <div style={{ fontSize: 10, letterSpacing: 1.5, color: THEME.textDim, padding: '2px 4px 8px', textTransform: 'uppercase', fontFamily: "'JetBrains Mono', monospace" }}>
+                    Your forged ({sovereign.length})
+                  </div>
+                  {sovereign.slice().reverse().map(b => (
+                    <ForgedArtefactCard
+                      key={b.id}
+                      artefact={b}
+                      onExport={() => onExportArtefact(b)}
+                    />
+                  ))}
+                </>
+              )}
+              {catalogue.length > 0 && (
+                <>
+                  <div style={{ fontSize: 10, letterSpacing: 1.5, color: THEME.textDim, padding: `${sovereign.length > 0 ? 12 : 2}px 4px 8px`, textTransform: 'uppercase', fontFamily: "'JetBrains Mono', monospace" }}>
+                    Catalogue ({catalogue.length})
+                  </div>
+                  {catalogue.map(item => (
+                    <CatalogueCard
+                      key={item.id}
+                      node={item}
+                      witnessed={!!witnessedShops[item.id]}
+                      onExport={() => onExportCatalogue(item)}
+                    />
+                  ))}
+                </>
+              )}
+            </>
+          );
         })()
       )}
     </SidePanel>
