@@ -2,7 +2,27 @@
 // SPELLWEB TYPE DEFINITIONS
 // ═══════════════════════════════════════════════════════════════
 
-export type NodeType = 'document' | 'concept' | 'theorem' | 'spell' | 'act' | 'persona' | 'term' | 'skill' | 'chronicle';
+export type NodeType =
+  | 'document'
+  | 'concept'
+  | 'theorem'
+  | 'spell'
+  | 'act'
+  | 'persona'
+  | 'term'
+  | 'skill'
+  | 'chronicle'
+  // Universe integration (2026-05-10): the four-domain universe (Tome / Workshop / City / Drake)
+  | 'workshop'    // shop pages — civic location housing a Mage's craft, sits at a vertex
+  | 'cast'        // Mage / cousin / summoned / companion / priest entries
+  | 'vertex'      // 64-lattice positions; the geometric ground of the universe
+  | 'geography'   // Drake Island — the layer beneath the lattice
+  | 'civic'       // City of Mages — the civic overlay on the lattice
+  | 'gateway'     // sister cities & upstream cousin-substrate forges (Archon, UOR, etc.)
+  // Deviation layer (2026-05-11): Sovereign-owned artefacts the user has forged
+  // or witnessed. Not in the canonical NODES list — derived at runtime from
+  // forgedBlades. The user's appended data on top of the universe.
+  | 'artefact';   // Sovereign's deviation node (Cloak, Memo Stone, Blade, …)
 
 // ═══════════════════════════════════════════════════════════════
 // HEXAGRAM SYSTEM (64-Tetrahedra Lattice Mapping)
@@ -138,7 +158,29 @@ export type EdgeType =
   | 'delegates_via'    // Earth delegates via Theia/Life
   | 'manifests_as'     // Life manifests as Human
   | 'reflects_through' // Moon reflects through Swordsman
-  | 'remembers';       // Moonkeeper remembers the forgetting
+  | 'remembers'        // Moonkeeper remembers the forgetting
+  // Universe integration (2026-05-10): geometric / civic / kinship relations
+  | 'founds'           // act → workshop ("Tome V Act 1 founds /tailor")
+  | 'founded_in'       // workshop → act (reciprocal of founds; matches references/referenced_in pattern)
+  | 'inhabits'         // cast/workshop → vertex (geometric position on the 64-lattice)
+  | 'kin_to'           // mutual lateral kinship: cousin-cast, sister-city, cousin-substrate
+  | 'gateway_to'       // city → sister-city or upstream-substrate forge
+  | 'built_on'         // civic overlay → geography ("City of Mages built_on Drake Island")
+  | 'quarter_of'       // workshop → civic ("/tailor quarter_of City of Mages")
+  | 'adjacent_to'      // vertex → vertex (lattice geometry; declared but unused this session)
+  // V5.5 Attachment Architecture (2026-05-11): three-layer model (primary × attachment × vertex)
+  | 'divergent_of'     // cast → primary persona, with register-shift (Lethae divergent_of moonkeeper · mage_register)
+  | 'complement_pair'; // cast → cast, vertex bit-complement pairing (Aletheia V25 ⊥ Lethae V38; V25⊕V38=V63)
+
+export type CastTier = 'archetype' | 'cousin' | 'summoned' | 'companion' | 'priest';
+export type TradeQuarter = 'producer' | 'gathering' | 'temple' | 'bonfire' | 'placeholder';
+export type OperatorStatus = 'operational' | 'partial' | 'tease' | 'placeholder' | 'gathering';
+export type Attribution = 'agentprivacy' | 'cousin-blade' | 'cousin-substrate' | 'kindred' | 'kindred-protocol' | 'open';
+export type ConjectureStatus = 'canonical' | 'provisional' | 'observation' | 'resonant';
+export type ArtefactArchetype = 'swordsman' | 'mage' | 'bilateral';
+export type ArtefactClass = 'trinket' | 'tool' | 'weapon' | 'clothing' | 'tome';
+// `tome` covers the bound spellbooks (Tome IV · Tome V · future Tome VI) — knowledge-as-artefact, carried like a grimoire.
+// Tier (light | heavy | dragon) is dynamic per Sovereign traversal — reuses `stratumToTier()`.
 
 export interface SpellwebNode {
   id: string;
@@ -148,7 +190,7 @@ export interface SpellwebNode {
   layer: Layer;
   desc: string;
   version?: string;       // PVM version (e.g., "5.3" for canonical personas)
-  tier?: number;          // Persona tier (0 = canonical, 1 = base, 2 = specialized)
+  tier?: number | CastTier; // Persona tier (number) OR cast tier (string). Union keeps existing personas compatible.
   category?: string;      // Skill category ("privacy-layer" | "role")
   emoji?: string;
   proverb?: string;
@@ -164,6 +206,58 @@ export interface SpellwebNode {
   betweenness_interpretation?: string;
   pvm_section?: string;
   selene_proof_role?: string;
+  // ── Universe integration fields (2026-05-10) ──
+  vertex?: number;              // 0–63, position on the 64-vertex lattice
+  bits?: string;                // 6-bit binary, e.g. "011100" for V28
+  hammingWeight?: number;       // 0–6, the stratum (Pascal's row)
+  tome?: 'IV' | 'V';            // For act nodes: which tome
+  act?: number;                 // For act nodes: act number within the tome
+  sigil?: string;               // Cast-member sigil (emoji or emoji-pair)
+  gem?: string;                 // Workshop palette gem name (e.g. "Amethyst")
+  gemColor?: string;            // Workshop palette gem hex color (e.g. "#a78bfa")
+  href?: string;                // Workshop / external route or URL
+  tradeQuarter?: TradeQuarter;  // Workshop's quarter in the City of Mages
+  operatorStatus?: OperatorStatus;
+  attribution?: Attribution;    // Vertex attribution per the Vertex Naming Audit
+  civicLocation?: string;       // For Tome V act frontmatter: where in the city the act is set
+  shopAnchor?: string;          // For cast/act: the route of the anchored workshop
+  // Conjecture metadata (for `concept` nodes typed as v6_lineage conjectures)
+  conjectureId?: string;        // e.g. "C39" or "C26-C29"
+  conjectureStatus?: ConjectureStatus;
+  conjectureConfidence?: number | null;  // 0..1 for provisional; null for observation
+  // Artefact metadata (for `workshop` nodes — what the shop yields to whom)
+  artefactName?: string;            // common item name: e.g. "Cloak", "Memo Stone", "Witness Blade"
+  artefactRootName?: string;        // truth-form participle: e.g. "Woven Cloak", "Witnessed Blade"
+  artefactClass?: ArtefactClass;    // trinket | tool | weapon | clothing
+  artefactArchetype?: ArtefactArchetype;  // who the artefact serves
+  artefactWielder?: string;         // cast node id (cast-soulbis | cast-soulbae) or "both"
+  // Tier (light | heavy | dragon) is dynamic per Sovereign traversal; not stored on the workshop.
+  // Progressive-reveal: a node carrying this stratum threshold (1-6) only appears at full opacity once
+  // the Sovereign's evocation laps push the running stratum to or above this number. Below threshold,
+  // the node renders at proportional opacity (running_stratum / revealStratum). At 0, the node is hidden.
+  revealStratum?: number;           // 1..6; the stratum threshold for full opacity
+  // Fog-of-war: while the named shop hasn't been witnessed, the node renders as a silhouette
+  // (~18% opacity). Once `witnessedShops[hiddenUntilWitness]` is set, the node becomes full presence.
+  // 2026-05-11 update: cast members no longer carry this — canonical universe stays fully visible.
+  // Reserved for future use on optional secret-lore nodes.
+  hiddenUntilWitness?: string;      // shop id, e.g. "shop-tailor"
+  // ── Deviation-layer fields (2026-05-11): only present on `artefact` nodes ──
+  bladeTier?: 'light' | 'heavy' | 'dragon';  // tier from the forge ceremony; drives stroke color
+  bladeStratum?: number;            // 0..6 (Hamming weight)
+  spellEmoji?: string;              // secondary sigil — the user's matching spell emoji
+  isWitness?: boolean;              // true if this is someone else's blade traced as witness
+  forgedAt?: string;                // ISO timestamp
+  bladeId?: string;                 // original ForgedBlade id reference
+  // ── V5.5 Attachment Architecture fields (2026-05-11) ──
+  // For `cast` nodes: which Layer-1 primary personas this cast instances,
+  // what attachment kind (A·workshop · B·cross-shop · C·peripatetic), and
+  // whether the cast represents a register-shifted divergence (D meta-kind).
+  // See agentprivacy-skills V5.5 meta/agentprivacy-attachment-architecture.
+  attachmentKind?: 'A_workshop' | 'B_cross_shop' | 'C_peripatetic';
+  divergence?: 'none' | 'mage_register' | 'sword_register' | 'balanced_register';
+  abstractPersonaIds?: string[];    // Layer-1 primary persona ids (e.g., ['forgemaster', 'forgecaller'])
+  castStatus?: 'seated' | 'anticipated' | 'provisional';  // V5.5 attachment status in the current grimoire
+  complementOfCast?: string;        // For vertex-complement pairs (e.g., 'cast-aletheia' for Lethae)
   // D3 simulation properties (added at runtime)
   x?: number;
   y?: number;
@@ -215,6 +309,13 @@ export interface Theme {
     term: NodeVisual;
     skill: NodeVisual;
     chronicle: NodeVisual;
+    workshop: NodeVisual;
+    cast: NodeVisual;
+    vertex: NodeVisual;
+    geography: NodeVisual;
+    civic: NodeVisual;
+    gateway: NodeVisual;
+    artefact: NodeVisual;
   };
   edges: Record<EdgeType, EdgeStyle>;
 }
@@ -235,6 +336,13 @@ export interface TypeFilterState {
   term: boolean;
   skill: boolean;
   chronicle: boolean;
+  workshop: boolean;
+  cast: boolean;
+  vertex: boolean;
+  geography: boolean;
+  civic: boolean;
+  gateway: boolean;
+  artefact: boolean;
 }
 
 export interface SpellbookFilterState {

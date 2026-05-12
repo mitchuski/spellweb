@@ -11,7 +11,6 @@ interface GraphFiltersProps {
   // Mobile action props
   onOpenConstellations?: () => void;
   onOpenZKBlades?: () => void;
-  onWitnessBlade?: (file: File) => void;
   hasLatestProof?: boolean;
   constellationCount?: number;
   forgedBladesCount?: number;
@@ -32,13 +31,21 @@ const TYPE_BUTTONS = [
   { key: "persona" as const, label: "○ Personas", color: "#a78bfa" },
   { key: "term" as const, label: "· Terms", color: "#555570" },
   { key: "skill" as const, label: "⚙ Skills", color: "#f39c12" },
+  // Universe integration (2026-05-10)
+  { key: "workshop" as const,  label: "🏛 Workshops", color: "#d4af37" },
+  { key: "cast" as const,      label: "✦ Cast", color: "#c4a8ff" },
+  { key: "vertex" as const,    label: "· Vertices", color: "#d4af37" },
+  { key: "civic" as const,     label: "🏰 City", color: "#e4c84f" },
+  { key: "geography" as const, label: "🐉 Drake Island", color: "#7a3a1a" },
+  { key: "gateway" as const,   label: "↗ Sister Cities", color: "#86c5ff" },
+  { key: "artefact" as const,  label: "✦ Your Artefacts", color: "#ffd700" },
 ];
 
 // SPELLBOOK_BUTTONS moved to Header.tsx
 
 export function GraphFilters({
   filters, typeFilters, onToggleLayer, onToggleType, isOpen = true,
-  onOpenConstellations, onOpenZKBlades, onWitnessBlade, hasLatestProof, constellationCount = 0, forgedBladesCount = 0, witnessBladesCount = 0,
+  onOpenConstellations, onOpenZKBlades, hasLatestProof, constellationCount = 0, forgedBladesCount = 0, witnessBladesCount: _wbc = 0,
 }: GraphFiltersProps) {
   // Collapse state for each section
   const [layersCollapsed, setLayersCollapsed] = useState(false);
@@ -223,42 +230,6 @@ export function GraphFilters({
           >
             <span>⚔️</span> ZK Blades {forgedBladesCount > 0 && `(${forgedBladesCount})`}
           </button>
-        )}
-
-        {/* Witness Blade */}
-        {onWitnessBlade && (
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              width: "100%",
-              padding: "6px 8px",
-              marginBottom: 4,
-              borderRadius: 4,
-              cursor: "pointer",
-              background: witnessBladesCount > 0 ? "rgba(59, 130, 246, 0.15)" : "transparent",
-              border: `1px solid ${witnessBladesCount > 0 ? '#3b82f6' : THEME.panelBorder}`,
-              color: witnessBladesCount > 0 ? "#3b82f6" : THEME.textDim,
-              fontSize: 11,
-              fontFamily: "'IBM Plex Sans', sans-serif",
-              textAlign: "left",
-            }}
-          >
-            <span>👁️</span> Witness Blade {witnessBladesCount > 0 && `(${witnessBladesCount})`}
-            <input
-              type="file"
-              accept=".md"
-              style={{ display: "none" }}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file && onWitnessBlade) {
-                  onWitnessBlade(file);
-                }
-                e.target.value = "";
-              }}
-            />
-          </label>
         )}
 
         {/* Share Knowledge */}

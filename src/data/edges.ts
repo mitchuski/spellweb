@@ -1655,4 +1655,298 @@ export const EDGES: SpellwebEdge[] = [
   { source: "per-topologist", target: "con-betweenness-centrality", type: "embodies" },
   { source: "per-holonic-architect", target: "con-holographic-bound", type: "embodies" },
   { source: "per-holonic-architect", target: "con-three-axis-separation", type: "embodies" },
+
+  // ══════════════════════════════════════════════════════════════
+  // UNIVERSE INTEGRATION (2026-05-10)
+  // Tome / Workshop / City of Mages / Drake Island / Sister cities
+  // ══════════════════════════════════════════════════════════════
+
+  // ── built_on (1) — civic overlay sits on geography ──
+  { source: "civic-city-of-mages", target: "geo-drake-island", type: "built_on" },
+
+  // ── quarter_of (11) — each workshop is a quarter of the City ──
+  { source: "shop-tailor",          target: "civic-city-of-mages", type: "quarter_of" },
+  { source: "shop-shield",          target: "civic-city-of-mages", type: "quarter_of" },
+  { source: "shop-forget",          target: "civic-city-of-mages", type: "quarter_of" },
+  { source: "shop-etherchanting",   target: "civic-city-of-mages", type: "quarter_of" },
+  { source: "shop-jeweler",         target: "civic-city-of-mages", type: "quarter_of" },
+  { source: "shop-holon",           target: "civic-city-of-mages", type: "quarter_of" },
+  { source: "shop-bonfires",        target: "civic-city-of-mages", type: "quarter_of" },
+  { source: "shop-vault",           target: "civic-city-of-mages", type: "quarter_of" },
+  { source: "shop-covenant",        target: "civic-city-of-mages", type: "quarter_of" },
+  { source: "shop-circle",          target: "civic-city-of-mages", type: "quarter_of" },
+  { source: "shop-hall",            target: "civic-city-of-mages", type: "quarter_of" },
+
+  // ── gateway_to (4) — City has gateways to sister cities and cousin-substrate ──
+  { source: "civic-city-of-mages", target: "gateway-archon", type: "gateway_to" },
+  { source: "civic-city-of-mages", target: "gateway-bonfires", type: "gateway_to" },
+  { source: "civic-city-of-mages", target: "gateway-human-tech-covenant", type: "gateway_to" },
+  { source: "civic-city-of-mages", target: "gateway-uor-foundation", type: "gateway_to" },
+
+  // ── kin_to (8) — mutual lateral kinship ──
+  // Cousin-cast pairs (Tome IV Act V)
+  { source: "cast-genitrix",  target: "cast-soulbae",  type: "kin_to" },
+  { source: "cast-flaxscrip", target: "cast-soulbis",  type: "kin_to" },
+  // City ↔ sister cities (mutual non-absorption)
+  { source: "civic-city-of-mages", target: "gateway-archon", type: "kin_to" },
+  { source: "civic-city-of-mages", target: "gateway-bonfires", type: "kin_to" },
+  { source: "civic-city-of-mages", target: "gateway-human-tech-covenant", type: "kin_to" },
+  // City ↔ UOR (cousin-substrate)
+  { source: "civic-city-of-mages", target: "gateway-uor-foundation", type: "kin_to" },
+  // Luca's cross-shop UOR-shape conjecture (C39): the type-system overlap
+  { source: "cast-luca", target: "cast-vulcana",   type: "kin_to" },
+  { source: "cast-luca", target: "cast-adamantia", type: "kin_to" },
+
+  // ── inhabits (28) — cast and workshops sit at vertices ──
+  // Cast → vertex
+  { source: "cast-soulbis",       target: "vertex-v63", type: "inhabits" },
+  { source: "cast-soulbae",       target: "vertex-v28", type: "inhabits" },
+  { source: "cast-genitrix",      target: "vertex-v28", type: "inhabits" },
+  { source: "cast-flaxscrip",     target: "vertex-v63", type: "inhabits" },
+  { source: "cast-pallia",        target: "vertex-v28", type: "inhabits" },
+  { source: "cast-memora",        target: "vertex-v5",  type: "inhabits" },
+  { source: "cast-custos",        target: "vertex-v49", type: "inhabits" },
+  { source: "cast-vulcana",       target: "vertex-v19", type: "inhabits" },
+  { source: "cast-aletheia",      target: "vertex-v25", type: "inhabits" },
+  { source: "cast-adamantia",     target: "vertex-v51", type: "inhabits" },
+  { source: "cast-lampyra",       target: "vertex-v49", type: "inhabits" },
+  { source: "cast-vagari",        target: "vertex-v31", type: "inhabits" },
+  { source: "cast-aria-silverhue",target: "vertex-v57", type: "inhabits" },
+  { source: "cast-luca",          target: "vertex-v0",  type: "inhabits" },
+  { source: "cast-socrat0x",      target: "vertex-v24", type: "inhabits" },
+  { source: "cast-manifestia",    target: "vertex-v55", type: "inhabits" },
+  // Workshop → vertex
+  { source: "shop-tailor",        target: "vertex-v28", type: "inhabits" },
+  { source: "shop-shield",        target: "vertex-v5",  type: "inhabits" },
+  { source: "shop-forget",        target: "vertex-v19", type: "inhabits" },
+  { source: "shop-etherchanting", target: "vertex-v51", type: "inhabits" },
+  { source: "shop-jeweler",       target: "vertex-v49", type: "inhabits" },
+  { source: "shop-holon",         target: "vertex-v31", type: "inhabits" },
+  { source: "shop-bonfires",      target: "vertex-v24", type: "inhabits" },
+  { source: "shop-vault",         target: "vertex-v57", type: "inhabits" },
+  { source: "shop-covenant",      target: "vertex-v55", type: "inhabits" },
+  { source: "shop-circle",        target: "vertex-v12", type: "inhabits" },
+  { source: "shop-hall",          target: "vertex-v15", type: "inhabits" },
+
+  // ── founds / founded_in (10 reciprocal pairs) — act founds workshop, workshop founded_in act ──
+  { source: "act-tome-v-1",  target: "shop-tailor",        type: "founds" },
+  { source: "shop-tailor",   target: "act-tome-v-1",       type: "founded_in" },
+  { source: "act-tome-v-3",  target: "shop-shield",        type: "founds" },
+  { source: "shop-shield",   target: "act-tome-v-3",       type: "founded_in" },
+  { source: "act-tome-v-6",  target: "shop-forget",        type: "founds" },
+  { source: "shop-forget",   target: "act-tome-v-6",       type: "founded_in" },
+  { source: "act-tome-v-9",  target: "shop-etherchanting", type: "founds" },
+  { source: "shop-etherchanting", target: "act-tome-v-9",  type: "founded_in" },
+  { source: "act-tome-v-9",  target: "shop-jeweler",       type: "founds" },
+  { source: "shop-jeweler",  target: "act-tome-v-9",       type: "founded_in" },
+  { source: "act-tome-v-10", target: "shop-holon",         type: "founds" },
+  { source: "shop-holon",    target: "act-tome-v-10",      type: "founded_in" },
+  { source: "act-tome-v-11", target: "shop-bonfires",      type: "founds" },
+  { source: "shop-bonfires", target: "act-tome-v-11",      type: "founded_in" },
+  { source: "act-tome-v-12", target: "shop-vault",         type: "founds" },
+  { source: "shop-vault",    target: "act-tome-v-12",      type: "founded_in" },
+  { source: "act-tome-v-13", target: "shop-covenant",      type: "founds" },
+  { source: "shop-covenant", target: "act-tome-v-13",      type: "founded_in" },
+  // Act 15 founds the substrate-anchor at /forget (cross-anchor with Vulcana's act 6)
+  { source: "act-tome-v-15", target: "shop-forget",        type: "founds" },
+
+  // ── references (3) — UOR cross-shop substrate provenance per chronicle §1.3 ──
+  { source: "shop-forget", target: "gateway-uor-foundation", type: "references" },
+  { source: "shop-holon",  target: "gateway-uor-foundation", type: "references" },
+  { source: "act-tome-v-15", target: "gateway-uor-foundation", type: "references" },
+
+  // ── Cast → existing personas (kin_to: cast roster mirrors persona roster) ──
+  { source: "cast-soulbis", target: "per-soulbis", type: "kin_to" },
+  { source: "cast-soulbae", target: "per-soulbae", type: "kin_to" },
+
+  // ── narrates: cast members narrate the acts they appear in ──
+  { source: "cast-pallia",        target: "act-tome-v-1",  type: "narrates" },
+  { source: "cast-pallia",        target: "act-tome-v-2",  type: "narrates" },
+  { source: "cast-memora",        target: "act-tome-v-3",  type: "narrates" },
+  { source: "cast-custos",        target: "act-tome-v-5",  type: "narrates" },
+  { source: "cast-vulcana",       target: "act-tome-v-6",  type: "narrates" },
+  { source: "cast-aletheia",      target: "act-tome-v-8",  type: "narrates" },
+  { source: "cast-adamantia",     target: "act-tome-v-9",  type: "narrates" },
+  { source: "cast-lampyra",       target: "act-tome-v-9",  type: "narrates" },
+  { source: "cast-vagari",        target: "act-tome-v-10", type: "narrates" },
+  { source: "cast-socrat0x",      target: "act-tome-v-11", type: "narrates" },
+  { source: "cast-aria-silverhue",target: "act-tome-v-12", type: "narrates" },
+  { source: "cast-manifestia",    target: "act-tome-v-13", type: "narrates" },
+  { source: "cast-luca",          target: "act-tome-v-15", type: "narrates" },
+  { source: "cast-genitrix",      target: "act-tome-iv-5", type: "narrates" },
+  { source: "cast-flaxscrip",     target: "act-tome-iv-5", type: "narrates" },
+
+  // ── Tome V act sequence: follows ──
+  { source: "act-tome-v-1",  target: "act-tome-v-2",  type: "follows" },
+  { source: "act-tome-v-2",  target: "act-tome-v-3",  type: "follows" },
+  { source: "act-tome-v-3",  target: "act-tome-v-4",  type: "follows" },
+  { source: "act-tome-v-4",  target: "act-tome-v-5",  type: "follows" },
+  { source: "act-tome-v-5",  target: "act-tome-v-6",  type: "follows" },
+  { source: "act-tome-v-6",  target: "act-tome-v-7",  type: "follows" },
+  { source: "act-tome-v-7",  target: "act-tome-v-8",  type: "follows" },
+  { source: "act-tome-v-8",  target: "act-tome-v-9",  type: "follows" },
+  { source: "act-tome-v-9",  target: "act-tome-v-10", type: "follows" },
+  { source: "act-tome-v-10", target: "act-tome-v-11", type: "follows" },
+  { source: "act-tome-v-11", target: "act-tome-v-12", type: "follows" },
+  { source: "act-tome-v-12", target: "act-tome-v-13", type: "follows" },
+  { source: "act-tome-v-13", target: "act-tome-v-14", type: "follows" },
+  { source: "act-tome-v-14", target: "act-tome-v-15", type: "follows" },
+
+  // ── Tome IV act sequence: follows ──
+  { source: "act-tome-iv-1", target: "act-tome-iv-2", type: "follows" },
+  { source: "act-tome-iv-2", target: "act-tome-iv-3", type: "follows" },
+  { source: "act-tome-iv-3", target: "act-tome-iv-4", type: "follows" },
+  { source: "act-tome-iv-4", target: "act-tome-iv-5", type: "follows" },
+
+  // ── Spellbook containment (sparse, matching the existing pattern) ──
+  // Tome IV / V acts surface from the First Person spellbook lineage.
+  { source: "spellbook-firstperson", target: "act-tome-v-1",  type: "references" },
+  { source: "spellbook-firstperson", target: "act-tome-v-15", type: "references" },
+  { source: "spellbook-firstperson", target: "act-tome-iv-1", type: "references" },
+  { source: "spellbook-firstperson", target: "act-tome-iv-5", type: "references" },
+
+  // ══════════════════════════════════════════════════════════════
+  // AUDIT PASS 2 (2026-05-10) — the-Drake archetype, conjecture wiring,
+  // spec/plan/kindred document edges, and drift-fix kin_to additions.
+  // ══════════════════════════════════════════════════════════════
+
+  // ── the-Drake archetype: kin_to existing per-drake persona ──
+  { source: "cast-the-drake", target: "per-drake", type: "kin_to" },
+
+  // ── Tome V act → conjectures (per ACT_CONJECTURES in tome-v-conjectures.ts) ──
+  // Edge type 'introduces' (existing): each act introduces or strengthens these conjectures.
+  // Act 1
+  { source: "act-tome-v-1",  target: "conj-c26-c29", type: "introduces" },
+  { source: "act-tome-v-1",  target: "conj-c34-c37", type: "introduces" },
+  { source: "act-tome-v-1",  target: "conj-c39",     type: "introduces" },
+  // Act 2
+  { source: "act-tome-v-2",  target: "conj-c26-c29", type: "introduces" },
+  { source: "act-tome-v-2",  target: "conj-c30-c33", type: "introduces" },
+  { source: "act-tome-v-2",  target: "conj-c38",     type: "introduces" },
+  { source: "act-tome-v-2",  target: "conj-c40",     type: "introduces" },
+  // Act 3
+  { source: "act-tome-v-3",  target: "conj-c30-c33", type: "introduces" },
+  { source: "act-tome-v-3",  target: "conj-c40",     type: "introduces" },
+  { source: "act-tome-v-3",  target: "conj-c41",     type: "introduces" },
+  { source: "act-tome-v-3",  target: "conj-c43",     type: "introduces" },
+  // Act 4
+  { source: "act-tome-v-4",  target: "conj-c30-c33", type: "introduces" },
+  { source: "act-tome-v-4",  target: "conj-c40",     type: "introduces" },
+  { source: "act-tome-v-4",  target: "conj-c46",     type: "introduces" },
+  // Act 5
+  { source: "act-tome-v-5",  target: "conj-c30-c33", type: "introduces" },
+  { source: "act-tome-v-5",  target: "conj-c40",     type: "introduces" },
+  { source: "act-tome-v-5",  target: "conj-c41",     type: "introduces" },
+  { source: "act-tome-v-5",  target: "conj-c42",     type: "introduces" },
+  // Act 6
+  { source: "act-tome-v-6",  target: "conj-c18-c21", type: "introduces" },
+  { source: "act-tome-v-6",  target: "conj-c22-c25", type: "introduces" },
+  { source: "act-tome-v-6",  target: "conj-c26-c29", type: "introduces" },
+  { source: "act-tome-v-6",  target: "conj-c44",     type: "introduces" },
+  { source: "act-tome-v-6",  target: "conj-c45",     type: "introduces" },
+  // Act 7
+  { source: "act-tome-v-7",  target: "conj-c26-c29", type: "introduces" },
+  { source: "act-tome-v-7",  target: "conj-c38",     type: "introduces" },
+  { source: "act-tome-v-7",  target: "conj-c39",     type: "introduces" },
+  { source: "act-tome-v-7",  target: "conj-c44",     type: "introduces" },
+  // Act 8
+  { source: "act-tome-v-8",  target: "conj-c22-c25", type: "introduces" },
+  { source: "act-tome-v-8",  target: "conj-c26-c29", type: "introduces" },
+  { source: "act-tome-v-8",  target: "conj-c40",     type: "introduces" },
+  { source: "act-tome-v-8",  target: "conj-c45",     type: "introduces" },
+  // Act 9
+  { source: "act-tome-v-9",  target: "conj-c30-c33", type: "introduces" },
+  { source: "act-tome-v-9",  target: "conj-c40",     type: "introduces" },
+  { source: "act-tome-v-9",  target: "conj-c45",     type: "introduces" },
+  { source: "act-tome-v-9",  target: "conj-c44",     type: "introduces" },
+  // Act 10
+  { source: "act-tome-v-10", target: "conj-c26-c29", type: "introduces" },
+  { source: "act-tome-v-10", target: "conj-c34-c37", type: "introduces" },
+  { source: "act-tome-v-10", target: "conj-c39",     type: "introduces" },
+  { source: "act-tome-v-10", target: "conj-c45",     type: "introduces" },
+  // Act 11
+  { source: "act-tome-v-11", target: "conj-c26-c29", type: "introduces" },
+  { source: "act-tome-v-11", target: "conj-c39",     type: "introduces" },
+  { source: "act-tome-v-11", target: "conj-c44",     type: "introduces" },
+  // Act 12
+  { source: "act-tome-v-12", target: "conj-c26-c29", type: "introduces" },
+  { source: "act-tome-v-12", target: "conj-c39",     type: "introduces" },
+  { source: "act-tome-v-12", target: "conj-c44",     type: "introduces" },
+  // Act 13
+  { source: "act-tome-v-13", target: "conj-c26-c29", type: "introduces" },
+  { source: "act-tome-v-13", target: "conj-c39",     type: "introduces" },
+  { source: "act-tome-v-13", target: "conj-c44",     type: "introduces" },
+  // Act 14
+  { source: "act-tome-v-14", target: "conj-c26-c29", type: "introduces" },
+  { source: "act-tome-v-14", target: "conj-c39",     type: "introduces" },
+  { source: "act-tome-v-14", target: "conj-c45",     type: "introduces" },
+  // Act 15
+  { source: "act-tome-v-15", target: "conj-c26-c29", type: "introduces" },
+  { source: "act-tome-v-15", target: "conj-c39",     type: "introduces" },
+  { source: "act-tome-v-15", target: "conj-c47",     type: "introduces" },
+
+  // ── Spec / plan / kindred documents wired into the graph ──
+  // Specs reference the conjectures or vertices they spec
+  { source: "spec-cloak-v1",                target: "conj-c34-c37", type: "implements" },
+  { source: "spec-crafting-interface-v1",   target: "conj-c18-c21", type: "implements" },
+  { source: "spec-crafting-interface-v1",   target: "conj-c22-c25", type: "implements" },
+  { source: "spec-bilateral-ceremony-v1",   target: "conj-c38",     type: "implements" },
+  { source: "spec-bilateral-ceremony-v1",   target: "conj-c39",     type: "implements" },
+  { source: "spec-vertex-audit-v1",         target: "conj-c39",     type: "implements" },
+  { source: "spec-city-of-mages-addendum-v1", target: "conj-c26-c29", type: "implements" },
+  { source: "spec-spellweb-manifest-v1",    target: "civic-city-of-mages", type: "defines" },
+  // Plans reference their grounding conjectures
+  { source: "plan-archon-integration",      target: "conj-c39",     type: "implements" },
+  { source: "plan-archon-integration",      target: "gateway-archon", type: "references" },
+  { source: "plan-zcash-integration",       target: "conj-c40",     type: "implements" },
+  { source: "plan-zcash-integration",       target: "conj-c41",     type: "references" },
+  { source: "plan-zcash-integration",       target: "conj-c42",     type: "implements" },
+  { source: "plan-zcash-integration",       target: "shop-shield",  type: "references" },
+  // UOR kindred doc wired to the gateway it documents and the conjectures
+  { source: "kindred-uor-foundation",       target: "gateway-uor-foundation", type: "defines" },
+  { source: "kindred-uor-foundation",       target: "conj-c47",     type: "implements" },
+  { source: "kindred-uor-foundation",       target: "conj-c39",     type: "references" },
+
+  // ── Drift-fix kin_to edges per spec 06 §4.5 (canonical pairings) ──
+  { source: "shop-holon",     target: "shop-forget",     type: "kin_to" }, // cousin-substrate cross-shop (Tome V Act 15)
+  { source: "cast-pallia",    target: "cast-genitrix",   type: "kin_to" }, // both at V28; weaver path opened by Christian + GenitriX
+  { source: "cast-socrat0x",  target: "cast-soulbae",    type: "kin_to" }, // Soulbae deployed as @soulbae_the_bot at Bonfires
+
+  // ── Luca lineage (2026-05-10 update): old mage spirit; Pacioli of FP Act 1; Soulbae's old connection ──
+  // Luca IS the Pacioli the Drake whispered through time to in Venice 1494.
+  // "Lives in the city's geometry" is already expressed by his existing `inhabits → vertex-v0`
+  // (the substrate seat — not a quarter, the geometry itself).
+  { source: "cast-luca",  target: "fp-act-1",       type: "narrates" },   // Luca's first appearance — as Pacioli, listening to the Drake
+  { source: "cast-luca",  target: "cast-the-drake", type: "kin_to" },     // visited the Drake; one of the first to hear the First Whisper
+  { source: "cast-luca",  target: "cast-soulbae",   type: "kin_to" },     // one of Soulbae's old connections, kept across centuries
+
+  // ── Cofounders of the City of Mages (2026-05-11) ──
+  // Soulbis and Soulbae together founded the city; the archetype pair underwrites the whole project.
+  { source: "cast-soulbis", target: "civic-city-of-mages", type: "founds" },
+  { source: "cast-soulbae", target: "civic-city-of-mages", type: "founds" },
+  { source: "cast-soulbis", target: "cast-soulbae",        type: "kin_to" },  // the cofounding pair — each other's complement
+
+  // ══════════════════════════════════════════════════════════════
+  // V5.5 ATTACHMENT ARCHITECTURE EDGES (2026-05-11)
+  // Lethae 🌘 + 6 anticipated cast — inhabits edges and the first
+  // canonical divergent_of and complement_pair edges.
+  // ══════════════════════════════════════════════════════════════
+
+  // ── inhabits edges (Layer 2 → Layer 3 vertex bindings) ──
+  { source: "cast-lethae",     target: "vertex-v38", type: "inhabits" },
+  { source: "cast-mnemosyne",  target: "vertex-v4",  type: "inhabits" },
+  { source: "cast-iris",       target: "vertex-v8",  type: "inhabits" },
+  { source: "cast-pythia",     target: "vertex-v16", type: "inhabits" },
+  { source: "cast-techne",     target: "vertex-v20", type: "inhabits" },
+  { source: "cast-hephaestus", target: "vertex-v24", type: "inhabits" },  // shared-vertex with cast-socrat0x (precedent: cast-custos + cast-lampyra at vertex-v49)
+  // cast-selene is C_peripatetic — no single inhabits edge; she walks the stratum cycle through all 7 strata
+
+  // ── divergent_of edges (Layer 2 cast → Layer 1 primary, with register-shift) ──
+  // First canonical divergent: Lethae is the Mage-register divergent attachment of Moonkeeper (Swordsman primary).
+  { source: "cast-lethae", target: "per-moonkeeper", type: "divergent_of" },
+
+  // ── complement_pair edges (Layer 2 cast ⊥ Layer 2 cast at bit-complement vertices) ──
+  // First canonical complement-pair: Aletheia (V25) ⊥ Lethae (V38). V25 ⊕ V38 = V63 (Sovereign); V25 AND V38 = 0 (Null).
+  { source: "cast-aletheia", target: "cast-lethae", type: "complement_pair" },
+  { source: "cast-lethae",   target: "cast-aletheia", type: "complement_pair" },  // mutual; the pair is undirected in canon
 ];

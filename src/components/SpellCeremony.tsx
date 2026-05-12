@@ -137,9 +137,19 @@ interface SpellCeremonyProps {
   // Forge mode - show Forge button instead of Evoke when proof ready
   hasProof?: boolean;
   onForge?: () => void;
+  // Workshop-aware forge label. When active workshop is set, this reflects
+  // the artefact verb-noun pair (e.g. "FORGE(T) BLADE" / "WEAVE CLOAK").
+  // Defaults to "FORGE BLADE" so the free-form ceremony still reads correctly.
+  forgeLabel?: string;
   // Menu openers - Mage and Sword buttons open detailed modals
   onOpenMageMenu?: () => void;
   onOpenBladesModal?: () => void;
+  // Artefact inventory — opens the City of Mages artefact panel (Witness Constellation lives inside)
+  onOpenArtefacts?: () => void;
+  witnessedShopsCount?: number;
+  // Cube clicks — cycle the equipped blade / selected spell (mirrors [s] / [m] hotkeys)
+  onCycleBlade?: () => void;
+  onCycleSpell?: () => void;
   // Spell cast callback - called when clicking during ceremony to deduct mana
   onSpellCast?: () => void;
   // Casting mode toggle: 'constellation' (free) or 'mage' (costs mana)
@@ -195,6 +205,15 @@ const MOBILE_BREAKPOINT = 768;
 // ═══════════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════════
+
+// Extracts the first emoji glyph from a string. Mark/spell `emoji` fields can be compound
+// (e.g. "🪡⚔️" or "🪡 weave"); the cube boxes only have room for one symbol.
+function getFirstEmoji(str: string | undefined): string {
+  if (!str) return '·';
+  const emojiRegex = /[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu;
+  const matches = str.match(emojiRegex);
+  return matches && matches[0] ? matches[0] : str.charAt(0) || '·';
+}
 
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
@@ -344,8 +363,13 @@ export function SpellCeremony({
   mageSpells = [],
   hasProof,
   onForge,
+  forgeLabel = 'FORGE BLADE',
   onOpenMageMenu,
   onOpenBladesModal,
+  onOpenArtefacts,
+  witnessedShopsCount = 0,
+  onCycleBlade,
+  onCycleSpell,
   onSpellCast,
   castingMode = 'constellation',
   onToggleCastingMode,
@@ -1044,6 +1068,16 @@ export function SpellCeremony({
         zIndex: 200,
       }}
     >
+      {/* The floating ceremony stack (proof bar + identity clusters + action row + …).
+          Sword and Mage have moved up into the identity clusters; bottom row keeps the rest. */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 10,
+        }}
+      >
       {/* PROOF BAR - Top of display when casting */}
       {/* PROOF BAR - Lap count and charge level */}
       {isCasting && (
@@ -1215,7 +1249,7 @@ export function SpellCeremony({
       animation: 'forgeGlow 2s ease-in-out infinite',
     }}
   >
-    <span style={{ fontSize: 20 }}>??</span> FORGE BLADE <span style={{ fontSize: 20 }}>??</span>
+    <span style={{ fontSize: 20 }}>🔥</span> {forgeLabel} <span style={{ fontSize: 20 }}>🔥</span>
   </button>
 )}
 
@@ -1346,56 +1380,17 @@ export function SpellCeremony({
           </button>
         )}
 
-        {/* Shine/Shadow toggle - simple lights on/off - DESKTOP ONLY */}
-        {!isMobile && onShine && (
+        {/* Mage [m] - Open mage spells menu - DESKTOP ONLY · grouped beside Sword + Items */}
+        {!isMobile && onOpenMageMenu && (
           <button
-            onClick={onShine}
-            disabled={isCasting}
-            title={isCasting ? "Cannot toggle while evoking" : (isShineMode ? "Switch to Shadow (15%)" : "Switch to Shine (100%)")}
+            onClick={onOpenMageMenu}
+            title="Open Mage spells [m to cycle]"
             style={{
-              padding: '8px 14px',
+              padding: '8px 12px',
               borderRadius: 18,
-              background: isCasting
-                ? (isShineMode ? 'rgba(255, 215, 0, 0.05)' : 'rgba(180, 190, 210, 0.05)')
-                : (isShineMode
-                    ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 180, 0, 0.15))'
-                    : 'linear-gradient(135deg, rgba(100, 120, 160, 0.25), rgba(60, 70, 100, 0.2))'),
-              border: `1px solid ${isCasting
-                ? (isShineMode ? '#ffd70030' : '#8090b030')
-                : (isShineMode ? '#ffd700' : '#8090b0')}`,
-              color: isCasting
-                ? (isShineMode ? '#ffd70040' : '#8090b040')
-                : (isShineMode ? '#ffd700' : '#b0c0d8'),
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: isCasting ? 'not-allowed' : 'pointer',
-              fontFamily: '"JetBrains Mono", monospace',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'all 0.2s',
-              boxShadow: isCasting ? 'none' : (isShineMode
-                ? '0 0 12px rgba(255, 215, 0, 0.2)'
-                : '0 0 12px rgba(140, 160, 200, 0.15)'),
-              opacity: isCasting ? 0.5 : 1,
-            }}
-          >
-            {isShineMode ? "✨" : "🌑"} {isShineMode ? "Shine" : "Shadow"}
-          </button>
-        )}
-
-        {/* Orbs Control - Bring home or send wandering - DESKTOP ONLY */}
-        {!isMobile && onToggleOrbsHome && !isCasting && (
-          <button
-            onClick={onToggleOrbsHome}
-            style={{
-              padding: '8px 14px',
-              borderRadius: 18,
-              background: orbsAtHome
-                ? 'linear-gradient(135deg, rgba(231, 76, 60, 0.15), rgba(155, 89, 182, 0.15))'
-                : 'rgba(60, 60, 80, 0.3)',
-              border: `1px solid ${orbsAtHome ? '#e74c3c80' : '#555'}`,
-              color: orbsAtHome ? '#e0a0a0' : '#888',
+              background: 'linear-gradient(135deg, rgba(155, 89, 182, 0.15), rgba(155, 89, 182, 0.1))',
+              border: `1px solid ${MAGE_COLOR}60`,
+              color: MAGE_COLOR,
               fontSize: 12,
               fontWeight: 600,
               cursor: 'pointer',
@@ -1404,19 +1399,177 @@ export function SpellCeremony({
               alignItems: 'center',
               gap: 6,
               transition: 'all 0.2s',
-              boxShadow: orbsAtHome ? '0 0 10px rgba(231, 76, 60, 0.2)' : 'none',
             }}
           >
-            {orbsAtHome ? (
-              <>
-                <span style={{ fontSize: 14 }}>🌟</span> Wander
-              </>
-            ) : (
-              <>
-                <span style={{ fontSize: 14 }}>🏠</span> Home
-              </>
-            )}
+            <span style={{ fontSize: 14 }}>🧙</span> Mage
           </button>
+        )}
+
+        {/* Items — open the City of Mages inventory; Witness Constellation lives inside.
+            📜 reads as 'collected lore' (Tomes-as-artefacts aligned); copper/bronze tone keeps it
+            distinct from the Forge gold and from the Sword/Mage neighbors. */}
+        {onOpenArtefacts && (
+          <button
+            onClick={onOpenArtefacts}
+            title="Open Items inventory · Witness Constellation"
+            style={{
+              padding: '8px 12px',
+              borderRadius: 18,
+              background: witnessedShopsCount > 0
+                ? 'linear-gradient(135deg, rgba(201, 125, 63, 0.28), rgba(201, 125, 63, 0.18))'
+                : 'linear-gradient(135deg, rgba(201, 125, 63, 0.14), rgba(201, 125, 63, 0.07))',
+              border: `1px solid ${witnessedShopsCount > 0 ? '#c97d3f' : '#c97d3f70'}`,
+              color: witnessedShopsCount > 0 ? '#e69a5a' : '#c97d3f',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: '"JetBrains Mono", monospace',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              transition: 'all 0.2s',
+              boxShadow: witnessedShopsCount > 0 ? '0 0 10px rgba(201, 125, 63, 0.28)' : 'none',
+            }}
+          >
+            <span style={{ fontSize: 14 }}>📜</span> Items
+          </button>
+        )}
+
+        {/* ── visual separator: Identity (Sword · Mage · Items) | Render (Shine · Orbs) ── */}
+        {!isMobile && (
+          <div style={{ width: 1, height: 22, background: '#ffffff14', margin: '0 4px', alignSelf: 'center' }} />
+        )}
+
+        {/* Compact 4-emoji action box — Shine · Orbs · Connect · Waypoint — DESKTOP ONLY
+            Replaces the labelled-button versions of the same four controls below to keep the panel tight. */}
+        {!isMobile && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              padding: '3px 4px',
+              borderRadius: 14,
+              background: 'rgba(255, 255, 255, 0.025)',
+              border: '1px solid rgba(255, 255, 255, 0.07)',
+            }}
+          >
+            {/* Shine / Shadow */}
+            {onShine && (
+              <button
+                onClick={onShine}
+                disabled={isCasting}
+                title={isCasting ? "Cannot toggle while evoking" : (isShineMode ? "Shadow (15%)" : "Shine (100%)")}
+                style={{
+                  width: 30, height: 30,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  background: isCasting
+                    ? 'transparent'
+                    : (isShineMode ? 'rgba(255, 215, 0, 0.18)' : 'rgba(100, 120, 160, 0.22)'),
+                  border: `1px solid ${isCasting
+                    ? '#ffffff10'
+                    : (isShineMode ? '#ffd70080' : '#8090b080')}`,
+                  borderRadius: 10,
+                  color: 'inherit',
+                  fontSize: 15,
+                  cursor: isCasting ? 'not-allowed' : 'pointer',
+                  padding: 0,
+                  opacity: isCasting ? 0.4 : 1,
+                  transition: 'all 0.15s',
+                }}
+              >
+                {isShineMode ? '✨' : '🌑'}
+              </button>
+            )}
+            {/* Orbs Home / Wander */}
+            {onToggleOrbsHome && (
+              <button
+                onClick={onToggleOrbsHome}
+                disabled={isCasting}
+                title={orbsAtHome ? 'Send orbs wandering' : 'Bring orbs home'}
+                style={{
+                  width: 30, height: 30,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  background: orbsAtHome ? 'rgba(231, 76, 60, 0.18)' : 'rgba(60, 60, 80, 0.3)',
+                  border: `1px solid ${orbsAtHome ? '#e74c3c80' : '#55555580'}`,
+                  borderRadius: 10,
+                  color: 'inherit',
+                  fontSize: 15,
+                  cursor: isCasting ? 'not-allowed' : 'pointer',
+                  padding: 0,
+                  opacity: isCasting ? 0.4 : 1,
+                  transition: 'all 0.15s',
+                }}
+              >
+                {orbsAtHome ? '🌟' : '🏠'}
+              </button>
+            )}
+            {/* Connect */}
+            {onConnect && (
+              <button
+                onClick={onConnect}
+                disabled={!canConnect}
+                title={canConnect ? 'Connect (start edge from selected node)' : 'Select two nodes to connect'}
+                style={{
+                  width: 30, height: 30,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  background: canConnect ? 'rgba(255, 165, 0, 0.18)' : 'transparent',
+                  border: `1px solid ${canConnect ? '#ffa50080' : '#ffa50030'}`,
+                  borderRadius: 10,
+                  color: 'inherit',
+                  fontSize: 15,
+                  cursor: canConnect ? 'pointer' : 'default',
+                  padding: 0,
+                  opacity: canConnect ? 1 : 0.45,
+                  transition: 'all 0.15s',
+                }}
+              >
+                🔗
+              </button>
+            )}
+            {/* Waypoint / Close Portal */}
+            {(canClosePortal && onClosePortal) ? (
+              <button
+                onClick={onClosePortal}
+                title="Close portal"
+                style={{
+                  width: 30, height: 30,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(0, 217, 255, 0.22)',
+                  border: '1px solid #00d9ff',
+                  borderRadius: 10,
+                  color: 'inherit',
+                  fontSize: 15,
+                  cursor: 'pointer',
+                  padding: 0,
+                  transition: 'all 0.15s',
+                }}
+              >
+                ✨
+              </button>
+            ) : onStartWaypoint && (
+              <button
+                onClick={onStartWaypoint}
+                disabled={!canStartWaypoint && !waypointActive}
+                title={waypointActive ? 'Tracing waypoints…' : canStartWaypoint ? 'Start waypoint trace' : 'Select a node first'}
+                style={{
+                  width: 30, height: 30,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  background: waypointActive ? 'rgba(0, 217, 255, 0.25)' : 'rgba(0, 217, 255, 0.1)',
+                  border: `1px solid ${waypointActive ? '#00d9ff' : canStartWaypoint ? '#00d9ff80' : '#00d9ff40'}`,
+                  borderRadius: 10,
+                  color: 'inherit',
+                  fontSize: 15,
+                  cursor: canStartWaypoint || waypointActive ? 'pointer' : 'default',
+                  padding: 0,
+                  opacity: canStartWaypoint || waypointActive ? 1 : 0.5,
+                  transition: 'all 0.15s',
+                }}
+              >
+                🧭
+              </button>
+            )}
+          </div>
         )}
 
         {/* Clear path button - shows when path is loaded */}
@@ -1468,103 +1621,7 @@ export function SpellCeremony({
           </button>
         )}
 
-        {/* Connect button - start connection mode - DESKTOP ONLY */}
-        {!isMobile && onConnect && (
-          <button
-            onClick={onConnect}
-            disabled={!canConnect}
-            style={{
-              padding: '8px 14px',
-              borderRadius: 18,
-              background: canConnect ? 'rgba(255, 165, 0, 0.15)' : 'rgba(255, 165, 0, 0.05)',
-              border: `1px solid ${canConnect ? '#ffa500' : '#ffa50040'}`,
-              color: canConnect ? '#ffa500' : '#ffa50050',
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: canConnect ? 'pointer' : 'default',
-              fontFamily: '"JetBrains Mono", monospace',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'all 0.2s',
-              opacity: canConnect ? 1 : 0.6,
-            }}
-          >
-            <span style={{ fontSize: 14 }}>🔗</span> Connect
-          </button>
-        )}
-
-        {/* Waypoint / Close Portal - DESKTOP ONLY */}
-        {!isMobile && (canClosePortal && onClosePortal ? (
-          <button
-            onClick={onClosePortal}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 18,
-              background: 'rgba(0, 217, 255, 0.2)',
-              border: '1px solid #00d9ff',
-              color: '#00d9ff',
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: '"JetBrains Mono", monospace',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'all 0.2s',
-            }}
-          >
-            <span style={{ fontSize: 14 }}>✨</span> Close Portal
-          </button>
-        ) : onStartWaypoint && (
-          <button
-            onClick={onStartWaypoint}
-            disabled={!canStartWaypoint && !waypointActive}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 18,
-              background: waypointActive ? 'rgba(0, 217, 255, 0.25)' : 'rgba(0, 217, 255, 0.1)',
-              border: `1px solid ${waypointActive ? '#00d9ff' : canStartWaypoint ? '#00d9ff80' : '#00d9ff40'}`,
-              color: waypointActive ? '#00d9ff' : canStartWaypoint ? '#00d9ff99' : '#00d9ff50',
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: canStartWaypoint || waypointActive ? 'pointer' : 'default',
-              fontFamily: '"JetBrains Mono", monospace',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'all 0.2s',
-              opacity: canStartWaypoint || waypointActive ? 1 : 0.6,
-            }}
-          >
-            <span style={{ fontSize: 14 }}>🧭</span> {waypointActive ? 'Tracing...' : canStartWaypoint ? 'Waypoint' : 'Select node'}
-          </button>
-        ))}
-
-        {/* Mage [m] - Open mage spells menu - DESKTOP ONLY */}
-        {!isMobile && onOpenMageMenu && (
-          <button
-            onClick={onOpenMageMenu}
-            title="Open Mage spells [m to cycle]"
-            style={{
-              padding: '8px 12px',
-              borderRadius: 18,
-              background: 'linear-gradient(135deg, rgba(155, 89, 182, 0.15), rgba(155, 89, 182, 0.1))',
-              border: `1px solid ${MAGE_COLOR}60`,
-              color: MAGE_COLOR,
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: '"JetBrains Mono", monospace',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'all 0.2s',
-            }}
-          >
-            <span style={{ fontSize: 14 }}>✦</span> Mage
-          </button>
-        )}
+        {/* Connect + Waypoint moved into the 4-emoji clickbox above; labeled versions removed. */}
 
         {/* RIGHT: EVOKE/FORGE Button - Shows Forge when proof is ready */}
         {hasProof && !isCasting && onForge ? (
@@ -1589,7 +1646,7 @@ export function SpellCeremony({
               animation: 'pulse 2s ease-in-out infinite',
             }}
           >
-            <span style={{ fontSize: 14 }}>🔥</span> FORGE BLADE
+            <span style={{ fontSize: 14 }}>🔥</span> {forgeLabel}
           </button>
         ) : onToggleEvoke && (
           <button
@@ -1743,11 +1800,100 @@ export function SpellCeremony({
         )}
       </div>
 
-      {/* Main ceremony panel - click to emit emojis during evoke */}
+      {/* Main ceremony panel — wrapper that frames the canvas with cube casings on either side.
+          Cube strips live OUTSIDE the canvas, inside this `position: relative` wrapper, so they
+          don't overlap the orbital animation underneath. */}
+      <div style={{ order: 1, position: 'relative', display: 'inline-block' }}>
+        {!isMobile && !isCasting && (
+          <div style={{
+            position: 'absolute',
+            left: -32,
+            top: 0,
+            bottom: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 3,
+            padding: '12px 3px',
+            // No casing background or border — the cubes float as individual buttons,
+            // each with its own per-cube border/tint. Reads cleaner against the canvas curve.
+            zIndex: 5,
+          }}>
+            {Array.from({ length: 6 }).map((_, i) => {
+              const mark = equippedBlade?.constellationMarks?.[i];
+              const glyph = mark ? getFirstEmoji(mark.emoji) : '·';
+              const filled = !!mark;
+              return (
+                <button
+                  key={`blade-${i}`}
+                  onClick={() => onCycleBlade?.()}
+                  title={filled ? `${mark!.emoji} · click to cycle blade [s]` : 'Empty slot · cycle blade [s]'}
+                  style={{
+                    width: 24, height: 24,
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    background: filled ? `${SWORDSMAN_COLOR}22` : 'transparent',
+                    border: `1px solid ${filled ? SWORDSMAN_COLOR + '66' : 'rgba(255,255,255,0.10)'}`,
+                    borderRadius: 4, fontSize: 13, padding: 0,
+                    cursor: onCycleBlade ? 'pointer' : 'default',
+                    color: 'inherit',
+                    opacity: filled ? 1 : 0.5,
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {glyph}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {!isMobile && !isCasting && (
+          <div style={{
+            position: 'absolute',
+            right: -32,
+            top: 0,
+            bottom: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 3,
+            padding: '12px 3px',
+            // No casing background or border — cubes float as individual buttons.
+            zIndex: 5,
+          }}>
+            {Array.from({ length: 6 }).map((_, i) => {
+              const spell = mageSpells?.[i];
+              const glyph = spell ? getFirstEmoji(spell.emoji) : '·';
+              const filled = !!spell;
+              return (
+                <button
+                  key={`spell-${i}`}
+                  onClick={() => onCycleSpell?.()}
+                  title={filled ? `${spell!.emoji} ${spell!.label || ''} · click to cycle spell [m]` : 'Empty slot · cycle spell [m]'}
+                  style={{
+                    width: 24, height: 24,
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    background: filled ? `${MAGE_COLOR}22` : 'transparent',
+                    border: `1px solid ${filled ? MAGE_COLOR + '66' : 'rgba(255,255,255,0.10)'}`,
+                    borderRadius: 4, fontSize: 13, padding: 0,
+                    cursor: onCycleSpell ? 'pointer' : 'default',
+                    color: 'inherit',
+                    opacity: filled ? 1 : 0.5,
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {glyph}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+      {/* Canvas — the orb stage; cube casings flank it from outside */}
       <div
         onClick={handleCeremonyClick}
         style={{
-          order: 1, // Place before action buttons
           width: panelWidth,
           height: panelHeight,
           borderRadius: isCasting ? 20 : 30,
@@ -1765,6 +1911,7 @@ export function SpellCeremony({
         ref={canvasRef}
         style={{ display: 'block', width: panelWidth, height: panelHeight }}
       />
+
 
       {/* Waiting state UI - Evoke button and constellation preview */}
       {/* Hidden on compact mobile empty state (just show orbs) */}
@@ -1964,6 +2111,7 @@ export function SpellCeremony({
         }
       `}</style>
       </div>
+      </div>{/* /casing wrapper */}
 
       {/* INFO BAR - Bottom of ceremony panel showing blade/spell/mana */}
       {!isCasting && (
@@ -2074,6 +2222,7 @@ export function SpellCeremony({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

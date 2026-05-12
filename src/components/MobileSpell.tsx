@@ -353,6 +353,29 @@ function PickerScreen({
     <>
       <Header title="spellweb" subtitle="choose your ceremony" />
 
+      {/* Hub buttons — at the top of the picker on mobile so Mage · Sword · Web · Archive · Witness
+          are the primary entry surfaces. The Witness button opens the same file-picker the dashed
+          card below also exposes (kept for discoverability with its explanatory copy). */}
+      <div
+        style={{
+          padding: '12px 12px 8px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(5, 1fr)',
+          gap: 6,
+        }}
+      >
+        <HubButton glyph="🧙" label="Mage" accent={MAGE} onTap={onOpenMage} />
+        <HubButton glyph="⚔️" label="Sword" accent={SWORDSMAN} onTap={onOpenSword} />
+        <HubButton
+          glyph="◆"
+          label={gravityActive ? 'Web ·' : 'Web'}
+          accent={GOLD}
+          onTap={onOpenWeb}
+        />
+        <HubButton glyph="📚" label="Archive" accent={TEXT} onTap={onOpenArchive} />
+        <HubButton glyph="👁️" label="Witness" accent={GOLD} onTap={() => fileRef.current?.click()} />
+      </div>
+
       <div
         style={{
           padding: '8px 16px 16px',
@@ -370,28 +393,6 @@ function PickerScreen({
             onTogglePlay={() => togglePlay(preset)}
           />
         ))}
-
-        <button
-          onClick={() => fileRef.current?.click()}
-          style={{
-            marginTop: 4,
-            padding: '16px 18px',
-            background: 'transparent',
-            border: `1px dashed ${BORDER}`,
-            borderRadius: 14,
-            color: TEXT_DIM,
-            fontSize: 14,
-            textAlign: 'left',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            fontFamily: 'inherit',
-          }}
-        >
-          <span style={{ fontSize: 22 }}>📜</span>
-          <span>Witness another's constellation (.md)</span>
-        </button>
 
         <input
           ref={fileRef}
@@ -422,25 +423,6 @@ function PickerScreen({
       </div>
 
       <div style={{ flex: 1 }} />
-
-      <div
-        style={{
-          padding: '12px 16px 8px',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr 1fr',
-          gap: 8,
-        }}
-      >
-        <HubButton glyph="🧙" label="Mage" accent={MAGE} onTap={onOpenMage} />
-        <HubButton glyph="⚔️" label="Sword" accent={SWORDSMAN} onTap={onOpenSword} />
-        <HubButton
-          glyph="◆"
-          label={gravityActive ? 'Web ·' : 'Web'}
-          accent={GOLD}
-          onTap={onOpenWeb}
-        />
-        <HubButton glyph="📚" label="Archive" accent={TEXT} onTap={onOpenArchive} />
-      </div>
 
       <div
         style={{
@@ -1090,7 +1072,7 @@ function ForgeScreen({
 
   const downloadBlade = () => {
     const md = renderBladeMd(active, proof, name, glyph);
-    download(`${slug(name)}-blade.md`, md);
+    download(`${slug(name)}-artefact.md`, md);
   };
 
   return (
@@ -1194,7 +1176,7 @@ function ForgeScreen({
           onClick={downloadBlade}
           style={downloadBtnStyle(TIER_COLOR[proof.bladeTier])}
         >
-          ⬇ blade.md
+          ⬇ artefact.md
         </button>
         <button
           onClick={onForgeAnother}
@@ -1322,6 +1304,13 @@ const NODE_TYPE_ORDER: NodeType[] = [
   'term',
   'skill',
   'chronicle',
+  // Universe integration (2026-05-10)
+  'civic',
+  'geography',
+  'workshop',
+  'cast',
+  'vertex',
+  'gateway',
 ];
 
 const NODE_TYPE_LABEL: Record<NodeType, string> = {
@@ -1334,6 +1323,13 @@ const NODE_TYPE_LABEL: Record<NodeType, string> = {
   term: 'Terms',
   skill: 'Skills',
   chronicle: 'Chronicles',
+  workshop: 'Workshops',
+  cast: 'Cast',
+  vertex: 'Vertices',
+  geography: 'Geography',
+  civic: 'City',
+  gateway: 'Sister Cities',
+  artefact: 'Your Artefacts',
 };
 
 const NODE_TYPE_GLYPH: Record<NodeType, string> = {
@@ -1346,6 +1342,13 @@ const NODE_TYPE_GLYPH: Record<NodeType, string> = {
   term: '·',
   skill: '⚡',
   chronicle: '✎',
+  workshop: '🏛',
+  cast: '✦',
+  vertex: '·',
+  geography: '🐉',
+  civic: '🏰',
+  gateway: '↗',
+  artefact: '✦',
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -1392,6 +1395,14 @@ const NODE_COLOR_BY_TYPE: Record<NodeType, string> = {
   term: '#7a7a8a',
   skill: '#22d3ee',
   chronicle: '#f0c419',
+  // Universe integration (2026-05-10)
+  workshop:  '#d4af37',
+  cast:      '#c4a8ff',
+  vertex:    '#d4af37',
+  geography: '#7a3a1a',
+  civic:     '#e4c84f',
+  gateway:   '#86c5ff',
+  artefact:  '#ffd700',
 };
 
 function WebScreen({
@@ -1846,6 +1857,14 @@ function ArchiveScreen({ onBack }: { onBack: () => void }) {
       term: [],
       skill: [],
       chronicle: [],
+      // Universe integration (2026-05-10)
+      workshop: [],
+      cast: [],
+      vertex: [],
+      geography: [],
+      civic: [],
+      gateway: [],
+      artefact: [],
     };
     NODES.forEach(n => {
       if (out[n.type]) out[n.type].push(n);

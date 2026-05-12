@@ -1,18 +1,22 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import * as d3 from "d3";
-import type { SpellwebNode, SpellwebEdge, FilterState, TypeFilterState, SpellbookFilterState, SpellwebBladePayloadV1 } from '../types/graph';
-import { SPELLWEB_STORAGE_KEYS, encodeBladePayloadForUrl, DIMENSION_MAPPING, stratumToMoonPhase, getMoonPhaseInfo } from '../types/graph';
+import type { SpellwebNode, SpellwebEdge, FilterState, TypeFilterState, SpellbookFilterState } from '../types/graph';
+import { SPELLWEB_STORAGE_KEYS, stratumToMoonPhase, getMoonPhaseInfo } from '../types/graph';
 import { NODES } from '../data/nodes';
 import { EDGES } from '../data/edges';
 import { CONSTELLATION_PRESETS } from '../data/presets';
 import { THEME, getNodeVisual, getNodeRadius, getEdgeStyle } from '../data/theme';
 import { Header } from './Header';
 import { GraphFilters } from './GraphFilters';
+import { ArtefactPanel } from './ArtefactPanel';
 import { Legend } from './Legend';
 import { HoverTooltip } from './HoverTooltip';
 import { NodeInspector } from './NodeInspector';
 import { SpellCeremony, type SpellProof } from './SpellCeremony';
 import { hashCanonicalDeviations } from '../lib/forge';
+import { parseWorkshopProvenance, type WorkshopProvenance } from '../lib/workshop-provenance';
+import { getWorkshopForgeContext, buildArtefactFilename, getArtefactEmojiPalette } from '../lib/workshop-artefact';
+import WorkshopLatticeVisual from './lattice-visuals/WorkshopLatticeVisual';
 import { WanderingOrbs } from './WanderingOrbs';
 import { SwordsmanImport } from './SwordsmanImport';
 
@@ -104,6 +108,12 @@ export default function SpellWeb() {
     inscribedSpell?: string;
     reflection?: string;
     proof?: SpellProof; // Proof of presence from evoke ceremony
+    // Workshop provenance — set when the constellation is imported from a master
+    // workshop template or when its marks unambiguously identify a workshop. Carried
+    // through to the exported artefact.md frontmatter so the round-trip preserves identity.
+    workshopId?: string;         // e.g. "shop-tailor"
+    constellationId?: string;    // e.g. "tailor-cloak-weave-v1"
+    constellationVersion?: number;
   }
 
   // Forged blade structure
@@ -177,7 +187,21 @@ export default function SpellWeb() {
   const [swordsmanLink, setSwordsmanLink] = useState<SwordsmanLink | null>(() => getSwordsmanLink());
   const [showSwordsmanImport, setShowSwordsmanImport] = useState(false); // Swordsman identity import modal
   const [showMageMenu, setShowMageMenu] = useState(false); // Mage spell menu (M key)
+  const [showArtefactPanel, setShowArtefactPanel] = useState(false); // Artefact panel — City of Mages inventory + Witness Constellation
+  const [activeCeremonyAudio, setActiveCeremonyAudio] = useState<'sun' | 'moon' | 'aether' | null>(null);
+  const [witnessedShops, setWitnessedShops] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem('spellweb:witnessed-shops') || '{}'); }
+    catch { return {}; }
+  });
+  // Workshop provenance of the currently-active constellation. Set when a master
+  // template or forged blade is imported; threaded into any artefact.md exported
+  // afterwards so the round-trip preserves identity.
+  // (activeConstellationId — distinct from these — is the runtime SavedConstellation.id.)
+  const [activeWorkshopId, setActiveWorkshopId] = useState<string | null>(null);
+  const [activeConstellationTemplateId, setActiveConstellationTemplateId] = useState<string | null>(null);
+  const [activeConstellationVersion, setActiveConstellationVersion] = useState<number | null>(null);
   const [showCeremonyMenu, setShowCeremonyMenu] = useState(false); // Ceremony menu (Y key) - ☯️ Sun/Moon poems
+  const [expandedConstellationId, setExpandedConstellationId] = useState<string | null>(null); // Mage panel: which saved path is open
   const [isFocusMode, setIsFocusMode] = useState(false); // Focus mode (F key) - hides chrome, runs gravity orbit
   const [latestProof, setLatestProof] = useState<SpellProof | null>(null);
   const [forgePhase, setForgePhase] = useState<'ignite' | 'forge' | 'temper' | 'complete' | 'naming' | 'manifesting'>('ignite');
@@ -309,6 +333,14 @@ export default function SpellWeb() {
     term: true,
     skill: true,
     chronicle: true,
+    // Universe integration (2026-05-10)
+    workshop: true,
+    cast: true,
+    vertex: true,
+    geography: true,
+    civic: true,
+    gateway: true,
+    artefact: true,
   });
 
   const [spellbookFilters, setSpellbookFilters] = useState<SpellbookFilterState>({
@@ -465,17 +497,73 @@ export default function SpellWeb() {
     localStorage.setItem(SPELLWEB_STORAGE_KEYS.constellations, JSON.stringify(savedConstellations));
   }, [savedConstellations]);
 
+  // Deviation layer — Sovereign-owned artefact nodes derived from forgedBlades.
+  // Each forged or witnessed blade becomes its own node connected to the workshop
+  // (when one is identifiable). Persists across sessions via the same forgedBlades
+  // localStorage — no separate store needed.
+  const deviationNodes = useMemo<SpellwebNode[]>(() => {
+    return forgedBlades.map((b) => {
+      // Resolve the workshop by scanning the blade's constellation for a workshop
+      // node or shopAnchor. If none, the deviation floats unmoored (still rendered).
+      let resolvedShopId: string | null = null;
+      for (const m of b.constellationMarks) {
+        const node = NODES.find(n => n.id === m.nodeId);
+        if (node?.type === 'workshop') { resolvedShopId = node.id; break; }
+        if (node?.shopAnchor) { resolvedShopId = `shop-${node.shopAnchor.replace(/^\//, '')}`; break; }
+      }
+      const workshop = resolvedShopId ? NODES.find(n => n.id === resolvedShopId) : null;
+      // Spell-emoji secondary mark: pick a learned spell whose vertex matches the workshop's vertex.
+      let spellEmoji: string | undefined;
+      if (workshop?.vertex !== undefined) {
+        const matching = mageSpells.find(s => {
+          const spellNode = NODES.find(n => n.id === s.nodeId);
+          return spellNode?.vertex === workshop.vertex;
+        });
+        if (matching) spellEmoji = matching.emoji;
+      }
+      return {
+        id: `artefact-${b.id}`,
+        type: 'artefact',
+        label: b.name,
+        domain: workshop?.domain ?? 'shared',
+        layer: 'narrative',
+        desc: `${b.tier.charAt(0).toUpperCase() + b.tier.slice(1)} ${workshop?.artefactName ?? 'artefact'} · stratum ${b.stratum}/6 · forged ${new Date(b.forgedAt).toLocaleDateString()}${b.isWitness ? ' · witness blade' : ''}`,
+        emoji: b.emoji,
+        bladeTier: b.tier,
+        bladeStratum: b.stratum,
+        spellEmoji,
+        isWitness: b.isWitness,
+        forgedAt: b.forgedAt,
+        bladeId: b.id,
+        vertex: workshop?.vertex,
+        artefactClass: workshop?.artefactClass,
+        artefactArchetype: workshop?.artefactArchetype,
+        shopAnchor: workshop?.shopAnchor,
+      } as SpellwebNode;
+    });
+  }, [forgedBlades, mageSpells]);
+
+  const deviationEdges = useMemo<SpellwebEdge[]>(() => {
+    return deviationNodes
+      .filter(n => n.shopAnchor)
+      .map(n => {
+        const shopId = `shop-${n.shopAnchor!.replace(/^\//, '')}`;
+        return { source: n.id, target: shopId, type: 'inhabits' as const };
+      });
+  }, [deviationNodes]);
+
   const filteredNodes = useMemo(
-    () => NODES.filter((n) => {
-      // Layer filter
-      if (!filters[n.layer]) return false;
-      // Type filter
-      if (!typeFilters[n.type]) return false;
-      // Spellbook filter (only applies to acts with a spellbook property)
-      if (n.type === 'act' && n.spellbook && !spellbookFilters[n.spellbook]) return false;
-      return true;
-    }),
-    [filters, typeFilters, spellbookFilters]
+    () => {
+      const canonical = NODES.filter((n) => {
+        if (!filters[n.layer]) return false;
+        if (!typeFilters[n.type]) return false;
+        if (n.type === 'act' && n.spellbook && !spellbookFilters[n.spellbook]) return false;
+        return true;
+      });
+      const deviations = typeFilters.artefact ? deviationNodes : [];
+      return [...canonical, ...deviations];
+    },
+    [filters, typeFilters, spellbookFilters, deviationNodes]
   );
 
   const filteredNodeIds = useMemo(
@@ -485,15 +573,15 @@ export default function SpellWeb() {
 
   const filteredEdges = useMemo(
     () => {
-      // Combine static edges with user-created edges
-      const allEdges = [...EDGES, ...userEdges];
+      // Combine static edges with user-created edges + deviation edges (artefact → workshop)
+      const allEdges = [...EDGES, ...userEdges, ...deviationEdges];
       return allEdges.filter((e) => {
         const sourceId = typeof e.source === "string" ? e.source : e.source.id;
         const targetId = typeof e.target === "string" ? e.target : e.target.id;
         return filteredNodeIds.has(sourceId) && filteredNodeIds.has(targetId);
       });
     },
-    [filteredNodeIds, userEdges]
+    [filteredNodeIds, userEdges, deviationEdges]
   );
 
   const searchMatches = useMemo(() => {
@@ -794,16 +882,34 @@ export default function SpellWeb() {
       .attr("pointer-events", "none")
       .attr("filter", "url(#glow)");
 
+    // Spell-emoji corner badge — only present on `artefact` (deviation) nodes when
+    // the Sovereign has a learned spell whose vertex matches the workshop's vertex.
+    // Reads as: "this artefact lives where this spell does."
+    nodeEnter
+      .append("text")
+      .attr("class", "artefact-spell-mark")
+      .text((d) => (d.type === "artefact" && d.spellEmoji) ? d.spellEmoji : "")
+      .attr("dx", (d) => getNodeRadius(d) + 2)
+      .attr("dy", (d) => -(getNodeRadius(d) - 2))
+      .attr("text-anchor", "middle")
+      .attr("font-size", 11)
+      .attr("font-family", "sans-serif")
+      .attr("pointer-events", "none")
+      .attr("filter", "url(#glow)");
+
     const nodeMerge = nodeEnter.merge(node);
 
     // Update all node visuals
     nodeMerge.select("circle")
       .attr("opacity", (d) => {
+        // Fog of war: nodes tagged hiddenUntilWitness that haven't been unlocked render as silhouettes
+        const fogged = d.hiddenUntilWitness && !witnessedShops[d.hiddenUntilWitness];
         // Waypoint mode: grey out nodes not in path, light up path nodes
         if (waypoint.active) {
           return waypoint.path.includes(d.id) ? 1 : 0.2;
         }
         if (searchMatches.size > 0) return searchMatches.has(d.id) ? 1 : 0.15;
+        if (fogged) return 0.18;
         return 0.85;
       })
       .attr("filter", (d) => {
@@ -815,12 +921,18 @@ export default function SpellWeb() {
 
     nodeMerge.select(".node-label")
       .attr("opacity", (d) => {
+        const fogged = d.hiddenUntilWitness && !witnessedShops[d.hiddenUntilWitness];
         if (waypoint.active) {
           return waypoint.path.includes(d.id) ? 1 : 0.15;
         }
         if (searchMatches.size > 0) return searchMatches.has(d.id) ? 1 : 0.1;
+        if (fogged) return 0.12;
         return 0.7;
       });
+
+    // Refresh the spell-emoji corner mark on re-render (handles forge-then-learn-spell ordering).
+    nodeMerge.select(".artefact-spell-mark")
+      .text((d) => (d.type === "artefact" && d.spellEmoji) ? d.spellEmoji : "");
 
     // Attach drag behavior
     nodeMerge.call(
@@ -975,6 +1087,21 @@ export default function SpellWeb() {
       }
     });
   }, [filters, typeFilters, spellbookFilters, searchMatches, connectionMode, waypoint, handleWaypointAddNode, mageSpells]);
+
+  // Fog-of-war refresh: when witnessedShops changes, re-apply opacity to existing nodes/labels
+  // without rebuilding the whole d3 simulation (which would jolt node positions and mess up
+  // constellation marks). This selects already-rendered nodes by their data and updates only
+  // their fill/stroke opacity.
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const svg = d3.select(svgRef.current);
+    svg.selectAll<SVGGElement, SimulationNode>("g.node")
+      .each(function(d) {
+        const fogged = d.hiddenUntilWitness && !witnessedShops[d.hiddenUntilWitness];
+        d3.select(this).select("circle").transition().duration(400).attr("opacity", fogged ? 0.18 : 0.85);
+        d3.select(this).select(".node-label").transition().duration(400).attr("opacity", fogged ? 0.12 : 0.7);
+      });
+  }, [witnessedShops]);
 
   // Sync userEdges to the D3 graph when they change
   useEffect(() => {
@@ -1538,6 +1665,9 @@ export default function SpellWeb() {
       connections,
       inscribedSpell: inscribedSpell.trim() || undefined,
       reflection: constellationReflection.trim() || undefined,
+      workshopId: activeWorkshopId ?? undefined,
+      constellationId: activeConstellationTemplateId ?? undefined,
+      constellationVersion: activeConstellationVersion ?? undefined,
     };
 
     setSavedConstellations(prev => [...prev, newConstellation]);
@@ -1551,7 +1681,7 @@ export default function SpellWeb() {
     setShowClosePortalModal(false);
     setWaypoint({ active: false, path: [] });
     setCastingSpells(true);
-  }, [waypoint.path, pathMarks, constellationName, inscribedSpell, constellationReflection, savedConstellations.length]);
+  }, [waypoint.path, pathMarks, constellationName, inscribedSpell, constellationReflection, savedConstellations.length, activeWorkshopId, activeConstellationTemplateId, activeConstellationVersion]);
 
   const handleCancelClosePortal = useCallback(() => {
     setShowClosePortalModal(false);
@@ -1582,7 +1712,346 @@ export default function SpellWeb() {
     });
   }, [activeConstellationId]);
 
+  // Resolve workshop id from a saved constellation. Prefers explicit provenance,
+  // falls back to scanning the marks for a workshop-typed node or a shopAnchor.
+  const inferWorkshopId = useCallback((saved: SavedConstellation): string | null => {
+    if (saved.workshopId) return saved.workshopId;
+    for (const m of saved.marks) {
+      const node = NODES.find(n => n.id === m.nodeId);
+      if (node?.type === 'workshop') return node.id;
+    }
+    for (const m of saved.marks) {
+      const node = NODES.find(n => n.id === m.nodeId);
+      if (node?.shopAnchor) {
+        const route = node.shopAnchor.replace(/^\//, '');
+        return `shop-${route}`;
+      }
+    }
+    return null;
+  }, []);
+
+  // Build the YAML frontmatter block that pairs the forged blade with its master
+  // template. Mirrors the field set in agentprivacy_master/docs/tomes/workshops/*.md
+  // so a re-imported blade tags the same workshop, resident mage, and anchor act.
+  const buildBladeFrontmatter = useCallback((saved: SavedConstellation, forgedBlade: ForgedBlade | null): string => {
+    const lines: string[] = ['---'];
+    const push = (k: string, v: string | number | undefined | null) => {
+      if (v === undefined || v === null || v === '') return;
+      const s = String(v);
+      const needsQuote = /[:#&*!|>'"%@`{}[\],]|^\s|\s$/.test(s);
+      lines.push(`${k}: ${needsQuote ? `"${s.replace(/"/g, '\\"')}"` : s}`);
+    };
+
+    const shopId = inferWorkshopId(saved);
+    const workshop = shopId ? NODES.find(n => n.id === shopId) : null;
+    const resident = workshop?.shopAnchor
+      ? NODES.find(n => n.type === 'cast' && n.shopAnchor === workshop.shopAnchor && (n.tier === 'summoned' || n.tier === 'archetype'))
+      : null;
+    const anchorAct = workshop?.shopAnchor
+      ? NODES
+          .filter(n => n.type === 'act' && n.shopAnchor === workshop.shopAnchor && n.tome === 'V')
+          .sort((a, b) => (a.act ?? 99) - (b.act ?? 99))[0]
+      : null;
+
+    push('constellation_id', saved.constellationId ?? (workshop ? `${workshop.shopAnchor?.replace(/^\//, '')}-${saved.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-v${saved.constellationVersion ?? 1}` : null));
+    push('constellation_name', saved.name);
+    push('constellation_version', saved.constellationVersion ?? 1);
+    push('workshop', workshop?.id);
+    push('workshop_route', workshop?.shopAnchor);
+    push('workshop_gem', workshop?.gem);
+    push('workshop_gem_color', workshop?.gemColor);
+    push('resident_mage', resident?.id);
+    push('mage_sigil', resident?.sigil);
+    push('mage_vertex', resident?.vertex !== undefined ? `V${resident.vertex}` : undefined);
+    push('mage_tier', typeof resident?.tier === 'string' ? resident.tier : undefined);
+    push('anchor_act', anchorAct?.id);
+    push('ceremony_shape', 'run-e-craft');
+    push('artefact_name', workshop?.artefactName);
+    push('artefact_root_name', workshop?.artefactRootName);
+    push('artefact_class', workshop?.artefactClass);
+    push('artefact_archetype', workshop?.artefactArchetype);
+    push('artefact_wielder', workshop?.artefactWielder);
+    push('domain', workshop?.domain);
+    if (forgedBlade) {
+      push('blade_tier', forgedBlade.tier);
+      push('blade_stratum', forgedBlade.stratum);
+      push('blade_is_witness', forgedBlade.isWitness ? 'true' : undefined);
+      push('blade_signature', forgedBlade.proof.signature);
+      push('blade_hash', forgedBlade.proof.bladeHash);
+    }
+    push('date', new Date().toISOString().slice(0, 10));
+    push('license', 'CC BY-SA 4.0');
+    push('signature', '(⚔️⊥⿻⊥🧙)😊');
+    lines.push('---', '');
+    return lines.join('\n');
+  }, [inferWorkshopId]);
+
   // Export constellation to markdown (only enabled when blade is forged)
+  // Standalone deviations export — just the userEdges (with their canonical flags)
+  // as a small `.md`. The Sovereign's annotations on top of the canonical graph,
+  // shareable on their own when no forged artefact is around to carry them.
+  const handleExportDeviations = useCallback(() => {
+    if (userEdges.length === 0) return;
+    const exportedAt = new Date().toISOString();
+    const fm = [
+      '---',
+      'kind: deviations',
+      'version: 1',
+      `deviation_count: ${userEdges.length}`,
+      `canonical_count: ${canonicalEdgeKeys.size}`,
+      `exported_at: ${exportedAt}`,
+      'license: CC BY-SA 4.0',
+      'signature: "(⚔️⊥⿻⊥🧙)😊"',
+      '---',
+      '',
+    ].join('\n');
+    const rows = userEdges.map(edge => {
+      const sId = typeof edge.source === 'string' ? edge.source : edge.source.id;
+      const tId = typeof edge.target === 'string' ? edge.target : edge.target.id;
+      const sNode = NODES.find(n => n.id === sId);
+      const tNode = NODES.find(n => n.id === tId);
+      const isCanonical = canonicalEdgeKeys.has(edgeKey(edge));
+      return `| ${isCanonical ? '🔗' : '·'} | ${sNode?.emoji ?? '◆'} ${sNode?.label ?? sId} | ${edge.type} | ${tNode?.emoji ?? '◆'} ${tNode?.label ?? tId} |`;
+    });
+    const md = [
+      fm,
+      '# 🔗 Deviations from Root Spellweb',
+      `*${userEdges.length} user-drawn edge${userEdges.length === 1 ? '' : 's'} · ${canonicalEdgeKeys.size} marked canonical · exported ${new Date(exportedAt).toLocaleString()}*`,
+      '',
+      '| | Source | Type | Target |',
+      '|---|--------|------|--------|',
+      ...rows,
+      '',
+      '---',
+      '*The canonical graph is what every Sovereign starts with. The deviations are what you\'ve added.*',
+      '*(⚔️⊥⿻⊥🧙)😊*',
+    ].join('\n');
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `deviations-${exportedAt.slice(0, 10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [userEdges, canonicalEdgeKeys, edgeKey]);
+
+  // Mage bundle — Sovereign's Mage identity + 8-spell loadout + saved
+  // constellations summary as one .md. Lives in the Mage panel top-right
+  // alongside the × close. Mirrors the Swordsman bundle for the Mage side.
+  const handleExportMage = useCallback(() => {
+    const mageIdentity = getMageIdentity();
+    const backup = hasMageIdentity() ? exportMageKeyBackup() : null;
+    const exportedAt = new Date().toISOString();
+    const fm = [
+      '---',
+      'kind: mage-bundle',
+      'version: 1',
+      mageIdentity ? `mage_id: ${mageIdentity.mageId}` : null,
+      `spell_count: ${mageSpells.length}`,
+      `saved_constellation_count: ${savedConstellations.length}`,
+      `exported_at: ${exportedAt}`,
+      'license: CC BY-SA 4.0',
+      'signature: "(⚔️⊥⿻⊥🧙)😊"',
+      '---',
+      '',
+    ].filter(Boolean).join('\n');
+
+    const lines: string[] = [
+      fm,
+      `# 🧙 Mage Bundle — ${mageIdentity?.mageId?.slice(0, 16) ?? 'Sovereign'}`,
+      `*Exported ${new Date(exportedAt).toLocaleString()}*`,
+      '',
+      '## Identity',
+    ];
+    if (mageIdentity) {
+      lines.push(`- **Mage ID:** \`${mageIdentity.mageId}\``);
+    } else {
+      lines.push('- **Mage ID:** *not yet initialised*');
+    }
+
+    if (backup) {
+      lines.push(
+        '',
+        '## Mage Identity Backup',
+        '*Keep this safe — re-importing restores the Mage signing key.*',
+        '',
+        '```json',
+        JSON.stringify(backup, null, 2),
+        '```',
+      );
+    }
+
+    lines.push('', `## Spells (${mageSpells.length}/8)`, '');
+    if (mageSpells.length === 0) {
+      lines.push('*No spells equipped yet.*');
+    } else {
+      lines.push('| Slot | Emoji | Spell | Proverb |', '|------|-------|-------|---------|');
+      mageSpells.forEach((s, i) => {
+        lines.push(`| ${i + 1} | ${s.emoji ?? '✦'} | ${s.label} | ${s.proverb ? `"${s.proverb}"` : '-'} |`);
+      });
+    }
+
+    lines.push('', `## Saved Constellations (${savedConstellations.length})`, '');
+    if (savedConstellations.length === 0) {
+      lines.push('*No saved constellations yet.*');
+    } else {
+      savedConstellations.forEach((c, i) => {
+        lines.push(
+          `### ${i + 1}. ${c.name}`,
+          `- **Created:** ${new Date(c.createdAt).toLocaleString()}`,
+          `- **Nodes:** ${c.marks.length}`,
+          c.proof ? `- **Charge:** ${c.proof.chargeLevel.toUpperCase()} · ${c.proof.lapCount} laps` : '- *no proof — not yet evoked*',
+          c.inscribedSpell ? `- **Inscribed spell:** \`${c.inscribedSpell}\`` : '',
+          '',
+          `> ${c.marks.map(m => m.emoji).join(' → ')}`,
+          '',
+        );
+      });
+    }
+
+    lines.push('---', '*The Mage projects what the Swordsman protects.*', '*(⚔️⊥⿻⊥🧙)😊*');
+
+    const md = lines.join('\n');
+    const filename = `mage-${(mageIdentity?.mageId?.slice(5, 13) ?? 'sovereign').replace(/[^a-z0-9]/gi, '_').toLowerCase()}-bundle.md`;
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [mageSpells, savedConstellations]);
+
+  // Bundle export — every forged blade + every artefact + the Swordsman profile
+  // in a single .md the Sovereign can carry / back up / share. Sits in the
+  // Swords panel alongside Send-to-Soulbis since it's the Swordsman's full kit.
+  const handleExportSwordsman = useCallback(() => {
+    const mageIdentity = getMageIdentity();
+    const exportedAt = new Date().toISOString();
+    const fm: string[] = ['---'];
+    const push = (k: string, v: string | number | undefined | null) => {
+      if (v === undefined || v === null || v === '') return;
+      const s = String(v);
+      const needsQuote = /[:#&*!|>'"%@`{}[\],]|^\s|\s$/.test(s);
+      fm.push(`${k}: ${needsQuote ? `"${s.replace(/"/g, '\\"')}"` : s}`);
+    };
+    push('kind', 'swordsman-bundle');
+    push('version', 1);
+    push('swordsman_id', swordsmanLink?.participantId);
+    push('swordsman_name', swordsmanLink?.displayName);
+    push('mage_id', mageIdentity?.mageId);
+    push('blade_count', forgedBlades.filter(b => !b.isWitness).length);
+    push('witness_count', forgedBlades.filter(b => b.isWitness).length);
+    push('artefact_total', forgedBlades.length);
+    push('workshops_unlocked', Object.keys(witnessedShops).length);
+    push('exported_at', exportedAt);
+    push('license', 'CC BY-SA 4.0');
+    push('signature', '(⚔️⊥⿻⊥🧙)😊');
+    fm.push('---', '');
+
+    const lines: string[] = [
+      fm.join('\n'),
+      `# ⚔️ Swordsman Bundle — ${swordsmanLink?.displayName ?? mageIdentity?.mageId?.slice(0, 16) ?? 'Sovereign'}`,
+      `*Exported ${new Date(exportedAt).toLocaleString()}*`,
+      '',
+      '## Identity',
+    ];
+
+    if (swordsmanLink) {
+      lines.push(
+        `- **Swordsman:** ${swordsmanLink.displayName}`,
+        `- **Participant ID:** \`${swordsmanLink.participantId}\``,
+      );
+      if (swordsmanLink.constellationPath) {
+        lines.push(`- **Constellation path:** ${swordsmanLink.constellationPath}`);
+      }
+    } else {
+      lines.push('- **Swordsman:** *unlinked* (no Soulbis agentprivacy import yet)');
+    }
+    if (mageIdentity) {
+      lines.push(`- **Mage ID:** \`${mageIdentity.mageId}\``);
+    }
+    lines.push('');
+
+    lines.push(`## Forged Inventory (${forgedBlades.length})`);
+    lines.push('');
+
+    forgedBlades.forEach((b, idx) => {
+      lines.push(
+        `### ${idx + 1}. ${b.emoji || '✦'} ${b.name}`,
+        `- **Tier:** ${b.tier.charAt(0).toUpperCase() + b.tier.slice(1)}`,
+        `- **Stratum:** ${b.stratum}/6 ${stratumToMoonPhase(b.stratum)} (${getMoonPhaseInfo(b.stratum).name})`,
+        `- **Forged:** ${new Date(b.forgedAt).toLocaleString()}`,
+        `- **Nodes traversed:** ${b.constellationNodes}`,
+      );
+      if (b.isWitness) {
+        lines.push(`- **Witness blade** — original hash \`${b.witnessOf}\``);
+        if (b.witnessedFrom) lines.push(`- **Witnessed from:** ${b.witnessedFrom}`);
+      }
+      const d = b.proof.bladeDimensions;
+      lines.push(
+        '',
+        '#### Dimensions',
+        '| Dimension | Status |',
+        '|-----------|--------|',
+        `| 🛡️ Protection | ${d.protection ? '✅' : '⬜'} |`,
+        `| 🤝 Delegation | ${d.delegation ? '✅' : '⬜'} |`,
+        `| 📜 Memory | ${d.memory ? '✅' : '⬜'} |`,
+        `| 🔗 Connection | ${d.connection ? '✅' : '⬜'} |`,
+        `| ⚡ Computation | ${d.computation ? '✅' : '⬜'} |`,
+        `| 💎 Value | ${d.value ? '✅' : '⬜'} |`,
+        '',
+        '#### Proof',
+        '```',
+        `Signature:    ${b.proof.signature}`,
+        `Constellation: ${b.proof.constellationHash}`,
+        `Blade hash:   ${b.proof.bladeHash}`,
+        `Hex:          ${b.proof.bladeHex}`,
+        `Chain:        #${b.proof.chainLength}${b.proof.previousBladeHash ? ` (prev ${b.proof.previousBladeHash.slice(0, 8)}…)` : ' (inception)'}`,
+        '```',
+        '',
+        '#### Path',
+        ...b.constellationMarks.map((m, i) => `${i + 1}. ${m.emoji} **${m.nodeLabel}**`),
+        '',
+      );
+    });
+
+    if (userEdges.length > 0) {
+      lines.push(
+        `## Deviations from Root Spellweb (${userEdges.length})`,
+        `*${canonicalEdgeKeys.size} marked canonical · ${userEdges.length - canonicalEdgeKeys.size} provisional*`,
+        '',
+        '| | Source | Type | Target |',
+        '|---|--------|------|--------|',
+        ...userEdges.map(edge => {
+          const sId = typeof edge.source === 'string' ? edge.source : edge.source.id;
+          const tId = typeof edge.target === 'string' ? edge.target : edge.target.id;
+          const sNode = NODES.find(n => n.id === sId);
+          const tNode = NODES.find(n => n.id === tId);
+          const isCanonical = canonicalEdgeKeys.has(edgeKey(edge));
+          return `| ${isCanonical ? '🔗' : '·'} | ${sNode?.emoji ?? '◆'} ${sNode?.label ?? sId} | ${edge.type} | ${tNode?.emoji ?? '◆'} ${tNode?.label ?? tId} |`;
+        }),
+        '',
+      );
+    }
+
+    lines.push(
+      '---',
+      '*Forged in the 64-Tetrahedra Lattice · the City of Mages*',
+      '*(⚔️⊥⿻⊥🧙)😊*',
+    );
+
+    const md = lines.join('\n');
+    const filename = `swordsman-${(swordsmanLink?.displayName ?? mageIdentity?.mageId?.slice(0, 8) ?? 'sovereign').replace(/[^a-z0-9]/gi, '_').toLowerCase()}-bundle.md`;
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [forgedBlades, swordsmanLink, witnessedShops, userEdges, canonicalEdgeKeys, edgeKey]);
+
   const handleExportConstellation = useCallback((saved: SavedConstellation) => {
     // Get the forged blade for this constellation
     const forgedBlade = saved.proof
@@ -1603,7 +2072,9 @@ export default function SpellWeb() {
       "",
     ] : [];
 
+    const frontmatter = buildBladeFrontmatter(saved, forgedBlade ?? null);
     const md = [
+      frontmatter,
       `# ${forgedBlade ? `${forgedBlade.emoji} ${forgedBlade.name}` : saved.name}`,
       `*Created: ${new Date(saved.createdAt).toLocaleString()}*`,
       "",
@@ -1712,10 +2183,12 @@ export default function SpellWeb() {
       `*(⚔️⊥⿻⊥🧙)🙂*`,
     ].join("\n");
 
-    // Download as file - use blade name if forged
-    const filename = forgedBlade
-      ? `${forgedBlade.name.replace(/[^a-z0-9]/gi, "_").toLowerCase()}-blade.md`
-      : `${saved.name.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.md`;
+    // Download as file — workshop-aware filename so a Cloak isn't called "blade".
+    const filename = buildArtefactFilename({
+      name: forgedBlade?.name ?? saved.name,
+      workshopId: saved.workshopId ?? inferWorkshopId(saved),
+      constellationVersion: saved.constellationVersion,
+    });
     const blob = new Blob([md], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -1728,7 +2201,7 @@ export default function SpellWeb() {
     if (saved.inscribedSpell) {
       window.navigator.clipboard.writeText(saved.inscribedSpell).catch(() => {});
     }
-  }, [forgedBlades, mageSpells, userEdges, canonicalEdgeKeys, edgeKey]);
+  }, [forgedBlades, mageSpells, userEdges, canonicalEdgeKeys, edgeKey, buildBladeFrontmatter]);
 
   // Load a saved constellation
   const handleLoadConstellation = useCallback((saved: SavedConstellation) => {
@@ -1749,6 +2222,13 @@ export default function SpellWeb() {
     reader.onload = (evt) => {
       const content = evt.target?.result as string;
       if (!content) return;
+
+      // Workshop provenance — set once at import so any subsequent re-export
+      // carries the same anchor through.
+      const prov = parseWorkshopProvenance(content, file.name);
+      if (prov.workshopId) setActiveWorkshopId(prov.workshopId);
+      if (prov.constellationId) setActiveConstellationTemplateId(prov.constellationId);
+      if (prov.constellationVersion !== null) setActiveConstellationVersion(prov.constellationVersion);
 
       // Parse blade info
       const bladeMatch = content.match(/\*\*(.+?) (.+?)\*\*/);
@@ -1906,46 +2386,62 @@ export default function SpellWeb() {
       {showMageMenu && (
         <div
           style={{
-            position: "fixed",
+            position: "absolute",
             top: 0,
-            left: 0,
             right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.85)",
+            width: 480,
+            height: "100%",
+            background: THEME.panelBg,
+            borderLeft: `1px solid #9b59b655`,
+            zIndex: 110,
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 300,
+            flexDirection: "column",
+            overflow: "hidden",
+            boxShadow: "-12px 0 32px rgba(0,0,0,0.4)",
           }}
-          onClick={() => setShowMageMenu(false)}
         >
           <div
             style={{
-              background: THEME.panelBg,
-              border: `1px solid #9b59b6`,
-              borderRadius: 12,
               padding: 24,
-              maxWidth: 550,
-              width: "90%",
-              maxHeight: "80vh",
               overflow: "auto",
+              flex: 1,
             }}
-            onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h3 style={{ margin: 0, color: "#9b59b6", fontSize: 20, fontFamily: "'Cormorant Garamond', serif" }}>
                 🧙 Mage Spellbook
               </h3>
-              <button
-                onClick={() => setShowMageMenu(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: THEME.textDim,
-                  cursor: 'pointer',
-                  fontSize: 18,
-                }}
-              >×</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  onClick={handleExportMage}
+                  title={`Bundle Mage identity${hasMageIdentity() ? ' (with keys)' : ''} + ${mageSpells.length} spells + ${savedConstellations.length} saved constellations into one .md`}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: 6,
+                    background: "linear-gradient(135deg, #9b59b630, #7b68ee20)",
+                    border: "1px solid #9b59b6",
+                    color: "#9b59b6",
+                    fontSize: 11,
+                    cursor: "pointer",
+                    fontFamily: "'JetBrains Mono', monospace",
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <span>📥</span> Mage.md
+                </button>
+                <button
+                  onClick={() => setShowMageMenu(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: THEME.textDim,
+                    cursor: 'pointer',
+                    fontSize: 18,
+                  }}
+                >×</button>
+              </div>
             </div>
 
             {/* Mana Bar Section */}
@@ -2249,86 +2745,7 @@ export default function SpellWeb() {
               </button>
             </div>
 
-            {/* Ceremony Paths Section */}
-            <div style={{
-              padding: 16,
-              background: '#1a1a2e',
-              borderRadius: 8,
-              border: '1px solid #333',
-              marginBottom: 16,
-            }}>
-              <div style={{
-                fontSize: 11,
-                color: '#888',
-                fontFamily: "'JetBrains Mono', monospace",
-                letterSpacing: 1,
-                marginBottom: 12,
-              }}>
-                ☀️⊥🌑 CEREMONY PATHS
-              </div>
-              <div style={{ display: 'flex', gap: 12 }}>
-                {/* Emissary Path (Sun) */}
-                <div style={{
-                  flex: 1,
-                  padding: 12,
-                  background: 'linear-gradient(135deg, #ffd70010, #ff8c0010)',
-                  borderRadius: 8,
-                  border: '1px solid #ffd70040',
-                }}>
-                  <div style={{ fontSize: 10, color: '#ffd700', marginBottom: 8, fontFamily: "'JetBrains Mono', monospace" }}>
-                    ☀️ EMISSARY PATH
-                  </div>
-                  <div style={{ fontSize: 9, color: '#888', marginBottom: 8 }}>
-                    The Emissary Who Forgot the Master
-                  </div>
-                  <audio
-                    controls
-                    src="https://voice.agentprivacy.ai/The_Emissary_Who_Forgot_the_Master.mp3"
-                    style={{ width: '100%', height: 32 }}
-                  />
-                </div>
-                {/* Tide Path (Aether) */}
-                <div style={{
-                  flex: 1,
-                  padding: 12,
-                  background: 'linear-gradient(135deg, #00d4ff15, #20b2aa08)',
-                  borderRadius: 8,
-                  border: '1px solid #00d4ff40',
-                }}>
-                  <div style={{ fontSize: 10, color: '#00d4ff', marginBottom: 8, fontFamily: "'JetBrains Mono', monospace" }}>
-                    ⿻ TIDE PATH
-                  </div>
-                  <div style={{ fontSize: 9, color: '#888', marginBottom: 8 }}>
-                    The Tide Proves Orbit Keeps Selene
-                  </div>
-                  <audio
-                    controls
-                    src="https://voice.agentprivacy.ai/The_Tide_Proves_Orbit_Keeps_Selene.mp3"
-                    style={{ width: '100%', height: 32 }}
-                  />
-                </div>
-                {/* Amnesia Path (Moon) */}
-                <div style={{
-                  flex: 1,
-                  padding: 12,
-                  background: 'linear-gradient(135deg, #c0c0c010, #87ceeb10)',
-                  borderRadius: 8,
-                  border: '1px solid #c0c0c040',
-                }}>
-                  <div style={{ fontSize: 10, color: '#c0c0c0', marginBottom: 8, fontFamily: "'JetBrains Mono', monospace" }}>
-                    🌑 AMNESIA PATH
-                  </div>
-                  <div style={{ fontSize: 9, color: '#888', marginBottom: 8 }}>
-                    The Amnesia Protocol
-                  </div>
-                  <audio
-                    controls
-                    src="https://voice.agentprivacy.ai/The_Amnesia_Protocol.mp3"
-                    style={{ width: '100%', height: 32 }}
-                  />
-                </div>
-              </div>
-            </div>
+            {/* Ceremony Paths moved → bottom-right ☯️ Ceremon[y] popout (single entry point) */}
 
             {/* Saved Constellations Section */}
             <div style={{
@@ -2352,110 +2769,12 @@ export default function SpellWeb() {
                 }}>
                   🌌 SAVED CONSTELLATIONS ({savedConstellations.length})
                 </span>
-                {/* Export Mage Identity button */}
-                {hasMageIdentity() && (
-                  <button
-                    onClick={() => {
-                      const backup = exportMageKeyBackup();
-                      if (!backup) {
-                        alert('No mage identity found to export');
-                        return;
-                      }
-                      // Download as JSON file
-                      const json = JSON.stringify(backup, null, 2);
-                      const blob = new Blob([json], { type: 'application/json' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `mage-${backup.mageId.slice(5, 13)}-backup.json`;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                    }}
-                    style={{
-                      padding: "4px 10px",
-                      borderRadius: 4,
-                      background: "linear-gradient(135deg, #9b59b620, #7b68ee15)",
-                      border: "1px solid #9b59b6",
-                      color: "#9b59b6",
-                      fontSize: 10,
-                      cursor: "pointer",
-                      fontFamily: "'JetBrains Mono', monospace",
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                    }}
-                    title="Export mage identity keys (backup)"
-                  >
-                    <span>🔑</span> Export Keys
-                  </button>
-                )}
+                {/* Export Keys moved → Mage panel top-right · Mage.md bundle */}
               </div>
-              {/* Celestial Ceremony Presets */}
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 11, color: THEME.textDim, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span>☀️⊥🌙</span> Ceremony Presets
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {CONSTELLATION_PRESETS.map((preset) => (
-                    <button
-                      key={preset.id}
-                      onClick={() => {
-                        // Lock constellation during active evocation
-                        if (incantationActive) return;
-
-                        // Load preset constellation - find node labels from NODES
-                        const marks = preset.marks.map(m => {
-                          const node = NODES.find(n => n.id === m.nodeId);
-                          return {
-                            nodeId: m.nodeId,
-                            nodeLabel: node?.label || m.nodeId,
-                            emoji: m.emoji || '✦',
-                            note: m.note || '',
-                            emojiSpell: m.emojiSpell,
-                          };
-                        });
-                        setConstellation(marks);
-                        setConstellationConnections(preset.connections.map(c => ({
-                          sourceId: c.sourceId,
-                          targetId: c.targetId,
-                          note: c.note || '',
-                        })));
-                        setInscribedSpell(preset.inscribedSpell);
-                        setConstellationReflection(preset.reflection || '');
-                        setConstellationName(preset.name);
-                        setCastingSpells(true);
-                        setIsShineMode(true);
-                        setShowMageMenu(false);
-                      }}
-                      style={{
-                        padding: '6px 10px',
-                        borderRadius: 6,
-                        background: preset.ceremony === 'sun'
-                          ? 'linear-gradient(135deg, #ffd70015, #ff8c0010)'
-                          : preset.ceremony === 'moon'
-                            ? 'linear-gradient(135deg, #7b68ee15, #9b59b610)'
-                            : 'linear-gradient(135deg, #00d4ff15, #20b2aa10)', // celestial / Aether — cyan-teal
-                        border: `1px solid ${preset.ceremony === 'sun' ? '#ffd700' : preset.ceremony === 'moon' ? '#7b68ee' : '#00d4ff'}`,
-                        color: preset.ceremony === 'sun' ? '#ffd700' : preset.ceremony === 'moon' ? '#7b68ee' : '#00d4ff',
-                        fontSize: 10,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        fontFamily: "'JetBrains Mono', monospace",
-                      }}
-                      title={`${preset.description}\n\n"${preset.proverb}"\n\n${preset.nodeCount} nodes • ${preset.tier} tier`}
-                    >
-                      <span style={{ fontSize: 14 }}>{preset.emoji}</span>
-                      <span>{preset.name}</span>
-                      <span style={{ opacity: 0.6, fontSize: 9 }}>({preset.nodeCount})</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
+              {/* Ceremony Presets removed — constellations enter from agentprivacy workshops
+                  via Items panel → Witness Constellation. The Mage panel keeps only the
+                  Sovereign's saved paths. The bottom-right ☯️ Ceremon[y] popout still
+                  offers the three sun/aether/moon presets as ambient ceremony loaders. */}
               <div style={{ fontSize: 11, color: THEME.textDim, marginBottom: 8 }}>
                 Saved Paths
               </div>
@@ -2464,109 +2783,139 @@ export default function SpellWeb() {
                   No saved constellations yet. Trace a path through the stars to create one.
                 </div>
               ) : (
-                <div style={{ maxHeight: 200, overflowY: 'auto' }}>
-                  {savedConstellations.map((saved) => (
-                    <div
-                      key={saved.id}
-                      style={{
-                        padding: 12,
-                        marginBottom: 8,
-                        background: activeConstellationId === saved.id ? "#7b68ee15" : "#ffffff06",
-                        borderRadius: 6,
-                        border: `1px solid ${activeConstellationId === saved.id ? '#7b68ee' : '#333'}`,
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                        <div>
-                          <div style={{ fontSize: 12, color: THEME.text, fontWeight: 500 }}>
-                            {saved.name}
+                <div style={{ maxHeight: 460, overflowY: 'auto' }}>
+                  {savedConstellations.map((saved) => {
+                    const isExpanded = expandedConstellationId === saved.id;
+                    const isActive = activeConstellationId === saved.id;
+                    const hasForgedBlade = saved.proof
+                      ? forgedBlades.some(b => b.proof.signature === saved.proof?.signature)
+                      : false;
+                    return (
+                      <div
+                        key={saved.id}
+                        style={{
+                          marginBottom: 6,
+                          background: isActive ? "#7b68ee12" : isExpanded ? "#ffffff08" : "#ffffff04",
+                          borderRadius: 6,
+                          border: `1px solid ${isActive ? '#7b68ee' : isExpanded ? '#444' : '#2a2a2a'}`,
+                          transition: 'background 0.15s, border 0.15s',
+                        }}
+                      >
+                        {/* Collapsed row — click to expand */}
+                        <button
+                          onClick={() => setExpandedConstellationId(prev => prev === saved.id ? null : saved.id)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'inherit',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: 10,
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                            <span style={{ color: THEME.textDim, fontSize: 10, width: 12, textAlign: 'center' }}>
+                              {isExpanded ? '▾' : '▸'}
+                            </span>
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ fontSize: 13, color: THEME.text, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {saved.name}
+                              </div>
+                              <div style={{ fontSize: 9, color: THEME.textDim }}>
+                                {new Date(saved.createdAt).toLocaleDateString()} · {saved.marks.length} nodes
+                                {hasForgedBlade && ' · 🔥 forged'}
+                              </div>
+                            </div>
                           </div>
-                          <div style={{ fontSize: 9, color: THEME.textDim }}>
-                            {new Date(saved.createdAt).toLocaleDateString()} • {saved.marks.length} nodes
+                          {saved.proof && (
+                            <span style={{
+                              fontSize: 9,
+                              padding: '2px 6px',
+                              borderRadius: 3,
+                              background: saved.proof.chargeLevel === 'dragon' ? '#ffd70020' : saved.proof.chargeLevel === 'inferno' ? '#ff6b6b20' : '#9b59b620',
+                              color: saved.proof.chargeLevel === 'dragon' ? '#ffd700' : saved.proof.chargeLevel === 'inferno' ? '#ff6b6b' : '#9b59b6',
+                              fontFamily: "'JetBrains Mono', monospace",
+                              flexShrink: 0,
+                            }}>
+                              {saved.proof.chargeLevel.toUpperCase()}
+                            </span>
+                          )}
+                        </button>
+
+                        {/* Expanded body */}
+                        {isExpanded && (
+                          <div style={{ padding: '0 12px 12px 34px' }}>
+                            {saved.inscribedSpell && (
+                              <div style={{ fontSize: 14, marginBottom: 8, letterSpacing: 2, color: "#ffd700" }}>
+                                {saved.inscribedSpell}
+                              </div>
+                            )}
+                            <div style={{ fontSize: 11, marginBottom: 10, color: THEME.textDim, lineHeight: 1.4, wordBreak: 'break-word' }}>
+                              {saved.marks.map(m => m.emoji).join(" → ")}
+                            </div>
+                            <div style={{ display: "flex", gap: 6, flexWrap: 'wrap' }}>
+                              <button
+                                onClick={() => handleLoadConstellation(saved)}
+                                style={{
+                                  padding: "5px 12px",
+                                  borderRadius: 4,
+                                  background: "#7b68ee20",
+                                  border: `1px solid #7b68ee`,
+                                  color: "#7b68ee",
+                                  fontSize: 11,
+                                  cursor: "pointer",
+                                }}
+                              >
+                                ✨ View
+                              </button>
+                              <button
+                                onClick={() => {
+                                  handleLoadConstellation(saved);
+                                  setInscribedSpell(saved.inscribedSpell || "");
+                                  setConstellationReflection(saved.reflection || "");
+                                  setShowMageMenu(false);
+                                  setShowClosePortalModal(true);
+                                }}
+                                style={{
+                                  padding: "5px 12px",
+                                  borderRadius: 4,
+                                  background: "#ffd70020",
+                                  border: `1px solid #ffd700`,
+                                  color: "#ffd700",
+                                  fontSize: 11,
+                                  cursor: "pointer",
+                                }}
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button
+                                onClick={() => hasForgedBlade && handleExportConstellation(saved)}
+                                disabled={!hasForgedBlade}
+                                title={hasForgedBlade ? "Export constellation with blade" : "Forge a blade to enable export"}
+                                style={{
+                                  padding: "5px 12px",
+                                  borderRadius: 4,
+                                  background: hasForgedBlade ? "#50c87815" : "transparent",
+                                  border: `1px solid ${hasForgedBlade ? "#50c878" : '#444'}`,
+                                  color: hasForgedBlade ? "#50c878" : '#555',
+                                  fontSize: 11,
+                                  cursor: hasForgedBlade ? "pointer" : "not-allowed",
+                                  opacity: hasForgedBlade ? 1 : 0.5,
+                                }}
+                              >
+                                📄 Export
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                        {saved.proof && (
-                          <span style={{
-                            fontSize: 9,
-                            padding: '2px 6px',
-                            borderRadius: 3,
-                            background: saved.proof.chargeLevel === 'dragon' ? '#ffd70020' : saved.proof.chargeLevel === 'inferno' ? '#ff6b6b20' : '#9b59b620',
-                            color: saved.proof.chargeLevel === 'dragon' ? '#ffd700' : saved.proof.chargeLevel === 'inferno' ? '#ff6b6b' : '#9b59b6',
-                          }}>
-                            {saved.proof.chargeLevel.toUpperCase()}
-                          </span>
                         )}
                       </div>
-                      {saved.inscribedSpell && (
-                        <div style={{ fontSize: 14, marginBottom: 6, letterSpacing: 2, color: "#ffd700" }}>
-                          {saved.inscribedSpell}
-                        </div>
-                      )}
-                      <div style={{ fontSize: 11, marginBottom: 6, color: THEME.textDim }}>
-                        {saved.marks.map(m => m.emoji).join(" → ")}
-                      </div>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <button
-                          onClick={() => handleLoadConstellation(saved)}
-                          style={{
-                            padding: "4px 10px",
-                            borderRadius: 4,
-                            background: "#7b68ee20",
-                            border: `1px solid #7b68ee`,
-                            color: "#7b68ee",
-                            fontSize: 10,
-                            cursor: "pointer",
-                          }}
-                        >
-                          ✨ View
-                        </button>
-                        <button
-                          onClick={() => {
-                            handleLoadConstellation(saved);
-                            setInscribedSpell(saved.inscribedSpell || "");
-                            setConstellationReflection(saved.reflection || "");
-                            setShowMageMenu(false);
-                            setShowClosePortalModal(true);
-                          }}
-                          style={{
-                            padding: "4px 10px",
-                            borderRadius: 4,
-                            background: "#ffd70020",
-                            border: `1px solid #ffd700`,
-                            color: "#ffd700",
-                            fontSize: 10,
-                            cursor: "pointer",
-                          }}
-                        >
-                          ✏️ Edit
-                        </button>
-                        {(() => {
-                          const hasForgedBlade = saved.proof
-                            ? forgedBlades.some(b => b.proof.signature === saved.proof?.signature)
-                            : false;
-                          return (
-                            <button
-                              onClick={() => hasForgedBlade && handleExportConstellation(saved)}
-                              disabled={!hasForgedBlade}
-                              title={hasForgedBlade ? "Export constellation with blade" : "Forge a blade to enable export"}
-                              style={{
-                                padding: "4px 10px",
-                                borderRadius: 4,
-                                background: hasForgedBlade ? "#50c87815" : "transparent",
-                                border: `1px solid ${hasForgedBlade ? "#50c878" : '#444'}`,
-                                color: hasForgedBlade ? "#50c878" : '#555',
-                                fontSize: 10,
-                                cursor: hasForgedBlade ? "pointer" : "not-allowed",
-                                opacity: hasForgedBlade ? 1 : 0.5,
-                              }}
-                            >
-                              📄 Export
-                            </button>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -2603,13 +2952,77 @@ export default function SpellWeb() {
               setMobileFiltersOpen(false);
             }
           }}
-          onWitnessBlade={handleWitnessBladeFile}
           hasLatestProof={!!latestProof}
           constellationCount={savedConstellations.length}
           forgedBladesCount={forgedBlades.filter(b => !b.isWitness).length}
           witnessBladesCount={forgedBlades.filter(b => b.isWitness).length}
         />
       )}
+
+      {/* Artefact Panel — the City of Mages inventory; Witness Constellation lives inside */}
+      <ArtefactPanel
+        isOpen={showArtefactPanel}
+        onClose={() => setShowArtefactPanel(false)}
+        onWitnessBlade={async (file) => {
+          // Shared parser — see parseWorkshopProvenance helper at module scope.
+          // handleWitnessBladeFile also runs this on import to keep activeWorkshopId in sync;
+          // we duplicate it here only so the witness-shop unlock fires before the blade record
+          // is built (timing matters for the fog-of-war useEffect ordering).
+          let prov: WorkshopProvenance = { workshopId: null, constellationId: null, constellationVersion: null };
+          try {
+            const text = await file.text();
+            prov = parseWorkshopProvenance(text, file.name);
+          } catch { /* fall through to filename heuristic via parser */ }
+          if (!prov.workshopId) {
+            // Parser already tried filename if text load failed; do it again defensively.
+            prov = parseWorkshopProvenance('', file.name);
+          }
+
+          handleWitnessBladeFile(file);
+
+          if (prov.workshopId) {
+            const shopId = prov.workshopId;
+            setWitnessedShops(prev => {
+              const next = { ...prev, [shopId]: new Date().toISOString() };
+              try { localStorage.setItem('spellweb:witnessed-shops', JSON.stringify(next)); } catch {}
+              return next;
+            });
+          }
+        }}
+        witnessedShops={witnessedShops}
+        forgedBlades={forgedBlades}
+        onExportArtefact={(blade) => {
+          // Build a synthetic SavedConstellation around this forged blade so the
+          // standard export path can write the .md (frontmatter + body).
+          const synthetic: SavedConstellation = {
+            id: `export-${blade.id}`,
+            name: blade.name,
+            createdAt: blade.forgedAt,
+            marks: blade.constellationMarks,
+            connections: blade.constellationConnections,
+            proof: blade.proof,
+            workshopId: activeWorkshopId ?? undefined,
+            constellationId: activeConstellationTemplateId ?? undefined,
+            constellationVersion: activeConstellationVersion ?? undefined,
+          };
+          handleExportConstellation(synthetic);
+        }}
+        onExportCatalogue={(node) => {
+          // Catalogue export — metadata card for a workshop's canonical artefact
+          // (Cloak / Memo Stone / Blade / Frame / etc.) or a tome. No proof,
+          // since the Sovereign hasn't forged this one yet — just the reference card.
+          const workshopId = node.type === 'workshop' ? node.id : null;
+          const synthetic: SavedConstellation = {
+            id: `catalogue-${node.id}-${Date.now()}`,
+            name: node.artefactName ?? node.label,
+            createdAt: new Date().toISOString(),
+            marks: [],
+            connections: [],
+            workshopId: workshopId ?? undefined,
+          };
+          handleExportConstellation(synthetic);
+        }}
+      />
 
       {/* Mobile Menu Toggle Button */}
       <button
@@ -2636,8 +3049,9 @@ export default function SpellWeb() {
 
       {!isFocusMode && <Legend hasSelectedNode={!!selectedNode} />}
 
-      {/* Show HoverTooltip only when constellation exists (otherwise shows in ceremony panel) */}
-      {hoveredNode && !selectedNode && constellation.length > 0 && <HoverTooltip node={hoveredNode} />}
+      {/* HoverTooltip removed — the bottom-right node-detail card / ceremony hover slot already
+          shows hovered-node info. The mid-screen floating tooltip was redundant. */}
+      {false && hoveredNode && !selectedNode && constellation.length > 0 && <HoverTooltip node={hoveredNode!} />}
 
       {/* Connection Mode Cancel - only when connecting */}
       {connectionMode.active && (
@@ -2839,11 +3253,7 @@ export default function SpellWeb() {
           playing across F toggles. We hide visually via display:none rather
           than unmount, since unmount kills active audio. */}
       {(() => {
-        const mageColor = '#9b59b6';
-        const bladesColor = '#e74c3c';
-        const allBlades = forgedBlades;
-
-        // Panel dimensions - BIGGER
+        // Panel dimensions used by the remaining Ceremony popout
         const slotSize = 44;
         const slotGap = 4;
         const panelPadding = 8;
@@ -2860,97 +3270,6 @@ export default function SpellWeb() {
               gap: 12,
             }}
           >
-            {/* MAGE INVENTORY */}
-            <div
-              style={{
-                borderRadius: 10,
-                background: "rgba(10, 10, 30, 0.95)",
-                border: `1px solid ${mageColor}50`,
-                backdropFilter: "blur(12px)",
-                overflow: 'hidden',
-              }}
-            >
-              {/* Mage Header - emoji + hotkey */}
-              <button
-                onClick={() => setShowMageMenu(true)}
-                style={{
-                  width: '100%',
-                  padding: '6px 8px',
-                  background: `linear-gradient(135deg, ${mageColor}25, ${mageColor}10)`,
-                  border: 'none',
-                  borderBottom: `1px solid ${mageColor}30`,
-                  color: mageColor,
-                  fontSize: 10,
-                  fontFamily: "'JetBrains Mono', monospace",
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  transition: 'all 0.2s',
-                }}
-              >
-                <span style={{ fontSize: 14 }}>🧙</span>
-                <span style={{ opacity: 0.7 }}>[M]</span>
-              </button>
-
-              {/* Spell Grid */}
-              <div style={{ padding: panelPadding }}>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: `repeat(2, ${slotSize}px)`,
-                  gap: slotGap,
-                }}>
-                  {[0, 1, 2, 3, 4, 5, 6, 7].map((slotIndex) => {
-                    const spell = mageSpells[slotIndex];
-                    const isSelected = selectedSpellIndex === slotIndex;
-                    return (
-                      <div
-                        key={slotIndex}
-                        draggable={!!spell}
-                        onDragStart={(e) => {
-                          if (spell) e.dataTransfer.setData('mageSpellIndex', String(slotIndex));
-                        }}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          const fromIndex = parseInt(e.dataTransfer.getData('mageSpellIndex'));
-                          if (!isNaN(fromIndex) && fromIndex !== slotIndex) {
-                            const newSpells = [...mageSpells];
-                            const temp = newSpells[fromIndex];
-                            newSpells[fromIndex] = newSpells[slotIndex];
-                            newSpells[slotIndex] = temp;
-                            setMageSpells(newSpells.filter(Boolean));
-                          }
-                        }}
-                        title={spell ? `${spell.label}\n${spell.proverb || ''}` : `Empty slot`}
-                        onClick={() => spell && setSelectedSpellIndex(isSelected ? null : slotIndex)}
-                        style={{
-                          width: slotSize,
-                          height: slotSize,
-                          borderRadius: 6,
-                          background: spell
-                            ? isSelected
-                              ? `linear-gradient(135deg, ${mageColor}80, ${mageColor}50)`
-                              : `linear-gradient(135deg, ${mageColor}30, ${mageColor}15)`
-                            : 'rgba(60, 60, 80, 0.2)',
-                          border: isSelected ? `2px solid ${mageColor}` : `1px solid ${spell ? mageColor + '50' : '#444'}`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: spell ? 20 : 10,
-                          cursor: spell ? 'pointer' : 'default',
-                          transition: 'all 0.2s ease',
-                          boxShadow: isSelected ? `0 0 12px ${mageColor}60` : 'none',
-                        }}
-                      >
-                        {spell?.emoji || ''}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
 
             {/* ☯️ CEREMONY PANEL - Between Mage and Blades */}
             <div
@@ -2960,7 +3279,7 @@ export default function SpellWeb() {
                 border: `1px solid #88888850`,
                 backdropFilter: "blur(12px)",
                 overflow: 'hidden',
-                width: showCeremonyMenu ? 200 : 'auto',
+                width: showCeremonyMenu && activeCeremonyAudio ? 280 : 'auto',
                 transition: 'width 0.2s',
               }}
             >
@@ -2987,495 +3306,142 @@ export default function SpellWeb() {
                 }}
               >
                 <span style={{ fontSize: 14 }}>☯️</span>
-                <span style={{ opacity: 0.7 }}>[Y]</span>
+                <span style={{ opacity: 0.85, letterSpacing: 0.5 }}>Ceremon<span style={{ opacity: 0.7 }}>[y]</span></span>
               </button>
 
-              {/* Ceremony Content - Collapsed: just preset buttons, Expanded: with audio */}
-              <div style={{ padding: panelPadding }}>
-                {!showCeremonyMenu ? (
-                  /* Collapsed: 2x1 grid with Sun and Moon preset buttons */
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: slotGap,
-                    alignItems: 'center',
-                  }}>
-                    {/* Sun Preset */}
-                    <button
-                      onClick={() => {
-                        // Lock constellation during active evocation
-                        if (incantationActive) return;
-
-                        const preset = CONSTELLATION_PRESETS[0];
-                        const marks = preset.marks.map(m => {
-                          const node = NODES.find(n => n.id === m.nodeId);
-                          return {
-                            nodeId: m.nodeId,
-                            nodeLabel: node?.label || m.nodeId,
-                            emoji: m.emoji || '✦',
-                            note: m.note || '',
-                            emojiSpell: m.emojiSpell,
-                          };
-                        });
-                        setConstellation(marks);
-                        setConstellationConnections(preset.connections.map(c => ({
-                          sourceId: c.sourceId,
-                          targetId: c.targetId,
-                          note: c.note || '',
-                        })));
-                        setInscribedSpell(preset.inscribedSpell);
-                        setConstellationReflection(preset.reflection || '');
-                        setConstellationName(preset.name);
-                        setCastingSpells(true);
-                        setIsShineMode(true);
-                      }}
-                      title={`☀️ The Emissary Path\n"Just as the Sun, promises space, between."\n13 nodes • Dragon tier`}
-                      style={{
-                        width: slotSize,
-                        height: slotSize,
-                        borderRadius: 6,
-                        background: 'linear-gradient(135deg, #ffd70025, #ff8c0015)',
-                        border: '1px solid #ffd70050',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 20,
-                        transition: 'all 0.15s',
-                      }}
-                    >
-                      ☀️
-                    </button>
-                    {/* Aether Preset — the medium Sun and Moon travel through */}
-                    <button
-                      onClick={() => {
-                        // Lock constellation during active evocation
-                        if (incantationActive) return;
-
-                        const preset = CONSTELLATION_PRESETS[2];
-                        const marks = preset.marks.map(m => {
-                          const node = NODES.find(n => n.id === m.nodeId);
-                          return {
-                            nodeId: m.nodeId,
-                            nodeLabel: node?.label || m.nodeId,
-                            emoji: m.emoji || '✦',
-                            note: m.note || '',
-                            emojiSpell: m.emojiSpell,
-                          };
-                        });
-                        setConstellation(marks);
-                        setConstellationConnections(preset.connections.map(c => ({
-                          sourceId: c.sourceId,
-                          targetId: c.targetId,
-                          note: c.note || '',
-                        })));
-                        setInscribedSpell(preset.inscribedSpell);
-                        setConstellationReflection(preset.reflection || '');
-                        setConstellationName(preset.name);
-                        setCastingSpells(true);
-                        setIsShineMode(true);
-                      }}
-                      title={`⿻ Aether — The Drake-Rising Path\n"Aether is the medium between disclosure and reflection."\n14 nodes • Dragon tier\n\nAether and the Gap are the same substance named twice: the medium Sun and Moon travel through, the Quintessence of the architecture.`}
-                      style={{
-                        width: slotSize,
-                        height: slotSize,
-                        borderRadius: 6,
-                        background: 'linear-gradient(135deg, #00d4ff25, #20b2aa15)',
-                        border: '1px solid #00d4ff50',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 20,
-                        transition: 'all 0.15s',
-                      }}
-                    >
-                      ⿻
-                    </button>
-                    {/* Moon Preset */}
-                    <button
-                      onClick={() => {
-                        // Lock constellation during active evocation
-                        if (incantationActive) return;
-
-                        const preset = CONSTELLATION_PRESETS[1];
-                        const marks = preset.marks.map(m => {
-                          const node = NODES.find(n => n.id === m.nodeId);
-                          return {
-                            nodeId: m.nodeId,
-                            nodeLabel: node?.label || m.nodeId,
-                            emoji: m.emoji || '✦',
-                            note: m.note || '',
-                            emojiSpell: m.emojiSpell,
-                          };
-                        });
-                        setConstellation(marks);
-                        setConstellationConnections(preset.connections.map(c => ({
-                          sourceId: c.sourceId,
-                          targetId: c.targetId,
-                          note: c.note || '',
-                        })));
-                        setInscribedSpell(preset.inscribedSpell);
-                        setConstellationReflection(preset.reflection || '');
-                        setConstellationName(preset.name);
-                        setCastingSpells(true);
-                        setIsShineMode(true);
-                      }}
-                      title={`🌙 The Amnesia Path\n"The amnesia is the protocol. The wound is the trust."\n17 nodes • Dragon tier\n\nv10.2: Selene's Proof (cosmological ZK) and V(π,t) Dragon Equation now anchor the path between separation and the master inscription.`}
-                      style={{
-                        width: slotSize,
-                        height: slotSize,
-                        borderRadius: 6,
-                        background: 'linear-gradient(135deg, #7b68ee25, #9b59b615)',
-                        border: '1px solid #7b68ee50',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 20,
-                        transition: 'all 0.15s',
-                      }}
-                    >
-                      🌙
-                    </button>
-                  </div>
-                ) : (
-                  /* Expanded: Full ceremony menu with audio players */
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {/* Sun Ceremony */}
-                    <div style={{
-                      padding: 8,
-                      borderRadius: 8,
-                      background: 'linear-gradient(135deg, #ffd70015, #ff8c0008)',
-                      border: '1px solid #ffd70040',
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <span style={{ fontSize: 18 }}>☀️</span>
-                        <div>
-                          <div style={{ fontSize: 11, color: '#ffd700', fontWeight: 500 }}>Sun Ceremony</div>
-                          <div style={{ fontSize: 9, color: '#888' }}>13 nodes • The Emissary Path</div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          // Lock constellation during active evocation
-                          if (incantationActive) return;
-
-                          const preset = CONSTELLATION_PRESETS[0];
-                          const marks = preset.marks.map(m => {
-                            const node = NODES.find(n => n.id === m.nodeId);
-                            return {
-                              nodeId: m.nodeId,
-                              nodeLabel: node?.label || m.nodeId,
-                              emoji: m.emoji || '✦',
-                              note: m.note || '',
-                              emojiSpell: m.emojiSpell,
-                            };
-                          });
-                          setConstellation(marks);
-                          setConstellationConnections(preset.connections.map(c => ({
-                            sourceId: c.sourceId,
-                            targetId: c.targetId,
-                            note: c.note || '',
-                          })));
-                          setInscribedSpell(preset.inscribedSpell);
-                          setConstellationReflection(preset.reflection || '');
-                          setConstellationName(preset.name);
-                          setCastingSpells(true);
-                          setIsShineMode(true);
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '6px 10px',
-                          marginBottom: 8,
-                          borderRadius: 6,
-                          background: '#ffd70020',
-                          border: '1px solid #ffd700',
-                          color: '#ffd700',
-                          fontSize: 10,
-                          cursor: 'pointer',
-                          fontFamily: "'JetBrains Mono', monospace",
-                        }}
-                      >
-                        Load Constellation
-                      </button>
-                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>🎙️ The Emissary Who Forgot the Master</div>
-                      <audio
-                        controls
-                        src="https://voice.agentprivacy.ai/The_Emissary_Who_Forgot_the_Master.mp3"
-                        style={{ width: '100%', height: 32 }}
-                      />
-                    </div>
-
-                    {/* Aether Ceremony — the medium between disclosure and reflection */}
-                    <div style={{
-                      padding: 8,
-                      borderRadius: 8,
-                      background: 'linear-gradient(135deg, #00d4ff15, #20b2aa08)',
-                      border: '1px solid #00d4ff40',
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <span style={{ fontSize: 18 }}>⿻</span>
-                        <div>
-                          <div style={{ fontSize: 11, color: '#00d4ff', fontWeight: 500 }}>Aether Ceremony</div>
-                          <div style={{ fontSize: 9, color: '#888' }}>14 nodes • The Drake-Rising Path</div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          // Lock constellation during active evocation
-                          if (incantationActive) return;
-
-                          const preset = CONSTELLATION_PRESETS[2];
-                          const marks = preset.marks.map(m => {
-                            const node = NODES.find(n => n.id === m.nodeId);
-                            return {
-                              nodeId: m.nodeId,
-                              nodeLabel: node?.label || m.nodeId,
-                              emoji: m.emoji || '✦',
-                              note: m.note || '',
-                              emojiSpell: m.emojiSpell,
-                            };
-                          });
-                          setConstellation(marks);
-                          setConstellationConnections(preset.connections.map(c => ({
-                            sourceId: c.sourceId,
-                            targetId: c.targetId,
-                            note: c.note || '',
-                          })));
-                          setInscribedSpell(preset.inscribedSpell);
-                          setConstellationReflection(preset.reflection || '');
-                          setConstellationName(preset.name);
-                          setCastingSpells(true);
-                          setIsShineMode(true);
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '6px 10px',
-                          marginBottom: 8,
-                          borderRadius: 6,
-                          background: '#00d4ff20',
-                          border: '1px solid #00d4ff',
-                          color: '#00d4ff',
-                          fontSize: 10,
-                          cursor: 'pointer',
-                          fontFamily: "'JetBrains Mono', monospace",
-                        }}
-                      >
-                        Load Constellation
-                      </button>
-                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>🎙️ The Tide Proves Orbit Keeps Selene</div>
-                      <audio
-                        controls
-                        src="https://voice.agentprivacy.ai/The_Tide_Proves_Orbit_Keeps_Selene.mp3"
-                        style={{ width: '100%', height: 32 }}
-                      />
-                      <div style={{ fontSize: 9, color: '#888', marginTop: 8, marginBottom: 4 }}>🐲→🐉 Drake becomes Dragon · V(π,t) as Quintessence</div>
-                    </div>
-
-                    {/* Moon Ceremony */}
-                    <div style={{
-                      padding: 8,
-                      borderRadius: 8,
-                      background: 'linear-gradient(135deg, #7b68ee15, #9b59b608)',
-                      border: '1px solid #7b68ee40',
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <span style={{ fontSize: 18 }}>🌙</span>
-                        <div>
-                          <div style={{ fontSize: 11, color: '#7b68ee', fontWeight: 500 }}>Moon Ceremony</div>
-                          <div style={{ fontSize: 9, color: '#888' }}>17 nodes • The Amnesia Path</div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          // Lock constellation during active evocation
-                          if (incantationActive) return;
-
-                          const preset = CONSTELLATION_PRESETS[1];
-                          const marks = preset.marks.map(m => {
-                            const node = NODES.find(n => n.id === m.nodeId);
-                            return {
-                              nodeId: m.nodeId,
-                              nodeLabel: node?.label || m.nodeId,
-                              emoji: m.emoji || '✦',
-                              note: m.note || '',
-                              emojiSpell: m.emojiSpell,
-                            };
-                          });
-                          setConstellation(marks);
-                          setConstellationConnections(preset.connections.map(c => ({
-                            sourceId: c.sourceId,
-                            targetId: c.targetId,
-                            note: c.note || '',
-                          })));
-                          setInscribedSpell(preset.inscribedSpell);
-                          setConstellationReflection(preset.reflection || '');
-                          setConstellationName(preset.name);
-                          setCastingSpells(true);
-                          setIsShineMode(true);
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '6px 10px',
-                          marginBottom: 8,
-                          borderRadius: 6,
-                          background: '#7b68ee20',
-                          border: '1px solid #7b68ee',
-                          color: '#7b68ee',
-                          fontSize: 10,
-                          cursor: 'pointer',
-                          fontFamily: "'JetBrains Mono', monospace",
-                        }}
-                      >
-                        Load Constellation
-                      </button>
-                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>🎙️ The Amnesia Protocol</div>
-                      <audio
-                        controls
-                        src="https://voice.agentprivacy.ai/The_Amnesia_Protocol.mp3"
-                        style={{ width: '100%', height: 32 }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* BLADES INVENTORY */}
-            <div
-              style={{
-                borderRadius: 10,
-                background: "rgba(10, 10, 20, 0.95)",
-                border: `1px solid ${bladesColor}50`,
-                backdropFilter: "blur(12px)",
-                overflow: 'hidden',
-              }}
-            >
-              {/* Blade Header - emoji + hotkey */}
-              <button
-                onClick={() => setShowBladesModal(true)}
-                style={{
-                  width: '100%',
-                  padding: '6px 8px',
-                  background: `linear-gradient(135deg, ${bladesColor}25, ${bladesColor}10)`,
-                  border: 'none',
-                  borderBottom: `1px solid ${bladesColor}30`,
-                  color: bladesColor,
-                  fontSize: 10,
-                  fontFamily: "'JetBrains Mono', monospace",
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  transition: 'all 0.2s',
-                }}
-              >
-                <span style={{ fontSize: 14 }}>⚔️</span>
-                <span style={{ opacity: 0.7 }}>[S]</span>
-              </button>
-
-              {/* Blade Grid */}
+              {/* Ceremony Content — collapsed shows only the ☯️ header; pressing Y or
+                  clicking the header reveals the 3 chips. Selecting a chip loads its
+                  preset constellation + opens its audio. Clicking the same chip again
+                  deselects. */}
+              {showCeremonyMenu && (
               <div style={{ padding: panelPadding }}>
                 <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: `repeat(2, ${slotSize}px)`,
+                  display: 'flex',
+                  flexDirection: 'row',
                   gap: slotGap,
+                  alignItems: 'center',
+                  marginBottom: activeCeremonyAudio ? 8 : 0,
                 }}>
-                  {[0, 1, 2, 3, 4, 5, 6, 7].map((slotIndex) => {
-                    const blade = allBlades[slotIndex];
-                    const isEquipped = blade && equippedBlade?.id === blade.id;
-                    const isActive = blade && activeBlade?.id === blade.id;
-                    const tierColor = blade?.tier === 'dragon' ? '#ffd700' :
-                      blade?.tier === 'heavy' ? '#c0c0c0' : '#87ceeb';
-
+                  {([
+                    { key: 'sun',    emoji: '☀️', presetIdx: 0, color: '#ffd700', tint: 'rgba(255,215,0,0.25)' },
+                    { key: 'aether', emoji: '⿻', presetIdx: 2, color: '#00d4ff', tint: 'rgba(0,212,255,0.25)' },
+                    { key: 'moon',   emoji: '🌙', presetIdx: 1, color: '#7b68ee', tint: 'rgba(123,104,238,0.25)' },
+                  ] as const).map(opt => {
+                    const isActive = activeCeremonyAudio === opt.key;
                     return (
-                      <div
-                        key={slotIndex}
-                        draggable={!!blade}
-                        onDragStart={(e) => {
-                          if (blade) e.dataTransfer.setData('bladeIndex', String(slotIndex));
-                        }}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          const fromIndex = parseInt(e.dataTransfer.getData('bladeIndex'));
-                          if (!isNaN(fromIndex) && fromIndex !== slotIndex) {
-                            const newBlades = [...forgedBlades];
-                            const temp = newBlades[fromIndex];
-                            newBlades[fromIndex] = newBlades[slotIndex];
-                            newBlades[slotIndex] = temp;
-                            const filtered = newBlades.filter(Boolean);
-                            setForgedBlades(filtered);
-                            localStorage.setItem(SPELLWEB_STORAGE_KEYS.forgedBlades, JSON.stringify(filtered));
-                          }
-                        }}
-                        title={blade ? `${blade.name} ${stratumToMoonPhase(blade.stratum)} (${blade.tier})${isEquipped ? ' ⚔️ EQUIPPED' : ''}` : `Empty slot`}
+                      <button
+                        key={opt.key}
                         onClick={() => {
-                          if (blade) {
-                            if (isActive) {
-                              setActiveBlade(null);
-                              setBladeTraceActive(false);
-                              setIsShineMode(true); // Restore shine when stopping trace
-                            } else {
-                              setActiveBlade(blade);
-                              setBladeTraceActive(true);
-                              setOrbsAtHome(false);
-                              if (blade.constellationMarks) {
-                                setConstellation(blade.constellationMarks);
-                                setConstellationConnections(blade.constellationConnections || []);
-                              }
-                            }
+                          if (incantationActive) return;
+                          // Toggle: clicking the active chip deselects.
+                          if (isActive) {
+                            setActiveCeremonyAudio(null);
+                            return;
                           }
+                          // Load the preset and mark it active.
+                          const preset = CONSTELLATION_PRESETS[opt.presetIdx];
+                          const marks = preset.marks.map(m => {
+                            const node = NODES.find(n => n.id === m.nodeId);
+                            return {
+                              nodeId: m.nodeId,
+                              nodeLabel: node?.label || m.nodeId,
+                              emoji: m.emoji || '✦',
+                              note: m.note || '',
+                              emojiSpell: m.emojiSpell,
+                            };
+                          });
+                          setConstellation(marks);
+                          setConstellationConnections(preset.connections.map(c => ({
+                            sourceId: c.sourceId,
+                            targetId: c.targetId,
+                            note: c.note || '',
+                          })));
+                          setInscribedSpell(preset.inscribedSpell);
+                          setConstellationReflection(preset.reflection || '');
+                          setConstellationName(preset.name);
+                          setCastingSpells(true);
+                          setIsShineMode(true);
+                          setActiveCeremonyAudio(opt.key);
+                          // Auto-expand so the detail+audio panel is visible.
+                          if (!showCeremonyMenu) setShowCeremonyMenu(true);
                         }}
-                        onDoubleClick={() => blade && setEquippedBlade(isEquipped ? null : blade)}
+                        title={`${opt.emoji} ${opt.key} ceremony`}
                         style={{
                           width: slotSize,
                           height: slotSize,
-                          borderRadius: 6,
-                          background: blade
-                            ? isEquipped
-                              ? 'linear-gradient(135deg, #e74c3c50, #e74c3c30)'
-                              : isActive
-                                ? `linear-gradient(135deg, ${tierColor}40, ${tierColor}20)`
-                                : `linear-gradient(135deg, ${tierColor}25, ${tierColor}10)`
-                            : 'rgba(60, 60, 80, 0.2)',
-                          border: isEquipped ? '2px solid #e74c3c' : `1px solid ${blade ? tierColor + '50' : '#444'}`,
+                          borderRadius: 8,
+                          background: isActive ? opt.tint : `${opt.color}15`,
+                          border: `1px solid ${isActive ? opt.color : opt.color + '60'}`,
+                          color: opt.color,
+                          cursor: incantationActive ? 'not-allowed' : 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: blade ? 20 : 10,
-                          cursor: blade ? 'pointer' : 'default',
-                          transition: 'all 0.2s ease',
-                          boxShadow: isEquipped ? '0 0 12px #e74c3c60' : isActive ? `0 0 10px ${tierColor}40` : 'none',
-                          position: 'relative',
+                          fontSize: 20,
+                          transition: 'all 0.15s',
+                          boxShadow: isActive ? `0 0 12px ${opt.color}55` : 'none',
+                          opacity: incantationActive && !isActive ? 0.45 : 1,
                         }}
                       >
-                        {blade?.emoji || ''}
-                        {isEquipped && (
-                          <span style={{
-                            position: 'absolute',
-                            bottom: -4,
-                            right: -4,
-                            fontSize: 8,
-                            background: '#e74c3c',
-                            borderRadius: '50%',
-                            width: 14,
-                            height: 14,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#fff',
-                            boxShadow: '0 0 6px #e74c3c',
-                          }}>⚔</span>
-                        )}
-                      </div>
+                        {opt.emoji}
+                      </button>
                     );
                   })}
                 </div>
+
+                {/* Detail panel — when a chip is active. Shows ONE ceremony's
+                    full title, narration name, and audio player. (The outer `showCeremonyMenu`
+                    gate is now on the whole content block.) */}
+                {activeCeremonyAudio && (() => {
+                  const data = activeCeremonyAudio === 'sun' ? {
+                    emoji: '☀️', color: '#ffd700',
+                    title: 'Sun Ceremony', subtitle: '13 nodes • The Emissary Path',
+                    narration: 'The Emissary Who Forgot the Master',
+                    audioSrc: 'https://voice.agentprivacy.ai/The_Emissary_Who_Forgot_the_Master.mp3',
+                    footer: '☀️ Just as the Sun, promises space, between.',
+                  } : activeCeremonyAudio === 'aether' ? {
+                    emoji: '⿻', color: '#00d4ff',
+                    title: 'Aether Ceremony', subtitle: '14 nodes • The Drake-Rising Path',
+                    narration: 'The Tide Proves Orbit Keeps Selene',
+                    audioSrc: 'https://voice.agentprivacy.ai/The_Tide_Proves_Orbit_Keeps_Selene.mp3',
+                    footer: '🐲→🐉 Drake becomes Dragon · V(π,t) as Quintessence',
+                  } : {
+                    emoji: '🌙', color: '#7b68ee',
+                    title: 'Moon Ceremony', subtitle: '17 nodes • The Amnesia Path',
+                    narration: 'The Amnesia Protocol',
+                    audioSrc: 'https://voice.agentprivacy.ai/The_Amnesia_Protocol.mp3',
+                    footer: 'The amnesia is the protocol. The wound is the trust.',
+                  };
+                  return (
+                    <div style={{
+                      padding: 10,
+                      borderRadius: 8,
+                      background: `linear-gradient(135deg, ${data.color}18, ${data.color}06)`,
+                      border: `1px solid ${data.color}55`,
+                      minWidth: 240,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <span style={{ fontSize: 22 }}>{data.emoji}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 12, color: data.color, fontWeight: 600 }}>{data.title}</div>
+                          <div style={{ fontSize: 9.5, color: '#888' }}>{data.subtitle}</div>
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 9.5, color: '#999', marginBottom: 6 }}>🎙️ {data.narration}</div>
+                      <audio
+                        controls
+                        autoPlay
+                        src={data.audioSrc}
+                        style={{ width: '100%', height: 32 }}
+                      />
+                      <div style={{ fontSize: 9, color: '#777', marginTop: 8, fontStyle: 'italic' }}>{data.footer}</div>
+                    </div>
+                  );
+                })()}
               </div>
+              )}
             </div>
+
           </div>
         );
       })()}
@@ -3537,21 +3503,44 @@ export default function SpellWeb() {
               >
                 <span>🔗</span> Your Deviations
               </h3>
-              <button
-                onClick={() => setShowConnectionsList(false)}
-                style={{
-                  background: "transparent",
-                  border: `1px solid ${THEME.panelBorder}`,
-                  borderRadius: 6,
-                  color: THEME.textDim,
-                  fontSize: 12,
-                  padding: "4px 10px",
-                  cursor: "pointer",
-                  fontFamily: "'JetBrains Mono', monospace",
-                }}
-              >
-                close
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {userEdges.length > 0 && (
+                  <button
+                    onClick={handleExportDeviations}
+                    title={`Download ${userEdges.length} deviation${userEdges.length === 1 ? '' : 's'} as standalone .md`}
+                    style={{
+                      background: "linear-gradient(135deg, #ffd70030, #ff660020)",
+                      border: `1px solid #ffd700`,
+                      borderRadius: 6,
+                      color: "#ffd700",
+                      fontSize: 11,
+                      padding: "5px 12px",
+                      cursor: "pointer",
+                      fontFamily: "'JetBrains Mono', monospace",
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    <span>📥</span> Deviations.md
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowConnectionsList(false)}
+                  style={{
+                    background: "transparent",
+                    border: `1px solid ${THEME.panelBorder}`,
+                    borderRadius: 6,
+                    color: THEME.textDim,
+                    fontSize: 12,
+                    padding: "4px 10px",
+                    cursor: "pointer",
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}
+                >
+                  close
+                </button>
+              </div>
             </div>
 
             <div
@@ -4585,6 +4574,9 @@ export default function SpellWeb() {
                 marks: constellation,
                 connections,
                 createdAt: new Date().toISOString(),
+                workshopId: activeWorkshopId ?? undefined,
+                constellationId: activeConstellationTemplateId ?? undefined,
+                constellationVersion: activeConstellationVersion ?? undefined,
               };
               setSavedConstellations(prev => [...prev, newConstellation]);
               setActiveConstellationId(newId);
@@ -4674,8 +4666,37 @@ export default function SpellWeb() {
               setTimeout(() => setForgePhase('complete'), 3500);
             }
           }}
-          onOpenMageMenu={() => setShowMageMenu(true)}
-          onOpenBladesModal={() => setShowBladesModal(true)}
+          forgeLabel={getWorkshopForgeContext(activeWorkshopId).buttonLabel}
+          onOpenMageMenu={() => {
+            setShowBladesModal(false);
+            setShowArtefactPanel(false);
+            setShowMageMenu(true);
+          }}
+          onOpenBladesModal={() => {
+            setShowMageMenu(false);
+            setShowArtefactPanel(false);
+            setShowBladesModal(true);
+          }}
+          onOpenArtefacts={() => {
+            setShowMageMenu(false);
+            setShowBladesModal(false);
+            setShowArtefactPanel(true);
+          }}
+          witnessedShopsCount={Object.keys(witnessedShops).length}
+          onCycleBlade={() => {
+            // Mirrors [s] hotkey: cycle equipped blade through forgedBlades
+            if (forgedBlades.length === 0) return;
+            const currentBladeIndex = equippedBlade
+              ? forgedBlades.findIndex(b => b.id === equippedBlade.id)
+              : -1;
+            const nextIndex = (currentBladeIndex + 1) % forgedBlades.length;
+            setEquippedBlade(forgedBlades[nextIndex]);
+          }}
+          onCycleSpell={() => {
+            // Mirrors [m] hotkey: cycle selected spell through mageSpells
+            if (mageSpells.length === 0) return;
+            setSelectedSpellIndex(prev => prev === null ? 0 : (prev + 1) % mageSpells.length);
+          }}
           onLoadSunConstellation={() => {
             // Lock constellation during active evocation
             if (incantationActive) return;
@@ -5315,75 +5336,61 @@ export default function SpellWeb() {
         </div>
       )}
 
-      {/* Blades Modal - Unified ZK Blades + Witness */}
+      {/* Swords Panel — identity + link + witness + waypoint */}
       {showBladesModal && (
         <div
           style={{
-            position: "fixed",
+            position: "absolute",
             top: 0,
-            left: 0,
             right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.85)",
+            width: 480,
+            height: "100%",
+            background: THEME.panelBg,
+            borderLeft: `1px solid #e9456055`,
+            zIndex: 110,
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 300,
+            flexDirection: "column",
+            overflow: "hidden",
+            boxShadow: "-12px 0 32px rgba(0,0,0,0.4)",
           }}
-          onClick={() => setShowBladesModal(false)}
         >
           <div
             style={{
-              background: THEME.panelBg,
-              border: `1px solid ${THEME.panelBorder}`,
-              borderRadius: 12,
               padding: 24,
-              maxWidth: 550,
-              width: "90%",
-              maxHeight: "80vh",
               overflow: "auto",
+              flex: 1,
             }}
-            onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h3 style={{ margin: 0, color: "#ffd700", fontSize: 20, fontFamily: "'Cormorant Garamond', serif" }}>
                 ⚔️ Sword
               </h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {/* Send to Soulbis - when blade is equipped */}
+                {/* Send-to-Soulbis removed — the link back to agentprivacy is implied;
+                    the two exports below carry the same identity into any destination. */}
+                {/* Single equipped artefact — round-trip-compatible (re-importable as witness blade). */}
                 {equippedBlade && (
                   <button
                     onClick={() => {
-                      // Build spellweb blade payload for agentprivacy (per Chronicle mirroring spec)
-                      const dims = equippedBlade.proof.bladeDimensions;
-                      const marks = equippedBlade.constellationMarks || [];
-                      // Use DIMENSION_MAPPING emojis for active dimensions, fallback to mark emojis
-                      const dimEmojis = [
-                        dims.protection ? DIMENSION_MAPPING.L1.emoji : (marks[0]?.emoji || '·'),
-                        dims.delegation ? DIMENSION_MAPPING.L2.emoji : (marks[1]?.emoji || '·'),
-                        dims.memory ? DIMENSION_MAPPING.L3.emoji : (marks[2]?.emoji || '·'),
-                        dims.connection ? DIMENSION_MAPPING.L4.emoji : (marks[3]?.emoji || '·'),
-                        dims.computation ? DIMENSION_MAPPING.L5.emoji : (marks[4]?.emoji || '·'),
-                        dims.value ? DIMENSION_MAPPING.L6.emoji : (marks[5]?.emoji || '·'),
-                      ];
-                      const payload: SpellwebBladePayloadV1 = {
-                        v: 1,
-                        bladeId: equippedBlade.id,
+                      const synthetic: SavedConstellation = {
+                        id: `export-${equippedBlade.id}`,
                         name: equippedBlade.name,
-                        primaryEmoji: equippedBlade.emoji,
-                        markEmojis: dimEmojis,
-                        proofSignature: equippedBlade.proof.signature,
-                        isWitness: equippedBlade.isWitness || false,
+                        createdAt: equippedBlade.forgedAt,
+                        marks: equippedBlade.constellationMarks,
+                        connections: equippedBlade.constellationConnections,
+                        proof: equippedBlade.proof,
+                        workshopId: activeWorkshopId ?? undefined,
+                        constellationId: activeConstellationTemplateId ?? undefined,
+                        constellationVersion: activeConstellationVersion ?? undefined,
                       };
-                      const b64 = encodeBladePayloadForUrl(payload);
-                      window.open(`https://agentprivacy.ai/spells?spellwebBlade=${b64}`, '_blank');
+                      handleExportConstellation(synthetic);
                     }}
                     style={{
                       padding: "6px 12px",
                       borderRadius: 6,
-                      background: "linear-gradient(135deg, #e74c3c30, #c0392b20)",
-                      border: "1px solid #e74c3c",
-                      color: "#e74c3c",
+                      background: "linear-gradient(135deg, #ffd70030, #ff660020)",
+                      border: "1px solid #ffd700",
+                      color: "#ffd700",
                       fontSize: 11,
                       cursor: "pointer",
                       fontFamily: "'JetBrains Mono', monospace",
@@ -5391,35 +5398,21 @@ export default function SpellWeb() {
                       alignItems: 'center',
                       gap: 6,
                     }}
-                    title={`Send ${equippedBlade.name} to agentprivacy.ai Soulbis orbit`}
+                    title={`Export ${equippedBlade.name} as a single artefact.md — can be re-imported as a witness blade`}
                   >
-                    <span>⚔️</span> Soulbis
+                    <span>{equippedBlade.emoji || '📥'}</span> {equippedBlade.name.length > 14 ? equippedBlade.name.slice(0, 12) + '…' : equippedBlade.name}.md
                   </button>
                 )}
-                {/* Export blade.md button - green, copies/downloads current blade+spells+constellation */}
-                {(equippedBlade || constellation.length > 0) && (
+                {/* Swordsman bundle export — every forged blade + every artefact + identity in one .md */}
+                {(forgedBlades.length > 0 || swordsmanLink) && (
                   <button
-                    onClick={() => {
-                      // Build a SavedConstellation from current state
-                      const currentConstellation: SavedConstellation = {
-                        id: `export-${Date.now()}`,
-                        name: equippedBlade?.name || 'My Constellation',
-                        marks: constellation,
-                        connections: constellationConnections,
-                        createdAt: new Date().toISOString(),
-                        proof: equippedBlade?.proof || latestProof || undefined,
-                        inscribedSpell: undefined,
-                        reflection: undefined,
-                      };
-                      handleExportConstellation(currentConstellation);
-                      setShowBladesModal(false);
-                    }}
+                    onClick={handleExportSwordsman}
                     style={{
                       padding: "6px 12px",
                       borderRadius: 6,
-                      background: "linear-gradient(135deg, #22c55e30, #16a34a20)",
-                      border: "1px solid #22c55e",
-                      color: "#22c55e",
+                      background: "linear-gradient(135deg, #e9456030, #c0392b20)",
+                      border: "1px solid #e94560",
+                      color: "#e94560",
                       fontSize: 11,
                       cursor: "pointer",
                       fontFamily: "'JetBrains Mono', monospace",
@@ -5427,8 +5420,9 @@ export default function SpellWeb() {
                       alignItems: 'center',
                       gap: 6,
                     }}
+                    title={`Bundle ${forgedBlades.length} item${forgedBlades.length === 1 ? '' : 's'} + identity into one .md`}
                   >
-                    <span>📋</span> blade.md
+                    <span>📥</span> Swordsman.md
                   </button>
                 )}
                 <button
@@ -5444,60 +5438,7 @@ export default function SpellWeb() {
               </div>
             </div>
 
-            {/* ZK Blades Section - Forge a new blade */}
-            <div style={{
-              padding: 16,
-              background: latestProof ? '#ffd70010' : '#ffffff05',
-              borderRadius: 8,
-              border: `1px solid ${latestProof ? '#ffd70050' : '#333'}`,
-              marginBottom: 16,
-            }}>
-              <div style={{
-                fontSize: 11,
-                color: latestProof ? '#ffd700' : '#666',
-                fontFamily: "'JetBrains Mono', monospace",
-                letterSpacing: 1,
-                marginBottom: 12,
-              }}>
-                ⚡ FORGE ZK BLADE
-              </div>
-              {latestProof ? (
-                <div>
-                  <p style={{ fontSize: 12, color: THEME.text, marginBottom: 12 }}>
-                    Proof ready! Forge your constellation into a cryptographic blade.
-                  </p>
-                  <button
-                    onClick={() => {
-                      setShowBladesModal(false);
-                      setForgePhase('ignite');
-                      setShowForgeModal(true);
-                      setTimeout(() => setForgePhase('forge'), 800);
-                      setTimeout(() => setForgePhase('temper'), 2000);
-                      setTimeout(() => setForgePhase('complete'), 3500);
-                    }}
-                    style={{
-                      padding: "10px 20px",
-                      borderRadius: 6,
-                      background: "linear-gradient(135deg, #ffd70050, #ff660030)",
-                      border: "1px solid #ffd700",
-                      color: "#ffd700",
-                      fontSize: 12,
-                      cursor: "pointer",
-                      fontFamily: "'JetBrains Mono', monospace",
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                    }}
-                  >
-                    <span>🔥</span> Forge Blade
-                  </button>
-                </div>
-              ) : (
-                <p style={{ fontSize: 11, color: '#666', margin: 0 }}>
-                  Complete a constellation and generate a proof to forge a blade.
-                </p>
-              )}
-            </div>
+            {/* Forge ceremony is reached from SpellCeremony's main forge button when proof ready. */}
 
             {/* Swordsman Link Section - Import from agentprivacy */}
             <div style={{
@@ -5624,7 +5565,7 @@ export default function SpellWeb() {
                 👁️ WITNESS BLADES
               </div>
               <p style={{ fontSize: 11, color: THEME.textDim, marginBottom: 12 }}>
-                Upload a blade.md file to witness another's constellation.
+                Upload a artefact.md file to witness another's constellation.
               </p>
               <label style={{
                 display: 'inline-flex',
@@ -5639,7 +5580,7 @@ export default function SpellWeb() {
                 cursor: "pointer",
                 fontFamily: "'JetBrains Mono', monospace",
               }}>
-                <span>📄</span> Import blade.md
+                <span>📄</span> Import artefact.md
                 <input
                   type="file"
                   accept=".md"
@@ -5672,7 +5613,7 @@ export default function SpellWeb() {
                       }
 
                       if (marks.length === 0) {
-                        alert("Could not parse constellation path from blade.md file");
+                        alert("Could not parse constellation path from artefact.md file");
                         return;
                       }
 
@@ -6099,6 +6040,13 @@ export default function SpellWeb() {
         const stratum = latestProof.bladeStratum || 1;
         const hex = latestProof.bladeHex || '10';
 
+        // Workshop-aware framing: when an active workshop is in play, the forge
+        // produces *that workshop's* artefact, not just "a blade". Falls back to
+        // blade copy when no workshop is active (free-form ceremony).
+        const ctx = getWorkshopForgeContext(activeWorkshopId);
+        const artefactNoun = ctx.artefactName;     // "Cloak" / "Memo Stone" / "Blade" …
+        const verbPresent = ctx.verbPresent;       // "Weaving" / "Inscribing" / "Forging"
+
         const dimensionLabels = [
           { key: 'protection', label: 'Protection', desc: 'Boundaries forged', icon: '🛡️' },
           { key: 'delegation', label: 'Delegation', desc: 'Agency transferred', icon: '🤝' },
@@ -6109,12 +6057,12 @@ export default function SpellWeb() {
         ];
 
         const phaseMessages: Record<string, { text: string; sub: string }> = {
-          ignite: { text: 'Igniting the Forge...', sub: 'Gathering proof elements from the lattice' },
-          forge: { text: 'Forging the Blade...', sub: 'Tempering dimensions in the toroidal field' },
+          ignite: { text: `Igniting the ${ctx.workshop ? ctx.workshop.label : 'Forge'}...`, sub: 'Gathering proof elements from the lattice' },
+          forge: { text: `${verbPresent} the ${artefactNoun}...`, sub: 'Tempering dimensions in the toroidal field' },
           temper: { text: 'Tempering Complete', sub: 'Inscribing the maker\'s mark' },
-          complete: { text: `${colors.name} Blade`, sub: 'Forged from the 64-Tetrahedra Lattice' },
-          naming: { text: 'Name Your Blade', sub: 'Inscribe its identity into the lattice' },
-          manifesting: { text: bladeName || 'Blade', sub: 'The blade manifests...' },
+          complete: { text: `${colors.name} ${artefactNoun}`, sub: ctx.workshop ? `${ctx.workshop.label} · ${ctx.artefactRootName}` : 'Forged from the 64-Tetrahedra Lattice' },
+          naming: { text: `Name Your ${artefactNoun}`, sub: 'Inscribe its identity into the lattice' },
+          manifesting: { text: bladeName || artefactNoun, sub: `The ${artefactNoun.toLowerCase()} manifests...` },
         };
 
         const isAnimating = forgePhase === 'ignite' || forgePhase === 'forge';
@@ -6160,24 +6108,41 @@ export default function SpellWeb() {
                 transition: "all 0.5s ease",
               }}
             >
-              {/* Header with Blade Tier */}
+              {/* Header — workshop lattice when active, else emoji-glyph fallback */}
               <div style={{ textAlign: "center", marginBottom: window.innerWidth < 768 ? 16 : 24 }}>
-                <div style={{
-                  fontSize: window.innerWidth < 768 ? 48 : 72,
-                  marginBottom: 8,
-                  filter: showSignature
-                    ? `drop-shadow(0 0 15px ${colors.primary}80) drop-shadow(0 0 30px #4a9eff60)`
-                    : `drop-shadow(0 0 ${isAnimating ? '15' : '10'}px ${isAnimating ? '#ff660080' : colors.primary + '80'})`,
-                  animation: isAnimating
-                    ? 'pulse 1s ease-in-out infinite'
-                    : showSignature
-                      ? 'bladeForged 2s ease-in-out infinite'
-                      : 'none',
-                  transform: showSignature ? 'scale(1.1)' : 'scale(1)',
-                  transition: 'transform 0.5s ease',
-                }}>
-                  {forgePhase === 'ignite' ? '🔥' : forgePhase === 'forge' ? '⚒️' : colors.icon}
-                </div>
+                {ctx.workshop && !isAnimating ? (
+                  <div style={{
+                    marginBottom: 8,
+                    filter: showSignature
+                      ? `drop-shadow(0 0 15px ${ctx.gemColor}80) drop-shadow(0 0 30px ${colors.primary}60)`
+                      : `drop-shadow(0 0 10px ${ctx.gemColor}66)`,
+                    animation: showSignature ? 'bladeForged 2s ease-in-out infinite' : 'none',
+                    transition: 'transform 0.5s ease',
+                  }}>
+                    <WorkshopLatticeVisual
+                      visualKey={ctx.latticeVisualKey}
+                      height={window.innerWidth < 768 ? 'h-32' : 'h-44'}
+                      showLabels={false}
+                    />
+                  </div>
+                ) : (
+                  <div style={{
+                    fontSize: window.innerWidth < 768 ? 48 : 72,
+                    marginBottom: 8,
+                    filter: showSignature
+                      ? `drop-shadow(0 0 15px ${colors.primary}80) drop-shadow(0 0 30px #4a9eff60)`
+                      : `drop-shadow(0 0 ${isAnimating ? '15' : '10'}px ${isAnimating ? '#ff660080' : colors.primary + '80'})`,
+                    animation: isAnimating
+                      ? 'pulse 1s ease-in-out infinite'
+                      : showSignature
+                        ? 'bladeForged 2s ease-in-out infinite'
+                        : 'none',
+                    transform: showSignature ? 'scale(1.1)' : 'scale(1)',
+                    transition: 'transform 0.5s ease',
+                  }}>
+                    {forgePhase === 'ignite' ? '🔥' : forgePhase === 'forge' ? '⚒️' : (ctx.workshop ? ctx.emoji : colors.icon)}
+                  </div>
+                )}
                 <h2 style={{
                   color: isAnimating ? '#ff6600' : colors.primary,
                   fontFamily: "'Cormorant Garamond', serif",
@@ -6215,7 +6180,7 @@ export default function SpellWeb() {
                 transition: "all 0.5s ease",
               }}>
                 <div style={{ color: "#666", fontSize: 10, marginBottom: 12, textAlign: "center", letterSpacing: 2 }}>
-                  BLADE DIMENSIONS • STRATUM {stratum}/6 {stratumToMoonPhase(stratum)} • 0x{hex}
+                  {artefactNoun.toUpperCase()} DIMENSIONS • STRATUM {stratum}/6 {stratumToMoonPhase(stratum)} • 0x{hex}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                   {dimensionLabels.map(({ key, label, desc, icon }, idx) => {
@@ -6269,7 +6234,7 @@ export default function SpellWeb() {
                   </div>
                   <div style={{ fontSize: 28, marginBottom: 4 }}>{colors.icon}</div>
                   <div style={{ color: colors.primary, fontSize: 14, fontWeight: "bold", textTransform: "uppercase" }}>
-                    {tier} Blade
+                    {tier} {artefactNoun}
                   </div>
                   <div style={{ color: "#555", fontSize: 10, marginTop: 4 }}>
                     {latestProof.lapCount} laps • {latestProof.chargeLevel}
@@ -6343,9 +6308,9 @@ export default function SpellWeb() {
                   margin: 0,
                   fontStyle: 'italic',
                 }}>
-                  This blade is proof of your attention—a witness to time spent traversing
-                  a constellation of knowledge. The forge doesn't care how you struck the metal.
-                  It only cares what blade you hold.
+                  This {artefactNoun.toLowerCase()} is proof of your attention—a witness to time spent
+                  traversing a constellation of knowledge. The {ctx.workshop ? ctx.workshop.label : 'forge'}
+                  doesn&apos;t care how you struck the metal. It only cares what {artefactNoun.toLowerCase()} you hold.
                 </p>
                 <p style={{
                   color: "#666",
@@ -6354,7 +6319,7 @@ export default function SpellWeb() {
                   marginBottom: 0,
                   fontFamily: "'JetBrains Mono', monospace",
                 }}>
-                  Save it to preserve the record, or let it exist only as a blade proof—your choice on building within the gap.
+                  Save it to preserve the record, or let it exist only as a {artefactNoun.toLowerCase()} proof—your choice on building within the gap.
                 </p>
               </div>
 
@@ -6435,13 +6400,13 @@ export default function SpellWeb() {
                     animation: showSignature ? 'buttonPulse 2s ease-in-out infinite' : 'none',
                   }}
                 >
-                  {showSignature ? `${colors.icon} Claim Blade` : '⏳ Forging...'}
+                  {showSignature ? `${ctx.workshop ? ctx.emoji : colors.icon} Claim ${artefactNoun}` : `⏳ ${verbPresent}...`}
                 </button>
               </div>
 
               {/* Naming Phase */}
               {isNaming && (() => {
-                const bladeEmojis = ['⚔️', '🗡️', '🐉', '🔥', '⚡', '💎', '🌟', '✨', '🛡️', '🌙', '☀️', '🔮', '👁️', '🦅', '🐺', '🦁'];
+                const bladeEmojis = getArtefactEmojiPalette(activeWorkshopId);
                 const alreadyForged = forgedBlades.some(b => b.proof.signature === latestProof?.signature);
                 const canManifest = bladeName.trim() && bladeEmoji && !alreadyForged;
 
@@ -6522,7 +6487,7 @@ export default function SpellWeb() {
                       letterSpacing: 2,
                       textTransform: 'uppercase',
                     }}>
-                      Choose blade sigil
+                      Choose {artefactNoun.toLowerCase()} sigil
                     </label>
                     <div style={{
                       display: 'flex',
@@ -6565,13 +6530,13 @@ export default function SpellWeb() {
                       letterSpacing: 2,
                       textTransform: 'uppercase',
                     }}>
-                      Inscribe the blade's name
+                      Inscribe the {artefactNoun.toLowerCase()}&apos;s name
                     </label>
                     <input
                       type="text"
                       value={bladeName}
                       onChange={(e) => setBladeName(e.target.value)}
-                      placeholder="Enter blade name..."
+                      placeholder={`Enter ${artefactNoun.toLowerCase()} name...`}
                       style={{
                         width: '100%',
                         padding: '14px 18px',
@@ -6604,7 +6569,7 @@ export default function SpellWeb() {
                         fontFamily: "'JetBrains Mono', monospace",
                         textAlign: 'center',
                       }}>
-                        ⚠️ This proof has already been forged into a blade
+                        ⚠️ This proof has already been forged into a {artefactNoun.toLowerCase()}
                       </div>
                     )}
                     <button
@@ -6629,7 +6594,7 @@ export default function SpellWeb() {
                         transition: 'all 0.3s ease',
                       }}
                     >
-                      {bladeEmoji || colors.icon} Manifest Blade
+                      {bladeEmoji || (ctx.workshop ? ctx.emoji : colors.icon)} Manifest {artefactNoun}
                     </button>
                   </div>
                 );
@@ -6670,7 +6635,7 @@ export default function SpellWeb() {
                       fontFamily: "'JetBrains Mono', monospace",
                       color: '#666',
                     }}>
-                      {colors.name} Blade • Stratum {stratum}
+                      {colors.name} {artefactNoun} • Stratum {stratum}
                     </div>
                   </div>
                 </div>

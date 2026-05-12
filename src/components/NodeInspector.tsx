@@ -26,6 +26,16 @@ const TYPE_LABELS: Record<string, string> = {
   act: "NARRATIVE ACT",
   persona: "PERSONA",
   term: "GLOSSARY TERM",
+  skill: "SKILL",
+  chronicle: "CHRONICLE",
+  // Universe integration (2026-05-10)
+  workshop: "WORKSHOP",
+  cast: "CAST MEMBER",
+  vertex: "VERTEX",
+  geography: "GEOGRAPHY",
+  civic: "CITY",
+  gateway: "SISTER CITY",
+  artefact: "YOUR ARTEFACT",
 };
 
 export function NodeInspector({

@@ -228,7 +228,7 @@ Mage's 8 Spells:
   - Learned from nodes with proverbs/emojiSpells
   - Each spell has: emoji + label + proverb
   - Orbit the mage's wandering orb
-  - Included in blade.md exports
+  - Included in artefact.md exports
 
 Swordsman's 7 Forged:
   - Self-generated from evoke ceremonies
@@ -237,7 +237,7 @@ Swordsman's 7 Forged:
   - Constellation path inscribed
 
 6 Witnessed:
-  - Received via blade.md import
+  - Received via artefact.md import
   - Promise Theory bilateral exchange
   - Neither can forge alone; both sign
   - Trust graph edges
@@ -317,7 +317,7 @@ Phases:
 ### Witness Blade Creation
 
 ```
-1. Import blade.md from another person
+1. Import artefact.md from another person
 2. Parse constellation path (their journey)
 3. Enter witness mode (trace their path)
 4. Complete your own evocation
@@ -447,7 +447,7 @@ Output: Forged blade with embedded hexagram stance
 
 ---
 
-## XIII. EXPORT FORMAT (blade.md)
+## XIII. EXPORT FORMAT (artefact.md)
 
 ### Structure
 
