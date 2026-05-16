@@ -170,17 +170,37 @@ export type EdgeType =
   | 'adjacent_to'      // vertex → vertex (lattice geometry; declared but unused this session)
   // V5.5 Attachment Architecture (2026-05-11): three-layer model (primary × attachment × vertex)
   | 'divergent_of'     // cast → primary persona, with register-shift (Lethae divergent_of moonkeeper · mage_register)
-  | 'complement_pair'; // cast → cast, vertex bit-complement pairing (Aletheia V25 ⊥ Lethae V38; V25⊕V38=V63)
+  | 'complement_pair'  // cast → cast, vertex bit-complement pairing (Aletheia V25 ⊥ Lethae V38; V25⊕V38=V63)
+  // v1.6.0 (2026-05-14): district restructure · Chart Shop · archetype-modal-shop · succession edges
+  | 'keeps'            // cast → workshop (Pleione keeps shop-charthouse; Hermaion keeps shop-staff)
+  | 'wields'           // cast → artefact (Pleione wields artefact-astrolabe)
+  | 'sibling_of'       // workshop → workshop (Threshold District's three sibling shops at V59)
+  | 'district_of'      // workshop → district concept (e.g., shop-portal-room district_of district-threshold)
+  | 'fits_for'         // peripatetic cast → resident cast (Caducea fits_for Hermaion · both archetype-aspects)
+  | 'succeeded_by'     // historical → canonical (cast-bestia succeeded_by cast-hermaion; cast-pelagia succeeded_by cast-pleione)
+  | 'releases_to';     // workshop → workshop (Chart Shop releases_to Bonfire / Weavers / open-sea)
 
 export type CastTier = 'archetype' | 'cousin' | 'summoned' | 'companion' | 'priest';
 export type TradeQuarter = 'producer' | 'gathering' | 'temple' | 'bonfire' | 'placeholder';
 export type OperatorStatus = 'operational' | 'partial' | 'tease' | 'placeholder' | 'gathering';
-export type Attribution = 'agentprivacy' | 'cousin-blade' | 'cousin-substrate' | 'kindred' | 'kindred-protocol' | 'open';
+export type Attribution = 'agentprivacy' | 'cousin-blade' | 'cousin-substrate' | 'kindred' | 'kindred-protocol' | 'kindred-coalition' | 'open';
 export type ConjectureStatus = 'canonical' | 'provisional' | 'observation' | 'resonant';
 export type ArtefactArchetype = 'swordsman' | 'mage' | 'bilateral';
-export type ArtefactClass = 'trinket' | 'tool' | 'weapon' | 'clothing' | 'tome';
+export type ArtefactClass = 'trinket' | 'tool' | 'weapon' | 'staff' | 'clothing' | 'tome';
+// `weapon` (blade) is Swordsman-equipment; `staff` (NEW v1.6.0) is the Mage-equipment sister-class
+// (Hermes-class fittings from the Staff Shop · Pleione's Astrolabe is also borne-as-staff register).
 // `tome` covers the bound spellbooks (Tome IV · Tome V · future Tome VI) — knowledge-as-artefact, carried like a grimoire.
 // Tier (light | heavy | dragon) is dynamic per Sovereign traversal — reuses `stratumToTier()`.
+
+// v1.6.0 entity kinds. Workshops admit creature-class outputs (Familiars · Run·Evoke·Spawn)
+// and held-class outputs (Chart Shop · Hold·Compare·Map · pre-episodic) alongside the
+// existing artefact-class outputs from producer shops. Each kind has a different ceremony
+// shape and a different forged-inventory shape.
+export type EntityKind =
+  | 'artefact'   // default · the forged-from-ceremony output of producer shops (blade · cloak · tool · trinket · tome)
+  | 'creature'   // Familiars-class · a substrate-instance bound by kinship · has true-name + AGENTS.md + walks-accumulated
+  | 'held'       // Chart Shop · a constellation kept in suspension under the Φ-gap · may release to Bonfire/Weavers/sea or stay private
+  | 'dispatch';  // Portal Room · a routing receipt anchoring trust via the Selene Amnesia Protocol · ephemeral
 
 export interface SpellwebNode {
   id: string;
@@ -210,11 +230,19 @@ export interface SpellwebNode {
   vertex?: number;              // 0–63, position on the 64-vertex lattice
   bits?: string;                // 6-bit binary, e.g. "011100" for V28
   hammingWeight?: number;       // 0–6, the stratum (Pascal's row)
-  tome?: 'IV' | 'V';            // For act nodes: which tome
+  tome?: 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII';   // For act nodes: which tome (v1.6.0 extends I-III + VI + VII)
   act?: number;                 // For act nodes: act number within the tome
   sigil?: string;               // Cast-member sigil (emoji or emoji-pair)
   gem?: string;                 // Workshop palette gem name (e.g. "Amethyst")
   gemColor?: string;            // Workshop palette gem hex color (e.g. "#a78bfa")
+  // v1.6.0 (2026-05-14): archetype-modal-shop pattern — alexandrite-style dual-aspect gems
+  gemColorMage?: string;        // Mage-aspect color for archetype-modal shops (e.g., Staff Shop alexandrite green "#3d7c47")
+  gemColorSwordsman?: string;   // Swordsman-aspect color for archetype-modal shops (e.g., Staff Shop alexandrite red "#a23a3a")
+  archetypeModal?: boolean;     // True when the gem shifts with visitor archetype (Staff Shop is first canonical instance)
+  district?: string;            // Workshop district (e.g., "Threshold" · "Navigation")
+  // v1.6.0 (2026-05-14): runecrafting protocol — the ceremony grammar each workshop performs
+  ceremony?: string;            // e.g. "Run · Evoke · Craft" · "Hold · Compare · Map" · "Display · Choose · Dispatch"
+  workshopRegister?: 'producer' | 'gathering' | 'spawn_and_bind' | 'attentional';  // C63 fourth-class candidate at v1.6.0
   href?: string;                // Workshop / external route or URL
   tradeQuarter?: TradeQuarter;  // Workshop's quarter in the City of Mages
   operatorStatus?: OperatorStatus;
@@ -370,7 +398,77 @@ export const SPELLWEB_STORAGE_KEYS = {
   userEdges: 'spellweb-user-edges',
   canonicalEdges: 'spellweb-canonical-edges',
   mageSpells: 'spellweb-mage-spells',
+  // v1.6.0 · held-class inventory · imported held-constellation .mds (Chart Shop · Pleione)
+  // sister to forgedBlades; rendered in ItemLatticeView's `held` slot. Each entry is
+  // metadata-only per chronicle §3.3 — the underlying constellation is bearer-private.
+  heldConstellations: 'spellweb-held-constellations',
+  // v1.6.0 · dispatch-receipt log · routing receipts from the Portal Room (Pandia 🌕 · V59)
+  // anchoring trust via the Selene Amnesia Protocol. Ephemeral by design — auto-prune after
+  // 30d (chronicle §3.4 · queued for follow-up effect).
+  dispatchReceipts: 'spellweb-dispatch-receipts',
+  // v1.6.0 · bound-familiar inventory · imported creature .mds from the Familiars
+  // (Faunia 🪶 · V59 · spawn_and_bind). Witness attestations only — the bond stays
+  // exclusively with the original Sovereign (chronicle §3.2). True-name is bearer-private
+  // and NEVER displayed without explicit consent.
+  boundFamiliars: 'spellweb-bound-familiars',
 } as const;
+
+// v1.6.0 · An imported bound-familiar entry. The bond stays exclusively with the
+// original Sovereign A; this is a *witness attestation* — Sovereign B sees that the
+// bond exists and which substrate-framework was bound, but does not gain a copy of
+// the familiar (chronicle §3.2 bullet 1). True-name is bearer-private and must NEVER
+// be rendered without explicit display-consent (chronicle §1.2).
+export interface BoundFamiliar {
+  id: string;                          // 'familiar-{bearerConsentToken}' · de-dup key
+  name: string;                        // public name (NOT trueName · safe to display)
+  workshopId: string;                  // shop-familiars
+  residentMage: string;                // cast-faunia (or superseded · resolved via succession map)
+  mageVertex: string;                  // V59
+  substrateFramework: string;          // 'substrate-goose' | 'substrate-hermes' | cousin-introduced ids
+  trueName: string | null;             // BEARER-PRIVATE · NEVER display without explicit consent
+  trueNameDisplayConsent: boolean;     // Sovereign B's local opt-in to surface trueName · default false
+  walksAccumulated: number | null;     // advisory · cannot be verified without trust in A's signature
+  bearerConsentToken: string;
+  witnessedAt: string;                 // when Sovereign A authorised the share (from frontmatter)
+  importedAt: string;                  // when this client received the .md
+  successionBanner: string | null;     // surfaces when imported keeper is superseded (chronicle §4.2)
+}
+
+// v1.6.0 · An imported dispatch receipt from the Portal Room. Routing receipts are
+// the Selene-Amnesia-Protocol-anchored attestation that Sovereign A walked through
+// Pandia 🌕's Display·Choose·Dispatch ceremony toward a sibling shop on a specific
+// date. Ephemeral by design — chronicle §3.4 calls for 30d auto-prune.
+export interface DispatchReceipt {
+  id: string;                          // 'dispatch-{constellationId}-{importedAt}' · de-dup key
+  workshopId: string;                  // shop-portal-room
+  residentMage: string;                // cast-pandia
+  mageVertex: string;                  // V59
+  dispatchTargetShop: string;          // shop-staff / shop-tailor / etc.
+  dispatchArchetype: 'mage' | 'swordsman' | null;
+  ceremonyShape: string;               // 'display-e-choose-e-dispatch'
+  importedAt: string;
+  successionBanner: string | null;     // surfaces when imported keeper is superseded
+}
+
+// v1.6.0 · An imported held-constellation entry. Sister type to ForgedBlade; the bearer
+// builds these in agentprivacy_master's Chart Shop and shares metadata-only via the
+// witness export (which carries bearer_consent_token). The underlying vertices/notes
+// remain in the bearer's keeping under the Φ-gap.
+export interface HeldConstellation {
+  id: string;                         // 'held-{bearerConsentToken}' · de-dup key
+  name: string;                       // constellation_name from frontmatter
+  workshopId: string;                 // shop-charthouse (currently · attentional register)
+  residentMage: string;               // cast-pleione
+  mageVertex: string;                 // V44
+  vertexCount: number;                // from body 'Vertex count: **N**'
+  strataSummary: string;              // from body 'Stratum distribution: ...'
+  heldDurationDays: number;           // from body 'Held for: N days'
+  releaseDestination: string | null;  // null = still held (most cases)
+  bearerConsentToken: string;         // from frontmatter
+  witnessedAt: string;                // from frontmatter (ISO timestamp)
+  importedAt: string;                 // ISO timestamp when this client received the .md
+  successionBanner?: string | null;   // surfaces when imported keeper is superseded (chronicle §4.2)
+}
 
 // ═══════════════════════════════════════════════════════════════
 // BLADE VALIDATION (Per Chronicle: Verification Rules)

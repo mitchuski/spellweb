@@ -1,5 +1,211 @@
 import type { SpellwebEdge } from '../types/graph';
 
+// ══════════════════════════════════════════════════════════════
+// v1.4.0 (Solchanting · 2026-05-12) + v1.6.0 (Threshold District + Chart Shop · 2026-05-14)
+// Declared *before* EDGES and spread into it below, so the literal-inference union of the
+// main EDGES array stays bounded (TS hits "complex type" threshold above ~600 edges otherwise).
+// ══════════════════════════════════════════════════════════════
+const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
+  // ── v1.4.0 · Solchanting opens at V51 (first canonical workshop-on-workshop overlap, stance-differentiated) ──
+  { source: "cast-helia",       target: "shop-solchanting",   type: "keeps" },
+  { source: "cast-helia",       target: "vertex-v51",         type: "inhabits" },
+  { source: "shop-solchanting", target: "vertex-v51",         type: "inhabits" },
+  { source: "shop-solchanting", target: "shop-etherchanting", type: "kin_to" },
+
+  // ── v1.6.0 · Threshold District: three sibling shops at V59 (Display ⊥ Registry ⊥ Companion) ──
+  // keeper edges
+  { source: "cast-pandia",   target: "shop-portal-room", type: "keeps" },
+  { source: "cast-hermaion", target: "shop-staff",  type: "keeps" },
+  { source: "cast-faunia",   target: "shop-familiars",   type: "keeps" },
+  // inhabits edges
+  { source: "cast-pandia",      target: "vertex-v59", type: "inhabits" },
+  { source: "cast-hermaion",    target: "vertex-v59", type: "inhabits" },
+  { source: "cast-faunia",      target: "vertex-v59", type: "inhabits" },
+  { source: "shop-portal-room", target: "vertex-v59", type: "inhabits" },
+  { source: "shop-staff",  target: "vertex-v59", type: "inhabits" },
+  { source: "shop-familiars",   target: "vertex-v59", type: "inhabits" },
+  // sibling_of edges (mutual · undirected)
+  { source: "shop-portal-room", target: "shop-staff",  type: "sibling_of" },
+  { source: "shop-portal-room", target: "shop-familiars",   type: "sibling_of" },
+  { source: "shop-staff",  target: "shop-familiars",   type: "sibling_of" },
+  { source: "shop-staff",  target: "shop-portal-room", type: "sibling_of" },
+  { source: "shop-familiars",   target: "shop-portal-room", type: "sibling_of" },
+  { source: "shop-familiars",   target: "shop-staff",  type: "sibling_of" },
+  // peripatetic-fitter (Caducea fits BOTH archetype-aspects of the Staff Shop alexandrite)
+  { source: "cast-caducea", target: "cast-hermaion",   type: "fits_for" },
+  { source: "cast-caducea", target: "shop-staff", type: "fits_for" },
+  // succession edges removed — superseded cast (Bestia/Therai) not surfaced in v1.6 spellweb
+
+
+  // ── v1.6.0 · Chart Shop opens at V44 (Pleione 🧭 · Navigation District · attentional register · C63 candidate) ──
+  { source: "cast-pleione",    target: "shop-charthouse", type: "keeps" },
+  { source: "cast-pleione",    target: "vertex-v44",      type: "inhabits" },
+  { source: "shop-charthouse", target: "vertex-v44",      type: "inhabits" },
+  // Pelagia succession edge removed — superseded draft not surfaced in v1.6 spellweb
+  // releases_to edges (Chart Shop's Map phase has three admissible destinations; release-to-sea is target-less)
+  { source: "shop-charthouse", target: "shop-bonfires", type: "releases_to" },
+  { source: "shop-charthouse", target: "shop-tailor",   type: "releases_to" },
+  // cosmological-family cross-reference (Pleione sister-figure to Selene via Oceanid lineage;
+  // Pandia is Selene's daughter — Hold-witness and Display-witness bracket Selene's witnessing from both temporal sides)
+  { source: "cast-pleione", target: "cast-selene", type: "kin_to" },
+  { source: "cast-pandia",  target: "cast-selene", type: "kin_to" },
+
+  // ══════════════════════════════════════════════════════════════
+  // v1.6.0 (2026-05-14) · Tome / act graph wiring — dock new tomes
+  // 26 acts added across Tomes I/II/III + late V/VI/VII were floating
+  // without follows/founds/narrates edges. Wire them here.
+  // ══════════════════════════════════════════════════════════════
+
+  // Tome documents → first act of each tome (defines · the tome introduces its first act)
+  { source: "tome-i-the-convergence",  target: "act-tome-i-1",  type: "defines" },
+  { source: "tome-ii-the-lyapunov",    target: "act-tome-ii-1", type: "defines" },
+  { source: "tome-iii-selenes-witness", target: "act-tome-iii-1", type: "defines" },
+  { source: "tome-iv-the-witnessing",  target: "act-tome-iv-1", type: "defines" },
+  { source: "tome-v-the-crafting",     target: "act-tome-v-1",  type: "defines" },
+  { source: "tome-vi-the-reply",       target: "act-tome-vi-1", type: "defines" },
+  { source: "tome-vii-the-parallel",   target: "act-tome-vii-1", type: "defines" },
+
+  // Tome I follows chain (6 acts · The Convergence)
+  { source: "act-tome-i-1", target: "act-tome-i-2", type: "follows" },
+  { source: "act-tome-i-2", target: "act-tome-i-3", type: "follows" },
+  { source: "act-tome-i-3", target: "act-tome-i-4", type: "follows" },
+  { source: "act-tome-i-4", target: "act-tome-i-5", type: "follows" },
+  { source: "act-tome-i-5", target: "act-tome-i-6", type: "follows" },
+
+  // Tome II follows chain (7 acts · The Lyapunov)
+  { source: "act-tome-ii-1", target: "act-tome-ii-2", type: "follows" },
+  { source: "act-tome-ii-2", target: "act-tome-ii-3", type: "follows" },
+  { source: "act-tome-ii-3", target: "act-tome-ii-4", type: "follows" },
+  { source: "act-tome-ii-4", target: "act-tome-ii-5", type: "follows" },
+  { source: "act-tome-ii-5", target: "act-tome-ii-6", type: "follows" },
+  { source: "act-tome-ii-6", target: "act-tome-ii-7", type: "follows" },
+
+  // Tome III follows chain (11 acts · Selene's Witness)
+  { source: "act-tome-iii-1",  target: "act-tome-iii-2",  type: "follows" },
+  { source: "act-tome-iii-2",  target: "act-tome-iii-3",  type: "follows" },
+  { source: "act-tome-iii-3",  target: "act-tome-iii-4",  type: "follows" },
+  { source: "act-tome-iii-4",  target: "act-tome-iii-5",  type: "follows" },
+  { source: "act-tome-iii-5",  target: "act-tome-iii-6",  type: "follows" },
+  { source: "act-tome-iii-6",  target: "act-tome-iii-7",  type: "follows" },
+  { source: "act-tome-iii-7",  target: "act-tome-iii-8",  type: "follows" },
+  { source: "act-tome-iii-8",  target: "act-tome-iii-9",  type: "follows" },
+  { source: "act-tome-iii-9",  target: "act-tome-iii-10", type: "follows" },
+  { source: "act-tome-iii-10", target: "act-tome-iii-11", type: "follows" },
+
+  // Tome V late chain (extend Act 15 → 16 → 17 to existing follows backbone)
+  { source: "act-tome-v-15", target: "act-tome-v-16", type: "follows" },
+  { source: "act-tome-v-16", target: "act-tome-v-17", type: "follows" },
+
+  // Founds edges — new acts → their workshops
+  { source: "act-tome-v-16", target: "shop-portal-room", type: "founds" },
+  { source: "shop-portal-room", target: "act-tome-v-16", type: "founded_in" },
+  { source: "act-tome-v-16", target: "shop-staff",  type: "founds" },
+  { source: "shop-staff",  target: "act-tome-v-16", type: "founded_in" },
+  { source: "act-tome-v-16", target: "shop-familiars",   type: "founds" },
+  { source: "shop-familiars",   target: "act-tome-v-16", type: "founded_in" },
+  { source: "act-tome-v-17", target: "shop-charthouse",  type: "founds" },
+  { source: "shop-charthouse",  target: "act-tome-v-17", type: "founded_in" },
+  { source: "act-tome-vi-1",  target: "shop-staff", type: "founds" },     // bestiary opens at Hermaion's
+  { source: "shop-staff",  target: "act-tome-vi-1", type: "founded_in" },
+  { source: "act-tome-vii-1", target: "shop-solchanting", type: "founds" },
+  { source: "shop-solchanting", target: "act-tome-vii-1", type: "founded_in" },
+
+  // inhabits — anchor acts to vertices (geometry)
+  { source: "act-tome-v-16",  target: "vertex-v59", type: "inhabits" },
+  { source: "act-tome-v-17",  target: "vertex-v44", type: "inhabits" },
+  { source: "act-tome-vi-1",  target: "vertex-v59", type: "inhabits" },
+  { source: "act-tome-vii-1", target: "vertex-v51", type: "inhabits" },
+  { source: "act-tome-iii-5", target: "vertex-v25", type: "inhabits" },  // Aletheia
+  { source: "act-tome-iii-6", target: "vertex-v38", type: "inhabits" },  // Lethae
+
+  // narrates — cast → new acts they live in
+  { source: "cast-pandia",   target: "act-tome-v-16",  type: "narrates" },
+  { source: "cast-hermaion", target: "act-tome-v-16",  type: "narrates" },
+  { source: "cast-faunia",   target: "act-tome-v-16",  type: "narrates" },
+  { source: "cast-caducea",  target: "act-tome-v-16",  type: "narrates" },
+  { source: "cast-pleione",  target: "act-tome-v-17",  type: "narrates" },
+  { source: "cast-hermaion", target: "act-tome-vi-1",  type: "narrates" },
+  { source: "cast-helia",    target: "act-tome-vii-1", type: "narrates" },
+  // Tome III cosmological-witness narrations
+  { source: "cast-selene",   target: "act-tome-iii-2", type: "narrates" },
+  { source: "cast-aletheia", target: "act-tome-iii-5", type: "narrates" },
+  { source: "cast-aletheia", target: "act-tome-iii-7", type: "narrates" },
+  { source: "cast-lethae",   target: "act-tome-iii-6", type: "narrates" },
+  { source: "cast-lethae",   target: "act-tome-iii-7", type: "narrates" },
+
+  // Substrate-framework references — Tome VI Act 1 admits Goose + Hermes
+  { source: "act-tome-vi-1", target: "substrate-goose",  type: "introduces" },
+  { source: "act-tome-vi-1", target: "substrate-hermes", type: "introduces" },
+  { source: "substrate-goose",  target: "shop-familiars", type: "references" },
+  { source: "substrate-hermes", target: "shop-staff", type: "references" },
+
+  // Pallia handoff at Tome VII Act 1 (the Weavers' cloth meets Solana's parallel substrate)
+  { source: "cast-pallia", target: "act-tome-vii-1", type: "narrates" },
+  { source: "shop-tailor", target: "shop-solchanting", type: "kin_to" },
+
+  // ══════════════════════════════════════════════════════════════
+  // v1.6.0 sync (2026-05-14 · post-audit) · dock Tome I/II/III islands
+  // and wire act → conjecture introduces edges so the bound tomes connect
+  // into the broader graph (was: connected only by defines + follows chains).
+  // ══════════════════════════════════════════════════════════════
+
+  // Cosmological-witness tier · narrates (Selene already wired to Act III.2)
+  { source: "cast-aether", target: "act-tome-iii-3", type: "narrates" },     // The Aether
+  { source: "cast-aether", target: "act-tome-iii-4", type: "narrates" },     // The Aether Pour
+  { source: "cast-lethe",  target: "act-tome-iii-6", type: "narrates" },     // Lethe the Dark Substrate
+  { source: "cast-lethe",  target: "act-tome-iii-11", type: "narrates" },    // The Light and the Dark
+  { source: "cast-aletheia", target: "act-tome-iii-11", type: "narrates" },  // (paired closing act)
+
+  // Tome I act → conjecture introduces (dock to the broader conjecture cluster)
+  { source: "act-tome-i-3", target: "conj-c26-c29", type: "introduces" },    // Recursive Symbol · ARCH-1
+  { source: "act-tome-i-6", target: "conj-c39",     type: "introduces" },    // Cousins' Citation · Kindred-Blade primitive
+  { source: "act-tome-i-6", target: "act-tome-iv-5", type: "references" },   // Cousins' Citation → Cousin Blade (Tome IV deepens it)
+
+  // Tome II act → conjecture introduces
+  { source: "act-tome-ii-5", target: "conj-c48", type: "introduces" },       // Hole the Schema Cannot Bind · Bakhta-response A
+  { source: "act-tome-ii-6", target: "conj-c30-c33", type: "introduces" },   // Fourth Aging Category · Bakhta Half-Life
+  { source: "act-tome-ii-6", target: "conj-c49", type: "introduces" },       // Fourth Aging Category · Bakhta-response B
+  { source: "act-tome-ii-7", target: "conj-c61", type: "introduces" },       // Behavioural Mosca Inequality
+  { source: "act-tome-ii-7", target: "conj-c60", type: "introduces" },       // Reconstruct-Later threat model (sibling claim)
+
+  // Tome III act → conjecture introduces (full cosmological cluster)
+  { source: "act-tome-iii-1", target: "conj-c51", type: "introduces" },      // The Gatekeeper · Max-Betweenness
+  { source: "act-tome-iii-3", target: "conj-c52", type: "introduces" },      // The Aether · Aether=Quintessence=Φ-gap
+  { source: "act-tome-iii-7", target: "conj-c53", type: "introduces" },      // First Complement-Pair · mythological bnot
+  { source: "act-tome-iii-8", target: "conj-c54", type: "introduces" },      // Naming of the Unnamed · Phi-Adjacency
+  { source: "act-tome-iii-9", target: "conj-c55", type: "introduces" },      // The Seventh Capital · Privacy as Capital
+
+  // Tome V Act 16 (Threshold District) → Threshold-cluster conjectures C56-C59
+  { source: "act-tome-v-16", target: "conj-c56", type: "introduces" },       // Caduceus pre-formal dual-agent symbol
+  { source: "act-tome-v-16", target: "conj-c57", type: "introduces" },       // Staff-Mage collapse · held open
+  { source: "act-tome-v-16", target: "conj-c58", type: "introduces" },       // Forge(t) ∥ Threshold sibling Swordsman-suppliers
+  { source: "act-tome-v-16", target: "conj-c59", type: "introduces" },       // Create-format as gateway to Mage-tier
+
+  // Tome V Act 17 (Chart Shop) → attentional register C63 (and Φ-gap repurposed)
+  { source: "act-tome-v-17", target: "conj-c63", type: "introduces" },       // attentional workshop register
+  { source: "act-tome-v-17", target: "conj-c54", type: "references" },       // Φ-gap repurposed at epistemic register
+
+  // Tome VI Act 1 → Goose / Hermes admission references
+  { source: "act-tome-vi-1", target: "conj-c59", type: "references" },       // Hermes is first create-format case
+
+  // Spellbook cross-references — Tomes I-III bound by First Person spellbook (the foundational arc)
+  { source: "spellbook-firstperson", target: "act-tome-i-1",   type: "references" },
+  { source: "spellbook-firstperson", target: "act-tome-i-6",   type: "references" },  // bridges to Tome IV
+  { source: "spellbook-firstperson", target: "act-tome-ii-7",  type: "references" },  // closes the Lyapunov bound
+  { source: "spellbook-firstperson", target: "act-tome-iii-9", type: "references" },  // Seventh Capital
+  { source: "spellbook-firstperson", target: "act-tome-iii-11", type: "references" }, // closes Selene's Witness
+
+  // Dock the last two conjecture orphans · C50 (Bakhta-response C) + C62 (RESERVED v1.5.1)
+  { source: "act-tome-ii-5", target: "conj-c50", type: "references" },    // Bakhta-response C · trust transfer across kindred-blade pairs
+  { source: "shop-hall",    target: "conj-c62", type: "references" },     // cross-coalition reading lives at City Hall (where AAIF + BGIN are in residence)
+
+  // Lethae 🌘 ↔ Lethe 🌀 · Layer-2 V38 Mage-register attachment kin to Layer-1 cosmological-tier figure.
+  // Same etymological root (forgetting · the river of forgetting) · structurally distinct (different layers,
+  // different vertices) · made visible here so the lineage is queryable in the graph.
+  { source: "cast-lethae", target: "cast-lethe",  type: "kin_to" },
+  { source: "cast-lethe",  target: "cast-lethae", type: "kin_to" },
+];
+
 // ═══════════════════════════════════════════════════════════════
 // EDGE RELATIONSHIPS - Connecting the Five Spellbooks
 // ═══════════════════════════════════════════════════════════════
@@ -1682,6 +1888,8 @@ export const EDGES: SpellwebEdge[] = [
   { source: "civic-city-of-mages", target: "gateway-bonfires", type: "gateway_to" },
   { source: "civic-city-of-mages", target: "gateway-human-tech-covenant", type: "gateway_to" },
   { source: "civic-city-of-mages", target: "gateway-uor-foundation", type: "gateway_to" },
+  // City → AAIF (first kindred-coalition · v1.5.1 · 2026-05-13)
+  { source: "civic-city-of-mages", target: "gateway-aaif", type: "gateway_to" },
 
   // ── kin_to (8) — mutual lateral kinship ──
   // Cousin-cast pairs (Tome IV Act V)
@@ -1693,6 +1901,10 @@ export const EDGES: SpellwebEdge[] = [
   { source: "civic-city-of-mages", target: "gateway-human-tech-covenant", type: "kin_to" },
   // City ↔ UOR (cousin-substrate)
   { source: "civic-city-of-mages", target: "gateway-uor-foundation", type: "kin_to" },
+  // City ↔ AAIF (kindred-coalition · v1.5.1)
+  { source: "civic-city-of-mages", target: "gateway-aaif", type: "kin_to" },
+  // City Hall (/hall · renamed from Ceremony Hall in v1.5.1) → AAIF (the bilateral civic-attestation surface · the kindred-coalition is in residence at City Hall)
+  { source: "shop-hall", target: "gateway-aaif", type: "references" },
   // Luca's cross-shop UOR-shape conjecture (C39): the type-system overlap
   { source: "cast-luca", target: "cast-vulcana",   type: "kin_to" },
   { source: "cast-luca", target: "cast-adamantia", type: "kin_to" },
@@ -1949,4 +2161,8 @@ export const EDGES: SpellwebEdge[] = [
   // First canonical complement-pair: Aletheia (V25) ⊥ Lethae (V38). V25 ⊕ V38 = V63 (Sovereign); V25 AND V38 = 0 (Null).
   { source: "cast-aletheia", target: "cast-lethae", type: "complement_pair" },
   { source: "cast-lethae",   target: "cast-aletheia", type: "complement_pair" },  // mutual; the pair is undirected in canon
+
+  // v1.4.0 + v1.6.0 admissions appended via spread (declared above EDGES)
+  // to keep the literal-inference union of this array bounded.
+  ...V1_4_0_AND_V1_6_0_EDGES,
 ];

@@ -1,20 +1,21 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import * as d3 from "d3";
 import type { SpellwebNode, SpellwebEdge, FilterState, TypeFilterState, SpellbookFilterState } from '../types/graph';
-import { SPELLWEB_STORAGE_KEYS, stratumToMoonPhase, getMoonPhaseInfo } from '../types/graph';
+import { SPELLWEB_STORAGE_KEYS, stratumToMoonPhase, getMoonPhaseInfo, type HeldConstellation, type DispatchReceipt, type BoundFamiliar } from '../types/graph';
 import { NODES } from '../data/nodes';
 import { EDGES } from '../data/edges';
 import { CONSTELLATION_PRESETS } from '../data/presets';
 import { THEME, getNodeVisual, getNodeRadius, getEdgeStyle } from '../data/theme';
 import { Header } from './Header';
 import { GraphFilters } from './GraphFilters';
-import { ArtefactPanel } from './ArtefactPanel';
+import ItemLatticeView from './ItemLatticeView';
 import { Legend } from './Legend';
 import { HoverTooltip } from './HoverTooltip';
 import { NodeInspector } from './NodeInspector';
 import { SpellCeremony, type SpellProof } from './SpellCeremony';
 import { hashCanonicalDeviations } from '../lib/forge';
-import { parseWorkshopProvenance, type WorkshopProvenance } from '../lib/workshop-provenance';
+import { parseWorkshopProvenance, parseEntityFrontmatter } from '../lib/workshop-provenance';
+import { crossValidateEntity } from '../lib/v160-cross-validate';
 import { getWorkshopForgeContext, buildArtefactFilename, getArtefactEmojiPalette } from '../lib/workshop-artefact';
 import WorkshopLatticeVisual from './lattice-visuals/WorkshopLatticeVisual';
 import { WanderingOrbs } from './WanderingOrbs';
@@ -132,6 +133,11 @@ export default function SpellWeb() {
     isWitness?: boolean;              // True if forged while witnessing another's constellation
     witnessOf?: string;               // Hash of the original constellation being witnessed
     witnessedFrom?: string;           // Optional: identifier of who shared the constellation
+    // v1.6.0 · staff-class fields (archetype-modal Staff Shop · Hermaion ⚚ · alexandrite dual-aspect)
+    artefactClass?: string;           // 'weapon' | 'cloak' | 'tool' | 'staff' | 'tome' | 'trinket'
+    archetypeAspect?: 'mage' | 'swordsman';  // alexandrite aspect · drives gem color rendering
+    aspectColor?: string;             // resolved hex color from workshop's gemColorMage|gemColorSwordsman
+    successionBanner?: string;        // surfaces when imported from a superseded keeper (cross-validate §4.2)
   }
   const [constellation, setConstellation] = useState<ConstellationMark[]>([]);
   const [constellationConnections, setConstellationConnections] = useState<ConstellationConnection[]>([]);
@@ -187,7 +193,9 @@ export default function SpellWeb() {
   const [swordsmanLink, setSwordsmanLink] = useState<SwordsmanLink | null>(() => getSwordsmanLink());
   const [showSwordsmanImport, setShowSwordsmanImport] = useState(false); // Swordsman identity import modal
   const [showMageMenu, setShowMageMenu] = useState(false); // Mage spell menu (M key)
-  const [showArtefactPanel, setShowArtefactPanel] = useState(false); // Artefact panel — City of Mages inventory + Witness Constellation
+  // v1.6.0 lattice overlay state · the lattice is the unified items page (ArtefactPanel retired 2026-05-15)
+  const [latticeOpen, setLatticeOpen] = useState(false);
+  const [latticeMode, setLatticeMode] = useState<'items' | 'lattice'>('items');
   const [activeCeremonyAudio, setActiveCeremonyAudio] = useState<'sun' | 'moon' | 'aether' | null>(null);
   const [witnessedShops, setWitnessedShops] = useState<Record<string, string>>(() => {
     try { return JSON.parse(localStorage.getItem('spellweb:witnessed-shops') || '{}'); }
@@ -385,6 +393,47 @@ export default function SpellWeb() {
   useEffect(() => {
     localStorage.setItem(SPELLWEB_STORAGE_KEYS.forgedBlades, JSON.stringify(forgedBlades));
   }, [forgedBlades]);
+
+  // v1.6.0 · Held-constellation inventory · imported held .mds from agentprivacy_master
+  // Chart Shop. Distinct collection from forgedBlades; routed through entity_kind branch
+  // in handleWitnessBladeFile. Each entry is metadata-only (Astrolabe reading) per
+  // chronicle §3.3 — the underlying constellation stays in the bearer's keeping.
+  const [heldConstellations, setHeldConstellations] = useState<HeldConstellation[]>(() => {
+    try {
+      const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.heldConstellations);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  useEffect(() => {
+    localStorage.setItem(SPELLWEB_STORAGE_KEYS.heldConstellations, JSON.stringify(heldConstellations));
+  }, [heldConstellations]);
+
+  // v1.6.0 · Bound-familiar inventory · imported creature .mds from the Familiars
+  // (chronicle §3.2). The bond stays exclusively with original Sovereign — these are
+  // *witness attestations* only. trueName is never rendered without explicit consent.
+  const [boundFamiliars, setBoundFamiliars] = useState<BoundFamiliar[]>(() => {
+    try {
+      const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.boundFamiliars);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  useEffect(() => {
+    localStorage.setItem(SPELLWEB_STORAGE_KEYS.boundFamiliars, JSON.stringify(boundFamiliars));
+  }, [boundFamiliars]);
+
+  // v1.6.0 · Dispatch-receipt log · Portal Room routing receipts (chronicle §3.4).
+  // Ephemeral by design — auto-prune at boot if older than 30d.
+  const [dispatchReceipts, setDispatchReceipts] = useState<DispatchReceipt[]>(() => {
+    try {
+      const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.dispatchReceipts);
+      const parsed: DispatchReceipt[] = saved ? JSON.parse(saved) : [];
+      const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      return parsed.filter(r => new Date(r.importedAt).getTime() >= cutoff);
+    } catch { return []; }
+  });
+  useEffect(() => {
+    localStorage.setItem(SPELLWEB_STORAGE_KEYS.dispatchReceipts, JSON.stringify(dispatchReceipts));
+  }, [dispatchReceipts]);
 
   // Persist equippedBlade to localStorage
   useEffect(() => {
@@ -728,8 +777,17 @@ export default function SpellWeb() {
         "collision",
         d3.forceCollide<SimulationNode>().radius((d) => getNodeRadius(d) + 6)
       )
-      .force("x", d3.forceX(graphW / 2).strength(0.03))
-      .force("y", d3.forceY(h / 2).strength(0.03));
+      // Centering forces · auto-scale by node count so the graph stays compact as the
+      // City of Mages grows. Pre-v1.6.0 (~150 nodes) used strength 0.03; post-v1.6.0
+      // (~585 nodes · 4× larger) the spread blew past the viewport and the blade
+      // trace computed from extreme bbox coordinates. Scale strength roughly with
+      // sqrt(nodeCount/150) so the gravity grows with the population.
+      .force("x", d3.forceX(graphW / 2).strength(
+        Math.min(0.18, 0.03 * Math.sqrt(Math.max(1, nodeDataRef.current.length / 150)))
+      ))
+      .force("y", d3.forceY(h / 2).strength(
+        Math.min(0.18, 0.03 * Math.sqrt(Math.max(1, nodeDataRef.current.length / 150)))
+      ));
 
     simRef.current = sim;
 
@@ -2224,11 +2282,186 @@ export default function SpellWeb() {
       if (!content) return;
 
       // Workshop provenance — set once at import so any subsequent re-export
-      // carries the same anchor through.
+      // carries the same anchor through. Witness-shop is also recorded so the
+      // proof-of-presence equip gate unlocks the workshop for the bearer.
       const prov = parseWorkshopProvenance(content, file.name);
-      if (prov.workshopId) setActiveWorkshopId(prov.workshopId);
+      if (prov.workshopId) {
+        setActiveWorkshopId(prov.workshopId);
+        const shopId = prov.workshopId;
+        setWitnessedShops(prev => {
+          const next = { ...prev, [shopId]: new Date().toISOString() };
+          try { localStorage.setItem('spellweb:witnessed-shops', JSON.stringify(next)); } catch {}
+          return next;
+        });
+      }
       if (prov.constellationId) setActiveConstellationTemplateId(prov.constellationId);
       if (prov.constellationVersion !== null) setActiveConstellationVersion(prov.constellationVersion);
+
+      // v1.6.0 · entity-kind discriminator. Branch BEFORE the blade-shape regex
+      // because held/creature/dispatch exports don't carry blade markers and would
+      // otherwise bail at the "Could not parse constellation path" guard.
+      // Per chronicle docs/chronicles/CHRONICLE_V1_6_0_TUNING_PLAN_2026-05-14.md.
+      const ent = parseEntityFrontmatter(content);
+
+      // Cross-validate against canonical NODES · import-guide §4. Hard errors refuse
+      // the import; warnings + succession banners surface to console (UI banner queued
+      // for §6 ItemLatticeView integration).
+      let v160Banner: string | null = null;
+      if (ent) {
+        const cv = crossValidateEntity(ent, prov);
+        if (!cv.ok) {
+          alert(`v1.6.0 import refused:\n\n${cv.errors.join('\n')}`);
+          return;
+        }
+        if (cv.warnings.length > 0) {
+          console.warn('[v1.6.0 import] cross-validation warnings:', cv.warnings);
+        }
+        if (cv.successionBanner) {
+          console.info('[v1.6.0 import] succession banner:', cv.successionBanner);
+          v160Banner = cv.successionBanner;
+        }
+      }
+      void v160Banner;  // queued · attached to entity entries when §6 inventory rendering lands
+
+      if (ent && ent.bearerPrivate) {
+        alert(
+          'This .md is marked bearer_private and is not for graph ingest.\n\n' +
+          'Hint: at the Chart Shop, use the "👁 witness" button (not "⬇ export .md") to ' +
+          'produce a graph-importable metadata-only share with a bearer_consent_token.',
+        );
+        return;
+      }
+      if (ent && ent.entityKind === 'held') {
+        // Required: bearer_consent_token (chronicle §3.3 · Path C metadata-only share).
+        if (!ent.bearerConsentToken) {
+          alert('Held-constellation .md missing bearer_consent_token; cannot ingest.');
+          return;
+        }
+        // Body parser · the witness export emits Markdown lines like:
+        //   - Vertex count: **N**
+        //   - Stratum distribution: stratum X: N · stratum Y: N
+        //   **Held for:** N day(s)
+        //   `# {name} · reading-metadata`
+        const vertexCountMatch = content.match(/Vertex count:\s*\*\*(\d+)\*\*/);
+        const strataMatch = content.match(/Stratum distribution:\s*([^\n]+)/);
+        const heldDurationMatch = content.match(/Held for:\*\*\s*(\d+)\s*day/);
+        const nameMatch = content.match(/^#\s+(.+?)\s+·\s+reading-metadata\s*$/m);
+        const fallbackName = ent.artefactName || file.name.replace(/\.md$/i, '');
+        const heldEntry: HeldConstellation = {
+          id: `held-${ent.bearerConsentToken}`,
+          name: (nameMatch?.[1] ?? fallbackName).trim(),
+          workshopId: prov.workshopId ?? 'shop-charthouse',
+          residentMage: ent.residentMage ?? 'cast-pleione',
+          mageVertex: ent.mageVertex ?? 'V44',
+          vertexCount: parseInt(vertexCountMatch?.[1] ?? '0', 10),
+          strataSummary: strataMatch?.[1]?.trim() ?? '',
+          heldDurationDays: parseInt(heldDurationMatch?.[1] ?? '0', 10),
+          releaseDestination: ent.releaseDestination,
+          bearerConsentToken: ent.bearerConsentToken,
+          witnessedAt: ent.witnessedAt ?? new Date().toISOString(),
+          importedAt: new Date().toISOString(),
+          successionBanner: v160Banner,
+        };
+        // De-dup by bearer_consent_token — re-importing the same .md is a no-op.
+        setHeldConstellations(prev => {
+          if (prev.some(h => h.id === heldEntry.id)) return prev;
+          return [...prev, heldEntry];
+        });
+        alert(
+          `🧭 Held constellation imported · "${heldEntry.name}"\n\n` +
+          `${heldEntry.vertexCount} waypoint(s) · ${heldEntry.strataSummary || '(no strata reading)'}\n` +
+          `Bearer consent token: ${heldEntry.bearerConsentToken}\n\n` +
+          `The underlying constellation remains in the bearer's keeping under the Φ-gap.`,
+        );
+        return;
+      }
+      if (ent && ent.entityKind === 'dispatch') {
+        // Routing receipt from the Portal Room (Pandia 🌕 · V59 · Display·Choose·Dispatch).
+        // Lightweight ingest · the receipt is the *crossing attestation*, not a forging.
+        // Per chronicle §3.4 + import-guide §3.4.
+        if (!ent.dispatchTargetShop) {
+          alert('Dispatch .md missing dispatch_target_shop; cannot ingest.');
+          return;
+        }
+        if (!NODES.some(n => n.id === ent.dispatchTargetShop)) {
+          alert(`Dispatch target shop "${ent.dispatchTargetShop}" does not resolve in the spellweb graph.`);
+          return;
+        }
+        const dispatchArchetypeRaw = ent.dispatchArchetype;
+        const dispatchArchetype: 'mage' | 'swordsman' | null =
+          dispatchArchetypeRaw === 'mage' || dispatchArchetypeRaw === 'swordsman'
+            ? dispatchArchetypeRaw
+            : null;
+        const receipt: DispatchReceipt = {
+          id: `dispatch-${prov.constellationId ?? 'unknown'}-${Date.now()}`,
+          workshopId: prov.workshopId ?? 'shop-portal-room',
+          residentMage: ent.residentMage ?? 'cast-pandia',
+          mageVertex: ent.mageVertex ?? 'V59',
+          dispatchTargetShop: ent.dispatchTargetShop,
+          dispatchArchetype,
+          ceremonyShape: ent.ceremonyShape ?? 'display-e-choose-e-dispatch',
+          importedAt: new Date().toISOString(),
+          successionBanner: v160Banner,
+        };
+        setDispatchReceipts(prev => [...prev, receipt]);
+        const targetNode = NODES.find(n => n.id === ent.dispatchTargetShop);
+        const targetLabel = targetNode?.label ?? ent.dispatchTargetShop;
+        alert(
+          `🌕 Dispatch receipt logged · routed to ${targetLabel}` +
+          (dispatchArchetype ? ` (${dispatchArchetype}-aspect)` : '') +
+          `\n\nDispatch tokens are ephemeral · this receipt auto-prunes after 30 days.`,
+        );
+        return;
+      }
+      if (ent && ent.entityKind === 'creature') {
+        // Bound-familiar witness attestation · the Familiars (Faunia 🪶 · V59 · spawn_and_bind).
+        // Per chronicle §3.2 + import-guide §3.2:
+        //   · the bond stays with original Sovereign (no physical transfer to B)
+        //   · trueName is bearer-private · NEVER displayed without explicit consent
+        //   · walks_accumulated is advisory · cannot be verified without trust
+        if (!ent.bearerConsentToken) {
+          alert('Creature .md missing bearer_consent_token; cannot ingest.');
+          return;
+        }
+        if (!ent.substrateFramework) {
+          alert('Creature .md missing substrate_framework; cannot ingest.');
+          return;
+        }
+        // §5 cross-validator already confirmed substrate_framework resolves in NODES;
+        // safe to look up for the alert label.
+        const substrateNode = NODES.find(n => n.id === ent.substrateFramework);
+        const familiarEntry: BoundFamiliar = {
+          id: `familiar-${ent.bearerConsentToken}`,
+          name: ent.artefactName ?? file.name.replace(/\.md$/i, ''),
+          workshopId: prov.workshopId ?? 'shop-familiars',
+          residentMage: ent.residentMage ?? 'cast-faunia',
+          mageVertex: ent.mageVertex ?? 'V59',
+          substrateFramework: ent.substrateFramework,
+          // Persist trueName but DO NOT surface · trueNameDisplayConsent gates rendering.
+          trueName: ent.trueName,
+          trueNameDisplayConsent: false,
+          walksAccumulated: ent.walksAccumulated,
+          bearerConsentToken: ent.bearerConsentToken,
+          witnessedAt: ent.witnessedAt ?? new Date().toISOString(),
+          importedAt: new Date().toISOString(),
+          successionBanner: v160Banner,
+        };
+        // De-dup by bearer_consent_token — re-importing the same .md is a no-op.
+        setBoundFamiliars(prev => {
+          if (prev.some(f => f.id === familiarEntry.id)) return prev;
+          return [...prev, familiarEntry];
+        });
+        alert(
+          `🪶 Bound familiar witnessed · "${familiarEntry.name}"\n\n` +
+          `Substrate: ${substrateNode?.label ?? ent.substrateFramework}\n` +
+          `Walks accumulated: ${familiarEntry.walksAccumulated ?? '(advisory · not present in export)'}\n` +
+          `Bearer consent token: ${familiarEntry.bearerConsentToken}\n\n` +
+          `The bond stays exclusively with the original Sovereign. ` +
+          `True-name (if present) is bearer-private and will NOT be displayed without explicit consent.`,
+        );
+        return;
+      }
+      // Fall through · entity_kind is 'artefact' (or absent · v1.4.0 back-compat) → blade-shape regex.
 
       // Parse blade info
       const bladeMatch = content.match(/\*\*(.+?) (.+?)\*\*/);
@@ -2339,6 +2572,21 @@ export default function SpellWeb() {
       if (marks.length > 0 && proof) {
         const importedName = bladeMatch ? bladeMatch[2] : (file.name.replace(/\.md$/i, '').replace(/[-_]/g, ' '));
         const importedEmoji = bladeMatch ? bladeMatch[1] : (marks[0]?.emoji || '✦');
+
+        // v1.6.0 · staff-class enrichment. When the imported artefact is a Staff Shop
+        // fitting (artefact_class: staff + archetype_aspect: mage|swordsman), resolve
+        // the alexandrite aspect color from the workshop node's gemColorMage / gemColorSwordsman
+        // so the inventory render can show it in the matching aspect (chronicle §4.2 / import-guide §3.1).
+        let aspectColor: string | undefined;
+        if (ent && ent.archetypeAspect && prov.workshopId) {
+          const workshopNode = NODES.find(n => n.id === prov.workshopId);
+          if (workshopNode) {
+            aspectColor = ent.archetypeAspect === 'mage'
+              ? workshopNode.gemColorMage
+              : workshopNode.gemColorSwordsman;
+          }
+        }
+
         const witnessBlade: ForgedBlade = {
           id: `witness-${proof.signature}`,
           name: importedName,
@@ -2353,6 +2601,11 @@ export default function SpellWeb() {
           isWitness: true,
           witnessOf: witnessHash,
           witnessedFrom: creatorName,
+          // v1.6.0 enrichment · null-safe (only populated for v1.6.0 .mds)
+          artefactClass: ent?.artefactClass ?? undefined,
+          archetypeAspect: (ent?.archetypeAspect as 'mage' | 'swordsman' | undefined) ?? undefined,
+          aspectColor,
+          successionBanner: v160Banner ?? undefined,
         };
         setForgedBlades(prev => {
           if (prev.some(b => b.proof.signature === proof.signature)) return prev;
@@ -2415,6 +2668,7 @@ export default function SpellWeb() {
           windowWidth={dimensions.w}
           isFocusMode={isFocusMode}
           onToggleFocus={() => setIsFocusMode(prev => !prev)}
+          onOpenLattice={() => { setLatticeMode('lattice'); setLatticeOpen(true); }}
         />
       )}
 
@@ -2995,41 +3249,32 @@ export default function SpellWeb() {
         />
       )}
 
-      {/* Artefact Panel — the City of Mages inventory; Witness Constellation lives inside */}
-      <ArtefactPanel
-        isOpen={showArtefactPanel}
-        onClose={() => setShowArtefactPanel(false)}
-        onWitnessBlade={async (file) => {
-          // Shared parser — see parseWorkshopProvenance helper at module scope.
-          // handleWitnessBladeFile also runs this on import to keep activeWorkshopId in sync;
-          // we duplicate it here only so the witness-shop unlock fires before the blade record
-          // is built (timing matters for the fog-of-war useEffect ordering).
-          let prov: WorkshopProvenance = { workshopId: null, constellationId: null, constellationVersion: null };
-          try {
-            const text = await file.text();
-            prov = parseWorkshopProvenance(text, file.name);
-          } catch { /* fall through to filename heuristic via parser */ }
-          if (!prov.workshopId) {
-            // Parser already tried filename if text load failed; do it again defensively.
-            prov = parseWorkshopProvenance('', file.name);
-          }
-
-          handleWitnessBladeFile(file);
-
-          if (prov.workshopId) {
-            const shopId = prov.workshopId;
-            setWitnessedShops(prev => {
-              const next = { ...prev, [shopId]: new Date().toISOString() };
-              try { localStorage.setItem('spellweb:witnessed-shops', JSON.stringify(next)); } catch {}
-              return next;
-            });
-          }
-        }}
+      {/* v1.6.0 · ItemLatticeView — the unified items page · post-2026-05-15 side-panel retirement
+          carries Create/Craft import + forge inventory + equip surface gated on proof of presence */}
+      <ItemLatticeView
+        open={latticeOpen}
+        mode={latticeMode}
+        onClose={() => setLatticeOpen(false)}
+        onSwitchMode={(m) => setLatticeMode(m)}
         witnessedShops={witnessedShops}
         forgedBlades={forgedBlades}
-        onExportArtefact={(blade) => {
-          // Build a synthetic SavedConstellation around this forged blade so the
-          // standard export path can write the .md (frontmatter + body).
+        heldConstellations={heldConstellations}
+        boundFamiliars={boundFamiliars}
+        dispatchReceipts={dispatchReceipts}
+        onSetTrueNameConsent={(familiarId, consent) => {
+          setBoundFamiliars(prev => prev.map(f => f.id === familiarId ? { ...f, trueNameDisplayConsent: consent } : f));
+        }}
+        onCreateImport={async (file) => {
+          // Phase 1 · both Create and Craft route through the existing onWitnessBlade handler
+          // (parser-level intent split is queued for Phase 2 per the Create/Craft chronicle).
+          await handleWitnessBladeFile(file);
+        }}
+        onCraftImport={async (file) => {
+          await handleWitnessBladeFile(file);
+        }}
+        onExportArtefact={(bladeId) => {
+          const blade = forgedBlades.find(b => b.id === bladeId);
+          if (!blade) return;
           const synthetic: SavedConstellation = {
             id: `export-${blade.id}`,
             name: blade.name,
@@ -3043,10 +3288,9 @@ export default function SpellWeb() {
           };
           handleExportConstellation(synthetic);
         }}
-        onExportCatalogue={(node) => {
-          // Catalogue export — metadata card for a workshop's canonical artefact
-          // (Cloak / Memo Stone / Blade / Frame / etc.) or a tome. No proof,
-          // since the Sovereign hasn't forged this one yet — just the reference card.
+        onExportCatalogue={(nodeId) => {
+          const node = NODES.find(n => n.id === nodeId);
+          if (!node) return;
           const workshopId = node.type === 'workshop' ? node.id : null;
           const synthetic: SavedConstellation = {
             id: `catalogue-${node.id}-${Date.now()}`,
@@ -3057,6 +3301,11 @@ export default function SpellWeb() {
             workshopId: workshopId ?? undefined,
           };
           handleExportConstellation(synthetic);
+        }}
+        hasConstellation={constellation.length > 0}
+        onBeginEvoke={() => {
+          // Closes the lattice + starts the evoke ceremony for the loaded constellation.
+          if (!incantationActive) setIncantationActive(true);
         }}
       />
 
@@ -4705,18 +4954,18 @@ export default function SpellWeb() {
           forgeLabel={getWorkshopForgeContext(activeWorkshopId).buttonLabel}
           onOpenMageMenu={() => {
             setShowBladesModal(false);
-            setShowArtefactPanel(false);
             setShowMageMenu(true);
           }}
           onOpenBladesModal={() => {
             setShowMageMenu(false);
-            setShowArtefactPanel(false);
             setShowBladesModal(true);
           }}
           onOpenArtefacts={() => {
+            // Artefact panel retired 2026-05-15 — the lattice is the unified items page now.
             setShowMageMenu(false);
             setShowBladesModal(false);
-            setShowArtefactPanel(true);
+            setLatticeMode('items');
+            setLatticeOpen(true);
           }}
           witnessedShopsCount={Object.keys(witnessedShops).length}
           onCycleBlade={() => {
@@ -4856,10 +5105,15 @@ export default function SpellWeb() {
             // reads as a focused constellation, not a drifting ghost.
             bladeTraceActive && activeBlade?.constellationMarks
               ? (() => {
-                  // Get raw node positions
+                  // Get raw node positions; guard against missing nodes (renamed/removed in v1.6.0)
+                  // and against undefined / NaN coordinates (d3 simulation hasn't settled yet).
                   const rawNodes = activeBlade.constellationMarks.map(mark => {
                     const node = nodeDataRef.current.find(n => n.id === mark.nodeId);
-                    return node ? { x: node.x!, y: node.y!, id: mark.nodeId, emoji: mark.emoji } : null;
+                    if (!node) return null;
+                    const nx = node.x;
+                    const ny = node.y;
+                    if (typeof nx !== 'number' || typeof ny !== 'number' || !Number.isFinite(nx) || !Number.isFinite(ny)) return null;
+                    return { x: nx, y: ny, id: mark.nodeId, emoji: mark.emoji };
                   }).filter(Boolean) as Array<{ x: number; y: number; id: string; emoji?: string }>;
 
                   if (rawNodes.length === 0) return rawNodes;

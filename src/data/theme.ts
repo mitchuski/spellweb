@@ -74,6 +74,14 @@ export const THEME: Theme = {
     // V5.5 Attachment Architecture edges (2026-05-11)
     divergent_of:    { color: "#9333ea", width: 2, dash: "6,2" },    // purple dashed; cast → primary persona with register-shift (Lethae → Moonkeeper)
     complement_pair: { color: "#fbbf24", width: 1.8, dash: "3,3,1,3" }, // amber double-dashed; vertex bit-complement pair (Aletheia ⊥ Lethae)
+    // v1.6.0 edges (2026-05-14): district restructure, archetype-modal-shop, succession, releases-to
+    keeps:           { color: "#c4a8ff", width: 1.8, dash: null },   // violet solid; cast → workshop (canonical keeper relation)
+    wields:          { color: "#ffd700", width: 1.4, dash: null },   // gold solid; cast → artefact (Pleione wields Astrolabe)
+    sibling_of:      { color: "#34d399", width: 1.4, dash: "4,2" },  // green dashed; workshop ↔ workshop (Threshold District sibling shops)
+    district_of:     { color: "#86c5ff", width: 1, dash: "1,2" },    // sky dotted; workshop → district concept
+    fits_for:        { color: "#e4c84f", width: 1.6, dash: "3,2" },  // amber dashed; peripatetic fitter (Caducea fits Hermaion both aspects)
+    succeeded_by:    { color: "#71717a", width: 1.2, dash: "5,3,1,3" }, // grey double-dashed; historical → canonical succession
+    releases_to:     { color: "#5eead4", width: 1.5, dash: "2,2" },  // teal dashed; Chart Shop release destinations
   },
 };
 

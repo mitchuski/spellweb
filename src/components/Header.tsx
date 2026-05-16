@@ -22,9 +22,11 @@ interface HeaderProps {
   windowWidth?: number;
   isFocusMode?: boolean;
   onToggleFocus?: () => void;
+  /** v1.6.0 · open the middle-screen lattice items view directly (no need to open the side panel first). */
+  onOpenLattice?: () => void;
 }
 
-export function Header({ searchQuery, onSearchChange, nodeCount, edgeCount, spellbookFilters, onToggleSpellbook, hasConstellation, onClearConstellation, windowWidth = 1200, isFocusMode = false, onToggleFocus }: HeaderProps) {
+export function Header({ searchQuery, onSearchChange, nodeCount, edgeCount, spellbookFilters, onToggleSpellbook, hasConstellation, onClearConstellation, windowWidth = 1200, isFocusMode = false, onToggleFocus, onOpenLattice }: HeaderProps) {
   const [showSpellbooks, setShowSpellbooks] = useState(false);
   const isMobile = windowWidth < 768;
   return (
@@ -108,6 +110,35 @@ export function Header({ searchQuery, onSearchChange, nodeCount, edgeCount, spel
           fontSize: 12,
         }}
       >
+        {/* v1.6.0 · open the middle-screen lattice catalogue */}
+        {onOpenLattice && (
+          <button
+            onClick={onOpenLattice}
+            style={{
+              padding: "5px 10px",
+              borderRadius: 4,
+              background: "rgba(212, 175, 55, 0.10)",
+              border: "1px solid rgba(212, 175, 55, 0.45)",
+              color: "#d4af37",
+              fontSize: 11,
+              cursor: "pointer",
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              fontWeight: 600,
+              letterSpacing: 0.5,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              transition: "all 0.18s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(212, 175, 55, 0.18)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(212, 175, 55, 0.10)"; }}
+            title="Open the items lattice — 64-vertex catalogue view"
+          >
+            <span aria-hidden>🗺️</span>
+            {!isMobile && <span>LATTICE</span>}
+          </button>
+        )}
+
         {/* Clear Constellation Button */}
         {hasConstellation && onClearConstellation && (
           <button
