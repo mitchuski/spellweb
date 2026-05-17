@@ -379,6 +379,7 @@ export interface SpellbookFilterState {
   blockchain_canon: boolean;
   parallel_society: boolean;
   plurality: boolean;
+  tomes: boolean;
 }
 
 export interface ConnectedNode {

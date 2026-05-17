@@ -357,6 +357,7 @@ export default function SpellWeb() {
     blockchain_canon: true,
     parallel_society: true,
     plurality: true,
+    tomes: true,
   });
 
   // Mobile UI state
@@ -607,6 +608,7 @@ export default function SpellWeb() {
         if (!filters[n.layer]) return false;
         if (!typeFilters[n.type]) return false;
         if (n.type === 'act' && n.spellbook && !spellbookFilters[n.spellbook]) return false;
+        if (n.type === 'act' && n.tome && !spellbookFilters.tomes) return false;
         return true;
       });
       const deviations = typeFilters.artefact ? deviationNodes : [];
@@ -861,6 +863,8 @@ export default function SpellWeb() {
       if (!typeFilters[n.type]) return false;
       // Spellbook filter (only applies to acts with a spellbook property)
       if (n.type === 'act' && n.spellbook && !spellbookFilters[n.spellbook]) return false;
+      // Tome filter (hides Tome I–VII narrative acts when the tomes toggle is off)
+      if (n.type === 'act' && n.tome && !spellbookFilters.tomes) return false;
       return true;
     });
     const visibleNodeIds = new Set(visibleNodeData.map((n) => n.id));
@@ -1182,6 +1186,7 @@ export default function SpellWeb() {
       if (!filters[n.layer]) return false;
       if (!typeFilters[n.type]) return false;
       if (n.type === 'act' && n.spellbook && !spellbookFilters[n.spellbook]) return false;
+      if (n.type === 'act' && n.tome && !spellbookFilters.tomes) return false;
       return true;
     });
     const visibleNodeIds = new Set(visibleNodeData.map((n) => n.id));

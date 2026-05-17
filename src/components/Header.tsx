@@ -8,6 +8,7 @@ const SPELLBOOK_BUTTONS = [
   { key: "blockchain_canon" as const, label: "⛓️", fullLabel: "Blockchain Canon", color: "#00d9ff" },
   { key: "parallel_society" as const, label: "🏛️", fullLabel: "Parallel Society", color: "#2ecc71" },
   { key: "plurality" as const, label: "⿻", fullLabel: "Plurality", color: "#7b68ee" },
+  { key: "tomes" as const, label: "📜", fullLabel: "Tomes", color: "#d4a574" },
 ];
 
 interface HeaderProps {
