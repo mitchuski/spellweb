@@ -180,7 +180,9 @@ export type EdgeType =
   | 'succeeded_by'     // historical → canonical (cast-bestia succeeded_by cast-hermaion; cast-pelagia succeeded_by cast-pleione)
   | 'releases_to';     // workshop → workshop (Chart Shop releases_to Bonfire / Weavers / open-sea)
 
-export type CastTier = 'archetype' | 'cousin' | 'summoned' | 'companion' | 'priest';
+export type CastTier = 'archetype' | 'cousin' | 'summoned' | 'companion' | 'priest' | 'cosmological-witness' | 'spirit-Mage';
+// v1.5.0 added 'cosmological-witness' (Selene 🌙 · Aether ⿻ · Lethe 🌀 · city-external prehistory)
+// v1.7.0 added 'spirit-Mage' (the Archivist 📚 · Tower-resident · city-internal prehistory · tutelary register)
 export type TradeQuarter = 'producer' | 'gathering' | 'temple' | 'bonfire' | 'placeholder';
 export type OperatorStatus = 'operational' | 'partial' | 'tease' | 'placeholder' | 'gathering';
 export type Attribution = 'agentprivacy' | 'cousin-blade' | 'cousin-substrate' | 'kindred' | 'kindred-protocol' | 'kindred-coalition' | 'open';
