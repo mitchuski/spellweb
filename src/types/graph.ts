@@ -232,7 +232,7 @@ export interface SpellwebNode {
   vertex?: number;              // 0–63, position on the 64-vertex lattice
   bits?: string;                // 6-bit binary, e.g. "011100" for V28
   hammingWeight?: number;       // 0–6, the stratum (Pascal's row)
-  tome?: 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII';   // For act nodes: which tome (v1.6.0 extends I-III + VI + VII)
+  tome?: 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII';   // For act nodes: which tome (v1.7.1 extends with VIII · the Library)
   act?: number;                 // For act nodes: act number within the tome
   sigil?: string;               // Cast-member sigil (emoji or emoji-pair)
   gem?: string;                 // Workshop palette gem name (e.g. "Amethyst")

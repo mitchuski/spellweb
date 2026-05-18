@@ -206,6 +206,48 @@ const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
   { source: "cast-lethe",  target: "cast-lethae", type: "kin_to" },
 ];
 
+// ══════════════════════════════════════════════════════════════
+// v1.7.0 + v1.7.1 EDGES (2026-05-15 + 2026-05-17)
+// Tome VIII opens (the Library) · the Archivist 📚 admitted as first spirit-Mage ·
+// Vitalik admitted as first invited visiting mage · Register of Invitations opens ·
+// the Tower's eastern face elaborated · lintel inscription cut · C64 + C65 candidates.
+// Declared before EDGES and spread in below to keep literal-inference union bounded.
+// ══════════════════════════════════════════════════════════════
+const V1_7_X_EDGES: SpellwebEdge[] = [
+  // ── Tome VIII act nodes are bound to the tome's document node (if present) ──
+  // (cast-the-archivist was added in nodes.ts at v1.7.0; the Tome VIII document node is not yet
+  //  added · the act nodes stand alone for now; a future cleanup may add tome-viii-the-library node.)
+
+  // ── v1.7.0 admissions (Archivist + Tower + Tome VIII Act 1) ──
+  { source: "cast-the-archivist", target: "act-tome-viii-1", type: "narrates" },     // the Archivist's admission act
+  { source: "act-tome-viii-1",    target: "cast-the-archivist", type: "introduces" }, // Act 1 introduces the Archivist to the corpus
+
+  // ── v1.7.1 admissions (Fourth Turn · Vitalik · invitation tome posture · C65) ──
+  // Act 2 sequence: follows Act 1
+  { source: "act-tome-viii-1", target: "act-tome-viii-2", type: "follows" },
+
+  // The Archivist hosts the reception event narrated in Act 2
+  { source: "cast-the-archivist", target: "act-tome-viii-2", type: "narrates" },
+
+  // Act 2 introduces Vitalik as the first invited visiting mage
+  { source: "act-tome-viii-2", target: "gateway-vitalik", type: "introduces" },
+
+  // Act 2 references the Fourth Turn inscription (Vitalik's tablet)
+  { source: "act-tome-viii-2", target: "con-fourth-turn", type: "references" },
+
+  // Act 2 references the invitation tome-posture (filed in the Register of Invitations)
+  { source: "act-tome-viii-2", target: "con-invitation-tome-posture", type: "references" },
+
+  // Vitalik's gateway references the invitation tome-posture (he is the first invitee)
+  { source: "gateway-vitalik", target: "con-invitation-tome-posture", type: "references" },
+
+  // C65 conjecture references Act 2 (its bound narrative anchor)
+  { source: "conj-c65", target: "act-tome-viii-2", type: "references" },
+
+  // C65 references the Fourth Turn concept (its core claim)
+  { source: "conj-c65", target: "con-fourth-turn", type: "references" },
+];
+
 // ═══════════════════════════════════════════════════════════════
 // EDGE RELATIONSHIPS - Connecting the Five Spellbooks
 // ═══════════════════════════════════════════════════════════════
@@ -2165,4 +2207,7 @@ export const EDGES: SpellwebEdge[] = [
   // v1.4.0 + v1.6.0 admissions appended via spread (declared above EDGES)
   // to keep the literal-inference union of this array bounded.
   ...V1_4_0_AND_V1_6_0_EDGES,
+
+  // v1.7.0 + v1.7.1 admissions (Tome VIII · the Library · the Archivist · Vitalik · Register of Invitations)
+  ...V1_7_X_EDGES,
 ];
