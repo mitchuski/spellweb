@@ -61,7 +61,7 @@ function getFirstEmoji(str: string | undefined): string {
 }
 
 export default function SpellWeb() {
-  const { mageDid, backupMageHistory, restoredHistory } = useKeymaster();
+  const { mageDid, backupMageHistory, saveBladeToVault, restoredHistory } = useKeymaster();
 
   const svgRef = useRef<SVGSVGElement>(null);
   const simRef = useRef<d3.Simulation<SimulationNode, SimulationEdge> | null>(null);
@@ -175,6 +175,7 @@ export default function SpellWeb() {
   const [showSwordsmanImport, setShowSwordsmanImport] = useState(false); // Swordsman identity import modal
   const [showMageMenu, setShowMageMenu] = useState(false); // Mage spell menu (M key)
   const [backupStatus, setBackupStatus] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
+  const [pendingAutoBackup, setPendingAutoBackup] = useState<ForgedBlade | null>(null);
   const [showCeremonyMenu, setShowCeremonyMenu] = useState(false); // Ceremony menu (Y key) - ☯️ Sun/Moon poems
   const [latestProof, setLatestProof] = useState<SpellProof | null>(null);
   const [forgePhase, setForgePhase] = useState<'ignite' | 'forge' | 'temper' | 'complete' | 'naming' | 'manifesting'>('ignite');
@@ -1639,6 +1640,92 @@ export default function SpellWeb() {
       setTimeout(() => setBackupStatus('idle'), 3000);
     }
   }, [backupStatus, mageDid, mageSpells, savedConstellations, forgedBlades, equippedBlade, userEdges, manaPoints, backupMageHistory]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Build blade markdown from a ForgedBlade (used for vault auto-save)
+  function generateBladeMd(blade: ForgedBlade): string {
+    const dimTable = [
+      "### Blade Dimensions",
+      "| Dimension | Status |",
+      "|-----------|--------|",
+      `| 🛡️ Protection | ${blade.proof.bladeDimensions.protection ? '✅ Active' : '⬜ Dormant'} |`,
+      `| 🤝 Delegation | ${blade.proof.bladeDimensions.delegation ? '✅ Active' : '⬜ Dormant'} |`,
+      `| 📜 Memory | ${blade.proof.bladeDimensions.memory ? '✅ Active' : '⬜ Dormant'} |`,
+      `| 🔗 Connection | ${blade.proof.bladeDimensions.connection ? '✅ Active' : '⬜ Dormant'} |`,
+      `| ⚡ Computation | ${blade.proof.bladeDimensions.computation ? '✅ Active' : '⬜ Dormant'} |`,
+      `| 💎 Value | ${blade.proof.bladeDimensions.value ? '✅ Active' : '⬜ Dormant'} |`,
+      "",
+    ];
+    return [
+      `# ${blade.emoji} ${blade.name}`,
+      `*Created: ${new Date(blade.forgedAt).toLocaleString()}*`,
+      "",
+      blade.isWitness ? "## Witness Blade" : "## Forged Blade",
+      `**${blade.emoji} ${blade.name}**`,
+      `- **Tier:** ${blade.tier.charAt(0).toUpperCase() + blade.tier.slice(1)} Blade`,
+      `- **Stratum:** ${blade.stratum}/6 ${stratumToMoonPhase(blade.stratum)} (${getMoonPhaseInfo(blade.stratum).name})`,
+      `- **Forged:** ${new Date(blade.forgedAt).toLocaleString()}`,
+      `- **Nodes:** ${blade.constellationNodes}`,
+      ...(blade.isWitness ? [
+        "", "### Promise Exchange",
+        `- **Type:** Witness (Bilateral Promise)`,
+        `- **Witnessed:** ${blade.witnessedFrom || 'Unknown'}`,
+        `- **Original Hash:** \`${blade.witnessOf}\``,
+      ] : []),
+      "", ...dimTable,
+      "## Proof of Presence",
+      `- **Charge Level:** ${blade.proof.chargeLevel.toUpperCase()} 🔥`,
+      `- **Laps:** ${blade.proof.lapCount}`,
+      `- **Duration:** ${Math.round(blade.proof.duration / 1000)}s`,
+      `- **Spells Cast:** ${blade.proof.spellsCast || 0}`,
+      "",
+      "### Cryptographic Proof",
+      "```",
+      `Signature: ${blade.proof.signature}`,
+      `Hash: ${blade.proof.constellationHash}`,
+      `Hex: ${blade.proof.bladeHex}`,
+      `Blade Hash: ${blade.proof.bladeHash}`,
+      `Chain: #${blade.proof.chainLength}${blade.proof.previousBladeHash ? ` (prev: ${blade.proof.previousBladeHash.slice(0,8)}...)` : ' (inception)'}`,
+      "```",
+      "",
+      ...(blade.proof.mageId ? [
+        "### Mage Identity",
+        `- **Mage ID:** \`${blade.proof.mageId}\``,
+        `- **Signature:** \`${blade.proof.mageSignature?.slice(0,32)}...\``,
+        "",
+      ] : []),
+      ...(blade.proof.runecrafted ? [
+        "### Runecraft (Dual-Key Binding)",
+        `- **Swordsman ID:** \`${blade.proof.swordsmanId}\``,
+        `- **Swordsman Signature:** \`${blade.proof.swordsmanSignature}\``,
+        `- **Runecrafted:** ${new Date(blade.proof.runecraftedAt || 0).toLocaleString()}`,
+        "- **Status:** ⚔️🔮 Dual Ed25519 signature verified",
+        "",
+      ] : []),
+      "## Constellation Path",
+      ...(blade.constellationMarks ?? []).map((m, i) =>
+        `${i + 1}. ${m.emoji} **${m.nodeLabel}**${m.note ? ` - ${m.note}` : ""}`
+      ),
+      "",
+      "---",
+      `*Forged in the 64-Tetrahedra Lattice*`,
+      `*(⚔️⊥⿻⊥🧙)🙂*`,
+    ].join("\n");
+  }
+
+  // Auto-backup to vault when a new blade is forged
+  useEffect(() => {
+    if (!pendingAutoBackup || !mageDid) return;
+    const blade = pendingAutoBackup;
+    setPendingAutoBackup(null);
+    const itemName = `blade-${blade.proof.signature}.md`;
+    const md = generateBladeMd(blade);
+    void saveBladeToVault(itemName, md).catch(err =>
+      console.warn('[vault] blade save failed:', err)
+    );
+    void handleBackupToArchon().catch(err =>
+      console.warn('[vault] full backup failed:', err)
+    );
+  }, [pendingAutoBackup, mageDid]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Mage bundle — identity + spell loadout + saved constellations as one .md
   const handleExportMage = useCallback(() => {
@@ -6212,6 +6299,7 @@ export default function SpellWeb() {
                       } : {}),
                     };
                     setForgedBlades(prev => [...prev, newBlade]);
+                    setPendingAutoBackup(newBlade);
                     setForgePhase('manifesting');
                     // Clear witness mode and proof - longer timeout to complete the full animation lap
                     setTimeout(() => {

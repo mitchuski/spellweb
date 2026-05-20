@@ -48,6 +48,8 @@ interface KeymasterContextValue {
   exportWallet: () => Promise<void>;
   importWallet: (walletData: StoredWallet) => Promise<void>;
   backupMageHistory: (payload: MageArchonBackup) => Promise<void>;
+  saveBladeToVault: (itemName: string, content: string) => Promise<void>;
+  listVaultItems: () => Promise<Record<string, unknown>>;
   restoredHistory: MageArchonBackup | null;
 }
 
@@ -284,6 +286,26 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
     await km.addVaultItem(vaultId, MAGE_HISTORY_ITEM, Buffer.from(JSON.stringify(payload)));
   }
 
+  async function saveBladeToVault(itemName: string, content: string): Promise<void> {
+    const km = keymasterRef.current;
+    if (!km) throw new Error('Wallet not unlocked');
+    let vaultId = await km.getAlias(MAGE_VAULT_ALIAS);
+    if (!vaultId) {
+      vaultId = await km.createVault();
+      await km.addAlias(MAGE_VAULT_ALIAS, vaultId);
+    }
+    try { await km.removeVaultItem(vaultId, itemName); } catch { /* not yet present */ }
+    await km.addVaultItem(vaultId, itemName, Buffer.from(content));
+  }
+
+  async function listVaultItems(): Promise<Record<string, unknown>> {
+    const km = keymasterRef.current;
+    if (!km) return {};
+    const vaultId = await km.getAlias(MAGE_VAULT_ALIAS);
+    if (!vaultId) return {};
+    return (await km.listVaultItems(vaultId)) as Record<string, unknown>;
+  }
+
   async function importWallet(walletData: StoredWallet): Promise<void> {
     const walletWeb = new WalletWeb();
     await walletWeb.saveWallet(walletData, true);
@@ -309,6 +331,8 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
     exportWallet,
     importWallet,
     backupMageHistory,
+    saveBladeToVault,
+    listVaultItems,
     restoredHistory,
   };
 
