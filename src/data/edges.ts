@@ -4,6 +4,7 @@
 // Edges: 21 | DID-Blind: true
 
 import type { SpellwebEdge } from '../types/graph';
+import { REGISTRY_EDGES as POH_CLOAK_EDGES } from './poh-cloak-contribution';
 
 export const EDGES: SpellwebEdge[] = [
   { source: "per-genitrix-28", target: "skill-chiron-recall-4", type: "manifests_as" },
@@ -26,5 +27,6 @@ export const EDGES: SpellwebEdge[] = [
   { source: "spell-location-proof-five-guys-15", target: "skill-five-guys-vc-subject-ide-3", type: "manifests_as" },
   { source: "spell-location-proof-five-guys-15", target: "skill-five-guys-vc-cryptograph-25", type: "manifests_as" },
   { source: "spell-location-proof-five-guys-15", target: "skill-five-guys-vc-temporal-ch-20", type: "manifests_as" },
-  { source: "doc-the-boundary-blade-5", target: "doc-the-transmutation-5", type: "follows" }
+  { source: "doc-the-boundary-blade-5", target: "doc-the-transmutation-5", type: "follows" },
+  ...POH_CLOAK_EDGES,
 ];

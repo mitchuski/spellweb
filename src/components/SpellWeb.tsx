@@ -25,6 +25,8 @@ import {
   exportMageKeyBackup,
   type SwordsmanLink,
 } from '../lib/mageIdentity';
+import { useKeymaster } from '../contexts/KeymasterContext';
+import { type MageArchonBackup } from '../lib/mageHistory';
 // D3 simulation node type
 interface SimulationNode extends SpellwebNode {
   x: number;
@@ -58,6 +60,8 @@ function getFirstEmoji(str: string | undefined): string {
 }
 
 export default function SpellWeb() {
+  const { mageDid, backupMageHistory, restoredHistory } = useKeymaster();
+
   const svgRef = useRef<SVGSVGElement>(null);
   const simRef = useRef<d3.Simulation<SimulationNode, SimulationEdge> | null>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -166,6 +170,7 @@ export default function SpellWeb() {
   const [swordsmanLink, setSwordsmanLink] = useState<SwordsmanLink | null>(() => getSwordsmanLink());
   const [showSwordsmanImport, setShowSwordsmanImport] = useState(false); // Swordsman identity import modal
   const [showMageMenu, setShowMageMenu] = useState(false); // Mage spell menu (M key)
+  const [backupStatus, setBackupStatus] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
   const [showCeremonyMenu, setShowCeremonyMenu] = useState(false); // Ceremony menu (Y key) - ☯️ Sun/Moon poems
   const [latestProof, setLatestProof] = useState<SpellProof | null>(null);
   const [forgePhase, setForgePhase] = useState<'ignite' | 'forge' | 'temper' | 'complete' | 'naming' | 'manifesting'>('ignite');
@@ -1589,6 +1594,137 @@ export default function SpellWeb() {
   }, []);
 
 
+  // Auto-restore from Archon backup on first unlock — only applies when local history is empty
+  useEffect(() => {
+    if (!restoredHistory) return;
+    if (mageSpells.length > 0 || savedConstellations.length > 0) return;
+    setMageSpells(restoredHistory.mageSpells as typeof mageSpells);
+    setSavedConstellations(restoredHistory.savedConstellations as typeof savedConstellations);
+    setForgedBlades(restoredHistory.forgedBlades as typeof forgedBlades);
+    setEquippedBlade(restoredHistory.equippedBlade as typeof equippedBlade);
+    setUserEdges(restoredHistory.userEdges as typeof userEdges);
+    if (typeof restoredHistory.manaPoints === 'number') {
+      setManaPoints(restoredHistory.manaPoints);
+    }
+    console.log('[SpellWeb] Mage history restored from Archon backup');
+  }, [restoredHistory]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Backup Mage history to an encrypted Archon asset DID
+  const handleBackupToArchon = useCallback(async () => {
+    if (backupStatus === 'busy' || !mageDid) return;
+    setBackupStatus('busy');
+    try {
+      const payload: MageArchonBackup = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        identity: getMageIdentity(),
+        mageSpells,
+        savedConstellations,
+        forgedBlades,
+        equippedBlade,
+        userEdges,
+        manaPoints,
+      };
+      await backupMageHistory(payload);
+      setBackupStatus('done');
+      setTimeout(() => setBackupStatus('idle'), 3000);
+    } catch (err) {
+      console.error('[backup] Archon backup failed:', err);
+      setBackupStatus('error');
+      setTimeout(() => setBackupStatus('idle'), 3000);
+    }
+  }, [backupStatus, mageDid, mageSpells, savedConstellations, forgedBlades, equippedBlade, userEdges, manaPoints, backupMageHistory]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Mage bundle — identity + spell loadout + saved constellations as one .md
+  const handleExportMage = useCallback(() => {
+    const mageIdentity = getMageIdentity();
+    const backup = hasMageIdentity() ? exportMageKeyBackup() : null;
+    const archonDid = mageIdentity?.archonDid ?? mageDid ?? null;
+    const exportedAt = new Date().toISOString();
+    const fm = [
+      '---',
+      'kind: mage-bundle',
+      'version: 1',
+      mageIdentity ? `mage_id: ${mageIdentity.mageId}` : null,
+      archonDid ? `archon_did: ${archonDid}` : null,
+      `spell_count: ${mageSpells.length}`,
+      `saved_constellation_count: ${savedConstellations.length}`,
+      `exported_at: ${exportedAt}`,
+      'license: CC BY-SA 4.0',
+      'signature: "(⚔️⊥⿻⊥🧙)😊"',
+      '---',
+      '',
+    ].filter(Boolean).join('\n');
+
+    const lines: string[] = [
+      fm,
+      `# 🧙 Mage Bundle — ${mageIdentity?.mageId?.slice(0, 16) ?? 'Sovereign'}`,
+      `*Exported ${new Date(exportedAt).toLocaleString()}*`,
+      '',
+      '## Identity',
+    ];
+    if (mageIdentity) {
+      lines.push(`- **Mage ID:** \`${mageIdentity.mageId}\``);
+    } else {
+      lines.push('- **Mage ID:** *not yet initialised*');
+    }
+    if (archonDid) {
+      lines.push(`- **Archon DID:** \`${archonDid}\``);
+    }
+
+    if (backup) {
+      lines.push(
+        '',
+        '## Mage Identity Backup',
+        '*Keep this safe — re-importing restores the Mage signing key.*',
+        '',
+        '```json',
+        JSON.stringify(backup, null, 2),
+        '```',
+      );
+    }
+
+    lines.push('', `## Spells (${mageSpells.length}/8)`, '');
+    if (mageSpells.length === 0) {
+      lines.push('*No spells equipped yet.*');
+    } else {
+      lines.push('| Slot | Emoji | Spell | Proverb |', '|------|-------|-------|---------|');
+      mageSpells.forEach((s, i) => {
+        lines.push(`| ${i + 1} | ${s.emoji ?? '✦'} | ${s.label} | ${s.proverb ? `"${s.proverb}"` : '-'} |`);
+      });
+    }
+
+    lines.push('', `## Saved Constellations (${savedConstellations.length})`, '');
+    if (savedConstellations.length === 0) {
+      lines.push('*No saved constellations yet.*');
+    } else {
+      savedConstellations.forEach((c, i) => {
+        lines.push(
+          `### ${i + 1}. ${c.name}`,
+          `- **Created:** ${new Date(c.createdAt).toLocaleString()}`,
+          `- **Nodes:** ${c.marks.length}`,
+          c.proof ? `- **Charge:** ${c.proof.chargeLevel.toUpperCase()} · ${c.proof.lapCount} laps` : '- *no proof — not yet evoked*',
+          c.inscribedSpell ? `- **Inscribed spell:** \`${c.inscribedSpell}\`` : '',
+          '',
+          `> ${c.marks.map(m => m.emoji).join(' → ')}`,
+          '',
+        );
+      });
+    }
+
+    lines.push('---', '*The Mage projects what the Swordsman protects.*', '*(⚔️⊥⿻⊥🧙)😊*');
+
+    const md = lines.join('\n');
+    const filename = `mage-${(mageIdentity?.mageId?.slice(5, 13) ?? 'sovereign').replace(/[^a-z0-9]/gi, '_').toLowerCase()}-bundle.md`;
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [mageSpells, savedConstellations, mageDid]);
+
   // Handle witness blade file import
   const handleWitnessBladeFile = useCallback((file: File) => {
     const reader = new FileReader();
@@ -1778,16 +1914,64 @@ export default function SpellWeb() {
               <h3 style={{ margin: 0, color: "#9b59b6", fontSize: 20, fontFamily: "'Cormorant Garamond', serif" }}>
                 🧙 Mage Spellbook
               </h3>
-              <button
-                onClick={() => setShowMageMenu(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: THEME.textDim,
-                  cursor: 'pointer',
-                  fontSize: 18,
-                }}
-              >×</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  onClick={handleBackupToArchon}
+                  disabled={backupStatus === 'busy' || !mageDid}
+                  title={mageDid ? 'Backup Mage history to encrypted Archon asset' : 'Connect wallet to backup'}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: 6,
+                    background: backupStatus === 'done'
+                      ? 'linear-gradient(135deg, #2ecc7130, #27ae6020)'
+                      : backupStatus === 'error'
+                      ? 'linear-gradient(135deg, #e9456030, #c0392b20)'
+                      : 'linear-gradient(135deg, #3498db30, #2980b920)',
+                    border: `1px solid ${backupStatus === 'done' ? '#2ecc71' : backupStatus === 'error' ? '#e94560' : '#3498db'}`,
+                    color: backupStatus === 'done' ? '#2ecc71' : backupStatus === 'error' ? '#e94560' : '#3498db',
+                    fontSize: 11,
+                    cursor: backupStatus === 'busy' || !mageDid ? 'not-allowed' : 'pointer',
+                    opacity: !mageDid ? 0.4 : 1,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <span>{backupStatus === 'busy' ? '⏳' : backupStatus === 'done' ? '✓' : backupStatus === 'error' ? '✗' : '☁'}</span>
+                  {backupStatus === 'busy' ? 'Backing up…' : backupStatus === 'done' ? 'Backed up' : backupStatus === 'error' ? 'Failed' : 'Backup'}
+                </button>
+                <button
+                  onClick={handleExportMage}
+                  title={`Bundle Mage identity${hasMageIdentity() ? ' (with keys)' : ''} + ${mageSpells.length} spells + ${savedConstellations.length} saved constellations into one .md`}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: 6,
+                    background: "linear-gradient(135deg, #9b59b630, #7b68ee20)",
+                    border: "1px solid #9b59b6",
+                    color: "#9b59b6",
+                    fontSize: 11,
+                    cursor: "pointer",
+                    fontFamily: "'JetBrains Mono', monospace",
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <span>📥</span> Mage.md
+                </button>
+                <button
+                  onClick={() => setShowMageMenu(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: THEME.textDim,
+                    cursor: 'pointer',
+                    fontSize: 18,
+                  }}
+                >×</button>
+              </div>
             </div>
 
             {/* Mana Bar Section */}
@@ -2174,45 +2358,7 @@ export default function SpellWeb() {
                 }}>
                   🌌 SAVED CONSTELLATIONS ({savedConstellations.length})
                 </span>
-                {/* Export Mage Identity button */}
-                {hasMageIdentity() && (
-                  <button
-                    onClick={() => {
-                      const backup = exportMageKeyBackup();
-                      if (!backup) {
-                        alert('No mage identity found to export');
-                        return;
-                      }
-                      // Download as JSON file
-                      const json = JSON.stringify(backup, null, 2);
-                      const blob = new Blob([json], { type: 'application/json' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `mage-${backup.mageId.slice(5, 13)}-backup.json`;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                    }}
-                    style={{
-                      padding: "4px 10px",
-                      borderRadius: 4,
-                      background: "linear-gradient(135deg, #9b59b620, #7b68ee15)",
-                      border: "1px solid #9b59b6",
-                      color: "#9b59b6",
-                      fontSize: 10,
-                      cursor: "pointer",
-                      fontFamily: "'JetBrains Mono', monospace",
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                    }}
-                    title="Export mage identity keys (backup)"
-                  >
-                    <span>🔑</span> Export Keys
-                  </button>
-                )}
+                {/* Export Keys moved → Mage.md bundle in panel header */}
               </div>
               {/* Celestial Ceremony Presets */}
               <div style={{ marginBottom: 12 }}>

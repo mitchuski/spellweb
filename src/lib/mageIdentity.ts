@@ -38,6 +38,28 @@
  */
 
 import * as ed from '@noble/ed25519';
+import { sha512 } from '@noble/hashes/sha512';
+import { sha256 } from '@noble/hashes/sha256';
+import type Keymaster from '@didcid/keymaster';
+
+// @noble/ed25519 v3 uses crypto.subtle for SHA-512 by default, which is only
+// available in secure contexts (HTTPS/localhost). Override with the pure-JS
+// implementation from @noble/hashes so key ops work over plain HTTP.
+ed.hashes.sha512Async = async (msg: Uint8Array) => sha512(msg);
+
+// Canonical document signed by the Mage's secp256k1 DID key to derive the
+// stable Ed25519 blade-signing seed. Must never change — altering it orphans
+// existing keys (same DID would produce a different Mage identity).
+const MAGE_SEED_DOCUMENT = {
+  context: 'spellweb-mage-inception',
+  version: 'v1',
+} as const;
+
+function base64urlToBytes(s: string): Uint8Array {
+  const base64 = s.replace(/-/g, '+').replace(/_/g, '/');
+  const padding = (4 - (base64.length % 4)) % 4;
+  return Uint8Array.from(atob(base64 + '='.repeat(padding)), c => c.charCodeAt(0));
+}
 
 // ─────────────────────────────────────────────────────────────
 // Hex Utilities (matching agentprivacy/keygen.ts)
@@ -68,6 +90,12 @@ export function hexToBytes(hex: string): Uint8Array {
 
 export async function generateKeyPair(): Promise<{ privateKey: Uint8Array; publicKey: Uint8Array }> {
   const privateKey = ed.utils.randomSecretKey();
+  const publicKey = await ed.getPublicKeyAsync(privateKey);
+  return { privateKey, publicKey };
+}
+
+export async function keypairFromSeed(seed: Uint8Array): Promise<{ privateKey: Uint8Array; publicKey: Uint8Array }> {
+  const privateKey = seed.slice(0, 32);
   const publicKey = await ed.getPublicKeyAsync(privateKey);
   return { privateKey, publicKey };
 }
@@ -111,6 +139,8 @@ export interface MageIdentity {
   lastForgedAt?: string;       // ISO timestamp of last forge
   runecrafted: boolean;        // True if linked to a Swordsman
   linkedSwordsmanId?: string;  // ap-{16hex} if runecrafted
+  archonLinked?: boolean;      // True when derived from Archon DID
+  archonDid?: string;          // The Archon DID this key was derived from
 }
 
 export interface SwordsmanLink {
@@ -222,36 +252,94 @@ export function hasSwordsmanLink(): boolean {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Archon-derived Identity (browser Keymaster)
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Derives the spellweb Ed25519 blade-signing key from the Mage's Archon identity:
+ *   SHA-256( secp256k1_sig_of(MAGE_SEED_DOCUMENT) ) → 32-byte Ed25519 seed
+ *
+ * Same Archon wallet → same Mage key on every device. Deterministic and
+ * non-exportable without the Archon passphrase.
+ */
+export async function deriveMageKeyFromKeymaster(
+  keymaster: Keymaster,
+  archonDid: string,
+): Promise<MageIdentity> {
+  const signed = await keymaster.addProof(MAGE_SEED_DOCUMENT, undefined, 'authentication');
+  const proofValue: string = (signed as { proof: { proofValue: string } }).proof.proofValue;
+
+  // SHA-256(secp256k1 signature bytes) → deterministic 32-byte Ed25519 seed
+  const seed = sha256(base64urlToBytes(proofValue));
+
+  const publicKey = await ed.getPublicKeyAsync(seed);
+  const publicKeyHex = publicKeyToHex(publicKey);
+  const mageId = generateMageId(publicKeyHex);
+
+  // Preserve forge history if the identity already exists
+  const existing = getMageIdentity();
+  const identity: MageIdentity = {
+    mageId,
+    publicKeyHex,
+    createdAt: existing?.createdAt ?? new Date().toISOString(),
+    bladesForged: existing?.bladesForged ?? 0,
+    lastForgedAt: existing?.lastForgedAt,
+    runecrafted: existing?.runecrafted ?? false,
+    linkedSwordsmanId: existing?.linkedSwordsmanId,
+    archonLinked: true,
+    archonDid,
+  };
+
+  saveKeys({ privateKey: seed, publicKey });
+  saveMageIdentity(identity);
+
+  console.log(`[MageIdentity] Derived from Archon: ${mageId}`);
+  return identity;
+}
+
+// ─────────────────────────────────────────────────────────────
 // Identity Initialization (called on first forge)
 // ─────────────────────────────────────────────────────────────
 
-export async function initializeMageIdentity(): Promise<MageIdentity> {
-  // Check if already initialized
+export async function initializeMageIdentity(archonDid?: string): Promise<MageIdentity> {
   const existing = getMageIdentity();
   if (existing && hasMageIdentity()) {
+    // If an Archon DID is now available, update the stored identity
+    if (archonDid && !existing.archonLinked) {
+      existing.archonLinked = true;
+      existing.archonDid = archonDid;
+      saveMageIdentity(existing);
+    }
     return existing;
   }
 
-  // Generate new keypair
   const keypair = await generateKeyPair();
   const publicKeyHex = publicKeyToHex(keypair.publicKey);
   const mageId = generateMageId(publicKeyHex);
 
-  // Create identity
   const identity: MageIdentity = {
     mageId,
     publicKeyHex,
     createdAt: new Date().toISOString(),
     bladesForged: 0,
     runecrafted: false,
+    archonLinked: !!archonDid,
+    archonDid,
   };
 
-  // Persist
   saveKeys(keypair);
   saveMageIdentity(identity);
 
   console.log(`[MageIdentity] Initialized: ${mageId}`);
   return identity;
+}
+
+export function linkArchonDid(did: string): void {
+  const identity = getMageIdentity();
+  if (!identity) return;
+  identity.archonLinked = true;
+  identity.archonDid = did;
+  saveMageIdentity(identity);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -331,6 +419,8 @@ export interface MageKeyBackup {
   bladesForged: number;
   runecrafted: boolean;
   linkedSwordsmanId?: string;
+  archonLinked?: boolean;
+  archonDid?: string;
   exportedAt: string;
 }
 
@@ -354,6 +444,8 @@ export function exportMageKeyBackup(): MageKeyBackup | null {
     bladesForged: identity.bladesForged,
     runecrafted: identity.runecrafted,
     linkedSwordsmanId: identity.linkedSwordsmanId,
+    archonLinked: identity.archonLinked,
+    archonDid: identity.archonDid,
     exportedAt: new Date().toISOString(),
   };
 }
@@ -378,15 +470,16 @@ export function importMageKeyBackup(backup: MageKeyBackup): boolean {
     localStorage.setItem(KEYS.PUBLIC_KEY, backup.publicKeyHex);
 
     // Save identity
-    const identity: MageIdentity = {
+    saveMageIdentity({
       mageId: backup.mageId,
       publicKeyHex: backup.publicKeyHex,
       createdAt: backup.createdAt,
       bladesForged: backup.bladesForged,
       runecrafted: backup.runecrafted,
       linkedSwordsmanId: backup.linkedSwordsmanId,
-    };
-    saveMageIdentity(identity);
+      archonLinked: backup.archonLinked,
+      archonDid: backup.archonDid,
+    });
 
     console.log(`[MageIdentity] Imported: ${backup.mageId}`);
     return true;

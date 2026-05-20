@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { THEME } from '../data/theme';
+import { MageIdentityPanel } from './MageIdentityPanel';
 import type { SpellbookFilterState } from '../types/graph';
 
 const SPELLBOOK_BUTTONS = [
@@ -353,6 +354,9 @@ export function Header({ searchQuery, onSearchChange, nodeCount, edgeCount, spel
             <span>SHARE</span>
           </a>
         )}
+
+        {/* Mage Identity */}
+        <MageIdentityPanel />
 
         {/* Node/edge count - hide on mobile */}
         {!isMobile && (

@@ -5,6 +5,7 @@
 // Layer 3 of the Sovereign Anchor cloaking demo (anonymized public layer)
 
 import type { SpellwebNode } from '../types/graph';
+import { REGISTRY_NODES as POH_CLOAK_NODES } from './poh-cloak-contribution';
 
 export const NODES: SpellwebNode[] = [
   {
@@ -192,5 +193,6 @@ export const NODES: SpellwebNode[] = [
     hexagram: { bladeId: 20, layer: 2, layerName: "Twin-edge", yangCount: 2, lines: [0, 0, 1, 0, 1, 0] },
     poetic: "Time is not a secret.\nThe when is the only honest thing\nthe cloak refuses to hide.\nA credential without a clock is a claim that cannot be falsified;\na cloak that hides the clock is a cloak that hides the truth.",
     emoji: "⚙️",
-  }
+  },
+  ...POH_CLOAK_NODES,
 ];

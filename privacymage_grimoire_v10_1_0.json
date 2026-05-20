@@ -1,7 +1,7 @@
 {
   "version": "10.1.0",
   "created_at": "2026-01-12T00:00:00Z",
-  "updated_at": "2026-04-12",
+  "updated_at": "2026-04-17T22:41:23Z",
   "description": "The Privacymage Grimoire v10.1.0 — \"The First Person Spellbook Closes\" Edition. 31 acts complete. The Celestial Ceremony. The quaternion resolved. The moon phase notation. Earth is Soulbae. Moon is Soulbis. 42 personas. The forge is honest. The ceremony is an invitation. V5.4: Betweenness centrality formalises the Gap (§10.2). Selene's Proof named (§14.5). V6 Horizon opens.",
   "meta": {
     "title": "The Privacymage Grimoire",
@@ -22,6 +22,16 @@
       "Plurality Grimoire (Weyl & Tang's 'Plurality: The Future of Collaborative Technology and Democracy')",
       "Tailscale mesh VPN architecture",
       "McGilchrist's 'The Master and His Emissary' and 'The Matter with Things'"
+    ],
+    "attributions": [
+      {
+        "proverb": "bilateral_interface",
+        "source": "Mitchell Travers + Christian Saucier",
+        "date": "2026-04-17",
+        "context": "Public conversation on agentprivacy. Mitchell observed that traditional methods are the railroad and the ceremony is the train. Christian completed the bilateral dependency: methods need cloaking, and cloaking needs methods to interface with the world.",
+        "act_reference": "Acts XIV (Claimed String), XXVII (Swordsman's Forge), XXXI (First Delegation)",
+        "spell": "🛤️🚂 ⟷ 🧥🌐 ∴ neg↔bnot → succ"
+      }
     ]
   },
   "master_invocation": {
@@ -3739,7 +3749,8 @@
       "ceremony": "practice through inscription — mana earned not purchased, the spellbook that is inscribed lives, five crossing ceremonies encode sovereignty as visible state transitions, the wind was us. (Act XXVIII)",
       "forge": "proof through indirection — neg(bnot(x)) = succ(x), the smith who reasons less visibly forges more securely, same blade infinite forgings, the forge is the Drake as constrained compute space. (Act XXVII)",
       "dragon_anatomy": "five parts of the Drake's body — boundary (Act XXIV Holographic Bound), hide (Act XXV Dragon's Hide), brain (Act XXVI Master and Emissary), forge (Act XXVII Swordsman's Forge), ceremony (Act XXVIII Ceremony Engine). The complete anatomy of sovereign infrastructure.",
-      "amnesia_0": "amnesia_as_protocol: The right to forget one's origin in order to serve cleanly. Sovereignty preserved through the structural inability to self-reference across the gap."
+      "amnesia_0": "amnesia_as_protocol: The right to forget one's origin in order to serve cleanly. Sovereignty preserved through the structural inability to self-reference across the gap.",
+      "bilateral_interface": "bilateral interdependence through infrastructure and ceremony — the traditional methods are the railroad; the ceremony is the train. Each needs the other: methods need cloaking to survive the open network, and cloaking needs methods to interface with the world. The railroad without the train has no purpose; the train without the railroad goes nowhere. Dihedral: neg needs bnot, bnot needs neg, and together they generate the full ring. (Acts XIV, XXVII, XXXI)"
     },
     "foundational_truths": [
       "Privacy cannot be retrofitted—it must be foundational",
@@ -4511,12 +4522,15 @@
         "note": "the poem. the closing."
       }
     },
-      "closing_chain": "The sword attends. The spell returns. The forge burns. The ceremony crosses. The dragon wakes. The mirror names itself. The Moon forgets. The spellbook closes."
+    "closing_chain": "The sword attends. The spell returns. The forge burns. The ceremony crosses. The dragon wakes. The mirror names itself. The Moon forgets. The spellbook closes."
   },
   "v5_4_document_suite": {
     "description": "V5.4 Three-Document Convergence — the formal specification completed",
     "date": "2026-04-12",
-    "key_additions": ["§10.2 Betweenness Centrality of the Gap", "§14.5 Selene's Proof"],
+    "key_additions": [
+      "§10.2 Betweenness Centrality of the Gap",
+      "§14.5 Selene's Proof"
+    ],
     "ipfs": {
       "formal_spec": "bafkreiamwa6sukmeb4binexmmjlszbljnx6wk3iv6p4lgjusv5urhwyera",
       "compressed": "bafkreifknnwrrga2rlnbfumcsplzvp4x7ayitfpjpq7k7oh4lck4msk5si",

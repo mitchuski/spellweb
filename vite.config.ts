@@ -5,10 +5,14 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  define: {
+    global: 'globalThis',
+  },
   plugins: [react(), cloudflare()],
   server: {
     port: 8000,
-    open: true,
+    host: true,
+    open: false,
   },
   build: {
     outDir: 'dist',
