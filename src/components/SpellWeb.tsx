@@ -23,6 +23,7 @@ import {
   getSwordsmanLink,
   saveSwordsmanLink,
   exportMageKeyBackup,
+  verifySignature,
   type SwordsmanLink,
 } from '../lib/mageIdentity';
 import { useKeymaster } from '../contexts/KeymasterContext';
@@ -167,6 +168,9 @@ export default function SpellWeb() {
   const [showBladesModal, setShowBladesModal] = useState(false); // Unified Blades modal (ZK + Witness)
   const [showRunecraftModal, setShowRunecraftModal] = useState(false); // Runecraft modal for Swordsman linking
   const [runecraftBlade, setRunecraftBlade] = useState<ForgedBlade | null>(null); // Blade being runecrafted
+  const [runecraftInput, setRunecraftInput] = useState('');
+  const [runecraftSignatureValid, setRunecraftSignatureValid] = useState<boolean | null>(null);
+  const [runecraftError, setRunecraftError] = useState<string | null>(null);
   const [swordsmanLink, setSwordsmanLink] = useState<SwordsmanLink | null>(() => getSwordsmanLink());
   const [showSwordsmanImport, setShowSwordsmanImport] = useState(false); // Swordsman identity import modal
   const [showMageMenu, setShowMageMenu] = useState(false); // Mage spell menu (M key)
@@ -1521,8 +1525,9 @@ export default function SpellWeb() {
       ...(saved.proof?.runecrafted ? [
         "### Runecraft (Dual-Key Binding)",
         `- **Swordsman ID:** \`${saved.proof.swordsmanId}\``,
+        `- **Swordsman Signature:** \`${saved.proof.swordsmanSignature}\``,
         `- **Runecrafted:** ${new Date(saved.proof.runecraftedAt || 0).toLocaleString()}`,
-        "- **Status:** 🔮 Dual-key proof established",
+        "- **Status:** ⚔️🔮 Dual Ed25519 signature verified",
         "",
       ] : []),
       ...(saved.inscribedSpell ? [
@@ -4678,6 +4683,9 @@ export default function SpellWeb() {
           onClick={() => {
             setShowRunecraftModal(false);
             setRunecraftBlade(null);
+            setRunecraftInput('');
+            setRunecraftSignatureValid(null);
+            setRunecraftError(null);
           }}
         >
           <div
@@ -4794,24 +4802,26 @@ export default function SpellWeb() {
               </div>
             ) : (
               <div style={{ marginBottom: 16 }}>
+                {/* Swordsman linked status */}
                 <div style={{
                   background: 'rgba(34, 197, 94, 0.1)',
                   borderRadius: 8,
-                  padding: 12,
+                  padding: 10,
                   border: '1px solid #22c55e30',
+                  marginBottom: 12,
                 }}>
                   <div style={{
                     color: '#22c55e',
-                    fontSize: 11,
+                    fontSize: 10,
                     fontFamily: "'JetBrains Mono', monospace",
-                    marginBottom: 8,
+                    marginBottom: 6,
                   }}>
                     ✓ Swordsman Linked
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 16 }}>⚔️</span>
+                    <span style={{ fontSize: 14 }}>⚔️</span>
                     <div>
-                      <div style={{ color: '#fff', fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>
+                      <div style={{ color: '#fff', fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>
                         {swordsmanLink.displayName}
                       </div>
                       <div style={{ color: '#888', fontSize: 9, fontFamily: "'JetBrains Mono', monospace" }}>
@@ -4819,6 +4829,112 @@ export default function SpellWeb() {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Blade challenge string */}
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{
+                    color: '#888',
+                    fontSize: 9,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    marginBottom: 4,
+                    textTransform: 'uppercase',
+                    letterSpacing: 1,
+                  }}>
+                    Blade Challenge — copy &amp; run runecraft.ts
+                  </div>
+                  <div
+                    style={{
+                      background: 'rgba(0,0,0,0.4)',
+                      border: '1px solid #333',
+                      borderRadius: 4,
+                      padding: '6px 8px',
+                      color: '#f59e0b',
+                      fontSize: 8,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      wordBreak: 'break-all',
+                      lineHeight: 1.5,
+                      userSelect: 'all',
+                      cursor: 'text',
+                    }}
+                  >
+                    BLADE:{runecraftBlade.proof.constellationHash}:{runecraftBlade.proof.bladeHash}:{runecraftBlade.proof.lapCount}:{runecraftBlade.proof.completedAt}
+                  </div>
+                  <div style={{
+                    color: '#555',
+                    fontSize: 8,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    marginTop: 4,
+                    lineHeight: 1.5,
+                  }}>
+                    node --experimental-strip-types runecraft.ts --proof &lt;proof.json&gt; --name Excalibur
+                  </div>
+                </div>
+
+                {/* Signature paste area */}
+                <div>
+                  <div style={{
+                    color: '#888',
+                    fontSize: 9,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    marginBottom: 4,
+                    textTransform: 'uppercase',
+                    letterSpacing: 1,
+                  }}>
+                    Paste Runecraft Output
+                  </div>
+                  <textarea
+                    value={runecraftInput}
+                    placeholder='{"swordsmanId":"ap-...","swordsmanSignature":"...","runecraftedAt":...}'
+                    style={{
+                      width: '100%',
+                      height: 72,
+                      background: 'rgba(0,0,0,0.3)',
+                      border: `1px solid ${runecraftSignatureValid === true ? '#22c55e' : runecraftSignatureValid === false ? '#ef4444' : '#444'}`,
+                      borderRadius: 6,
+                      color: '#fff',
+                      fontSize: 9,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      padding: 8,
+                      resize: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                    onChange={async (e) => {
+                      const val = e.target.value;
+                      setRunecraftInput(val);
+                      setRunecraftSignatureValid(null);
+                      setRunecraftError(null);
+                      if (!val.trim()) return;
+                      try {
+                        const data = JSON.parse(val);
+                        if (!data.swordsmanSignature || !data.swordsmanId) {
+                          setRunecraftError('Missing swordsmanSignature or swordsmanId');
+                          return;
+                        }
+                        if (data.swordsmanId !== swordsmanLink.participantId) {
+                          setRunecraftError(`Wrong swordsman: expected ${swordsmanLink.participantId}`);
+                          setRunecraftSignatureValid(false);
+                          return;
+                        }
+                        const challenge = `BLADE:${runecraftBlade.proof.constellationHash}:${runecraftBlade.proof.bladeHash}:${runecraftBlade.proof.lapCount}:${runecraftBlade.proof.completedAt}`;
+                        const valid = await verifySignature(swordsmanLink.publicKeyHex, challenge, data.swordsmanSignature);
+                        setRunecraftSignatureValid(valid);
+                        if (!valid) setRunecraftError('Signature invalid — re-run runecraft.ts with the correct proof data');
+                      } catch {
+                        // Still typing JSON — stay neutral
+                      }
+                    }}
+                  />
+                  {runecraftSignatureValid === true && (
+                    <div style={{ color: '#22c55e', fontSize: 9, fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>
+                      ✓ Signature verified — ready to runecraft
+                    </div>
+                  )}
+                  {runecraftError && (
+                    <div style={{ color: '#ef4444', fontSize: 9, fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>
+                      ✗ {runecraftError}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -4829,6 +4945,9 @@ export default function SpellWeb() {
                 onClick={() => {
                   setShowRunecraftModal(false);
                   setRunecraftBlade(null);
+                  setRunecraftInput('');
+                  setRunecraftSignatureValid(null);
+                  setRunecraftError(null);
                 }}
                 style={{
                   flex: 1,
@@ -4845,44 +4964,45 @@ export default function SpellWeb() {
                 Cancel
               </button>
               <button
-                disabled={!swordsmanLink}
+                disabled={!runecraftSignatureValid}
                 onClick={() => {
-                  if (swordsmanLink && runecraftBlade) {
-                    // Mark blade as runecrafted
+                  if (runecraftSignatureValid && swordsmanLink && runecraftBlade) {
+                    const parsed = JSON.parse(runecraftInput);
                     const updatedProof = {
                       ...runecraftBlade.proof,
                       runecrafted: true,
-                      swordsmanId: swordsmanLink.participantId,
-                      runecraftedAt: Date.now(),
-                      // Note: actual swordsmanSignature would require cross-app signing
-                      // For now, we mark the link as established
+                      swordsmanId: parsed.swordsmanId,
+                      swordsmanSignature: parsed.swordsmanSignature,
+                      runecraftedAt: parsed.runecraftedAt ?? Date.now(),
                     };
-                    const updatedBlade = {
-                      ...runecraftBlade,
-                      proof: updatedProof,
-                    };
-                    // Update in forgedBlades
+                    const updatedBlade = { ...runecraftBlade, proof: updatedProof };
                     const newBlades = forgedBlades.map(b =>
                       b.id === runecraftBlade.id ? updatedBlade : b
                     );
                     setForgedBlades(newBlades);
                     localStorage.setItem(SPELLWEB_STORAGE_KEYS.forgedBlades, JSON.stringify(newBlades));
-
+                    if (equippedBlade?.id === runecraftBlade.id) {
+                      setEquippedBlade(updatedBlade);
+                      localStorage.setItem(SPELLWEB_STORAGE_KEYS.equippedBlade, JSON.stringify(updatedBlade));
+                    }
                     setShowRunecraftModal(false);
                     setRunecraftBlade(null);
-                    console.log(`[Runecraft] Blade "${runecraftBlade.name}" linked to ${swordsmanLink.participantId}`);
+                    setRunecraftInput('');
+                    setRunecraftSignatureValid(null);
+                    setRunecraftError(null);
+                    console.log(`[Runecraft] Blade "${runecraftBlade.name}" dual-signed by ${swordsmanLink.participantId}`);
                   }
                 }}
                 style={{
                   flex: 2,
                   padding: '10px 16px',
                   borderRadius: 8,
-                  background: swordsmanLink ? 'linear-gradient(135deg, #9333ea, #7c3aed)' : 'rgba(147, 51, 234, 0.2)',
+                  background: runecraftSignatureValid ? 'linear-gradient(135deg, #9333ea, #7c3aed)' : 'rgba(147, 51, 234, 0.2)',
                   border: 'none',
-                  color: swordsmanLink ? '#fff' : '#666',
+                  color: runecraftSignatureValid ? '#fff' : '#666',
                   fontSize: 11,
                   fontFamily: "'JetBrains Mono', monospace",
-                  cursor: swordsmanLink ? 'pointer' : 'not-allowed',
+                  cursor: runecraftSignatureValid ? 'pointer' : 'not-allowed',
                   letterSpacing: 1,
                 }}
               >
@@ -4900,7 +5020,7 @@ export default function SpellWeb() {
               lineHeight: 1.5,
             }}>
               Runecraft binds both Mage (knowledge graph) and Swordsman (promise graph)
-              identities to this blade, creating a dual-key proof of presence.
+              identities to this blade via dual Ed25519 signature — the Gap ⿻ is preserved.
             </div>
           </div>
         </div>
@@ -4965,6 +5085,11 @@ export default function SpellWeb() {
                         markEmojis: dimEmojis,
                         proofSignature: equippedBlade.proof.signature,
                         isWitness: equippedBlade.isWitness || false,
+                        ...(equippedBlade.proof.runecrafted && {
+                          swordsmanId: equippedBlade.proof.swordsmanId,
+                          runecrafted: true,
+                          swordsmanSignature: equippedBlade.proof.swordsmanSignature,
+                        }),
                       };
                       const b64 = encodeBladePayloadForUrl(payload);
                       window.open(`https://agentprivacy.ai/spells?spellwebBlade=${b64}`, '_blank');
@@ -4995,8 +5120,8 @@ export default function SpellWeb() {
                       const currentConstellation: SavedConstellation = {
                         id: `export-${Date.now()}`,
                         name: equippedBlade?.name || 'My Constellation',
-                        marks: constellation,
-                        connections: constellationConnections,
+                        marks: constellation.length > 0 ? constellation : (equippedBlade?.constellationMarks ?? []),
+                        connections: constellation.length > 0 ? constellationConnections : (equippedBlade?.constellationConnections ?? []),
                         createdAt: new Date().toISOString(),
                         proof: equippedBlade?.proof || latestProof || undefined,
                         inscribedSpell: undefined,
@@ -5557,6 +5682,9 @@ export default function SpellWeb() {
                               e.stopPropagation();
                               if (!blade.proof.runecrafted) {
                                 setRunecraftBlade(blade);
+                                setRunecraftInput('');
+                                setRunecraftSignatureValid(null);
+                                setRunecraftError(null);
                                 setShowRunecraftModal(true);
                               }
                             }}

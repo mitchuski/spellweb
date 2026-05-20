@@ -382,6 +382,9 @@ export interface SpellwebBladePayloadV1 {
   markEmojis: string[];
   proofSignature?: string;
   isWitness?: boolean;
+  swordsmanId?: string;
+  runecrafted?: boolean;
+  swordsmanSignature?: string;
 }
 
 /**
