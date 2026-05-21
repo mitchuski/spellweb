@@ -51,6 +51,14 @@ interface ConnectionState {
   sourceNode: SpellwebNode | null;
 }
 
+// Resolve '✦' placeholder emoji to the current node definition's emoji
+function resolveNodeEmoji<T extends { nodeId: string; emoji?: string }>(items: T[]): T[] {
+  return items.map(item => {
+    if (item.emoji && item.emoji !== '✦') return item;
+    return { ...item, emoji: NODES.find(n => n.id === item.nodeId)?.emoji || '✦' } as T;
+  });
+}
+
 // Helper to extract the first emoji from a string (handles multi-emoji strings)
 function getFirstEmoji(str: string | undefined): string {
   if (!str) return '✦';
@@ -139,7 +147,9 @@ export default function SpellWeb() {
   const [savedConstellations, setSavedConstellations] = useState<SavedConstellation[]>(() => {
     try {
       const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.constellations);
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed: SavedConstellation[] = JSON.parse(saved);
+      return parsed.map(c => ({ ...c, marks: resolveNodeEmoji(c.marks) }));
     } catch { return []; }
   });
   const [activeConstellationId, setActiveConstellationId] = useState<string | null>(null);
@@ -187,7 +197,9 @@ export default function SpellWeb() {
   const [forgedBlades, setForgedBlades] = useState<ForgedBlade[]>(() => {
     try {
       const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.forgedBlades);
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed: ForgedBlade[] = JSON.parse(saved);
+      return parsed.map(b => ({ ...b, constellationMarks: resolveNodeEmoji(b.constellationMarks) }));
     } catch { return []; }
   });
   const [activeBlade, setActiveBlade] = useState<ForgedBlade | null>(null); // Currently highlighted blade
@@ -199,7 +211,9 @@ export default function SpellWeb() {
   const [equippedBlade, setEquippedBlade] = useState<ForgedBlade | null>(() => {
     try {
       const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.equippedBlade);
-      return saved ? JSON.parse(saved) : null;
+      if (!saved) return null;
+      const b: ForgedBlade = JSON.parse(saved);
+      return { ...b, constellationMarks: resolveNodeEmoji(b.constellationMarks) };
     } catch { return null; }
   });
 
@@ -216,7 +230,7 @@ export default function SpellWeb() {
   const [mageSpells, setMageSpells] = useState<MageSpell[]>(() => {
     try {
       const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.mageSpells);
-      return saved ? JSON.parse(saved) : [];
+      return saved ? resolveNodeEmoji(JSON.parse(saved)) : [];
     } catch { return []; }
   });
 
@@ -1051,7 +1065,7 @@ export default function SpellWeb() {
         }
         // During constellation mode, show the user's custom emoji
         const mark = constellation.find(m => m.nodeId === d.id);
-        if (mark) return mark.emoji;
+        if (mark) return mark.emoji !== '✦' ? mark.emoji : (d.emoji || mark.emoji);
         return "";
       })
       .transition()
@@ -1607,10 +1621,14 @@ export default function SpellWeb() {
   useEffect(() => {
     if (!restoredHistory) return;
     if (mageSpells.length > 0 || savedConstellations.length > 0) return;
-    setMageSpells(restoredHistory.mageSpells as typeof mageSpells);
-    setSavedConstellations(restoredHistory.savedConstellations as typeof savedConstellations);
-    setForgedBlades(restoredHistory.forgedBlades as typeof forgedBlades);
-    setEquippedBlade(restoredHistory.equippedBlade as typeof equippedBlade);
+    const spells = restoredHistory.mageSpells as typeof mageSpells;
+    setMageSpells(resolveNodeEmoji(spells));
+    const constellations = restoredHistory.savedConstellations as typeof savedConstellations;
+    setSavedConstellations(constellations.map(c => ({ ...c, marks: resolveNodeEmoji(c.marks) })));
+    const blades = restoredHistory.forgedBlades as typeof forgedBlades;
+    setForgedBlades(blades.map(b => ({ ...b, constellationMarks: resolveNodeEmoji(b.constellationMarks) })));
+    const equipped = restoredHistory.equippedBlade as typeof equippedBlade;
+    setEquippedBlade(equipped ? { ...equipped, constellationMarks: resolveNodeEmoji(equipped.constellationMarks) } : null);
     setUserEdges(restoredHistory.userEdges as typeof userEdges);
     if (typeof restoredHistory.manaPoints === 'number') {
       setManaPoints(restoredHistory.manaPoints);
@@ -2405,7 +2423,7 @@ export default function SpellWeb() {
                           transition: 'all 0.2s ease',
                         }}
                       >
-                        {getFirstEmoji(mark.emoji)}
+                        {getFirstEmoji(mark.emoji !== '✦' ? mark.emoji : (node?.emoji || mark.emoji))}
                       </div>
                     );
                   })}
