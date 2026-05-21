@@ -38,8 +38,7 @@
  */
 
 import * as ed from '@noble/ed25519';
-import { sha512 } from '@noble/hashes/sha512';
-import { sha256 } from '@noble/hashes/sha256';
+import { sha512, sha256 } from '@noble/hashes/sha2.js';
 import type Keymaster from '@didcid/keymaster';
 
 // @noble/ed25519 v3 requires SHA-512; override with pure-JS impl for plain-HTTP contexts

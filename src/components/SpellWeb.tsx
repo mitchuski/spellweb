@@ -75,7 +75,7 @@ function getFirstEmoji(str: string | undefined): string {
 }
 
 export default function SpellWeb() {
-  const { mageDid, backupMageHistory, saveBladeToVault, listVaultItems, getVaultItem, restoredHistory } = useKeymaster();
+  const { mageDid, walletState, connectWallet, backupMageHistory, saveBladeToVault, listVaultItems, getVaultItem, restoredHistory } = useKeymaster();
 
   const svgRef = useRef<SVGSVGElement>(null);
   const simRef = useRef<d3.Simulation<SimulationNode, SimulationEdge> | null>(null);
@@ -3393,10 +3393,10 @@ export default function SpellWeb() {
             </div>
 
             {/* Archon Vault Browser */}
-            {mageDid && (
-              <div style={{ marginTop: 16, padding: 16, background: '#0a0a1a', borderRadius: 8, border: '1px solid #9b59b640' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 11, color: '#9b59b6', fontFamily: "'JetBrains Mono', monospace" }}>☁ Archon Vault</span>
+            <div style={{ marginTop: 16, padding: 16, background: '#0a0a1a', borderRadius: 8, border: '1px solid #9b59b640' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 11, color: '#9b59b6', fontFamily: "'JetBrains Mono', monospace" }}>☁ Archon Vault</span>
+                {mageDid ? (
                   <button
                     onClick={handleBrowseVault}
                     disabled={vaultLoading}
@@ -3404,27 +3404,40 @@ export default function SpellWeb() {
                   >
                     {vaultLoading ? '…' : '↻ Browse'}
                   </button>
-                </div>
-                {vaultItems === null && <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>Click Browse to load vault items</div>}
-                {vaultItems !== null && vaultItems.length === 0 && <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>No items in vault</div>}
-                {vaultItems !== null && vaultItems.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 160, overflowY: 'auto' }}>
-                    {vaultItems.map(name => (
-                      <div key={name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 6px', background: '#ffffff08', borderRadius: 4 }}>
-                        <span style={{ fontSize: 10, color: '#aaa', fontFamily: "'JetBrains Mono', monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
-                        <button
-                          onClick={() => handleDownloadVaultItem(name)}
-                          disabled={downloadingItem === name}
-                          style={{ padding: '2px 6px', borderRadius: 3, background: 'none', border: '1px solid #555', color: '#888', fontSize: 10, cursor: downloadingItem === name ? 'wait' : 'pointer', marginLeft: 8, flexShrink: 0 }}
-                        >
-                          {downloadingItem === name ? '…' : '↓'}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                ) : (
+                  <button
+                    onClick={connectWallet}
+                    disabled={walletState === 'checking'}
+                    style={{ padding: '3px 8px', borderRadius: 4, background: 'linear-gradient(135deg, #9b59b630, #7b68ee20)', border: '1px solid #9b59b6', color: '#9b59b6', fontSize: 10, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {walletState === 'checking' ? '…' : '🔑 Connect'}
+                  </button>
                 )}
               </div>
-            )}
+              {!mageDid && (
+                <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>
+                  Connect your Archon wallet to enable vault save &amp; restore
+                </div>
+              )}
+              {mageDid && vaultItems === null && <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>Click Browse to load vault items</div>}
+              {mageDid && vaultItems !== null && vaultItems.length === 0 && <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>No items in vault</div>}
+              {mageDid && vaultItems !== null && vaultItems.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 160, overflowY: 'auto' }}>
+                  {vaultItems.map(name => (
+                    <div key={name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 6px', background: '#ffffff08', borderRadius: 4 }}>
+                      <span style={{ fontSize: 10, color: '#aaa', fontFamily: "'JetBrains Mono', monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                      <button
+                        onClick={() => handleDownloadVaultItem(name)}
+                        disabled={downloadingItem === name}
+                        style={{ padding: '2px 6px', borderRadius: 3, background: 'none', border: '1px solid #555', color: '#888', fontSize: 10, cursor: downloadingItem === name ? 'wait' : 'pointer', marginLeft: 8, flexShrink: 0 }}
+                      >
+                        {downloadingItem === name ? '…' : '↓'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div style={{
               marginTop: 12,

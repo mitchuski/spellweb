@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { Buffer } from 'buffer';
 import DrawbridgeClient from '@didcid/gatekeeper/drawbridge';
 import Keymaster from '@didcid/keymaster';
 import type { StoredWallet } from '@didcid/keymaster';
@@ -18,7 +19,6 @@ import {
   setSessionPassphrase,
 } from '../utils/sessionPassphrase';
 import { deriveMageKeyFromKeymaster } from '../lib/mageIdentity';
-import { Buffer } from 'buffer';
 import { type MageArchonBackup, MAGE_VAULT_ALIAS, MAGE_HISTORY_ITEM } from '../lib/mageHistory';
 import { THEME } from '../data/theme';
 
@@ -76,6 +76,7 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
   const [passphrase, setPassphrase] = useState('');
   const [passphraseConfirm, setPassphraseConfirm] = useState('');
   const [passphraseError, setPassphraseError] = useState('');
+  const [modalTab, setModalTab] = useState<'unlock' | 'import'>('unlock');
 
   // Keymaster singleton — ref so mutations don't trigger re-renders; refreshFlag drives them
   const keymasterRef = useRef<Keymaster | null>(null);
@@ -395,45 +396,48 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 28, marginBottom: 8 }}>✦</div>
               <div style={{ fontSize: 15, fontWeight: 600, color: THEME.textBright, fontFamily: "'Cormorant Garamond', serif" }}>
-                {walletState === 'no-wallet' ? 'Create Mage Wallet' : 'Unlock Wallet'}
-              </div>
-              <div style={{ fontSize: 11, color: THEME.textDim, marginTop: 4, fontFamily: "'IBM Plex Sans', sans-serif" }}>
-                {walletState === 'no-wallet'
-                  ? 'Set a passphrase to protect your Archon identity'
-                  : 'Enter your passphrase to unlock the Mage wallet'}
+                Archon Wallet
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <input
-                type="password"
-                placeholder="Passphrase"
-                value={passphrase}
-                onChange={e => setPassphrase(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handlePassphraseSubmit()}
-                autoFocus
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  background: '#ffffff08',
-                  border: `1px solid ${THEME.panelBorder}`,
-                  borderRadius: 6,
-                  color: THEME.textBright,
-                  fontSize: 13,
-                  outline: 'none',
-                  fontFamily: "'IBM Plex Sans', sans-serif",
-                  boxSizing: 'border-box',
-                }}
-                onFocus={e => (e.target.style.borderColor = THEME.accent)}
-                onBlur={e => (e.target.style.borderColor = THEME.panelBorder)}
-              />
-              {walletState === 'no-wallet' && (
+            {/* Tabs — only show when no wallet yet (import option relevant) or always for import */}
+            <div style={{ display: 'flex', gap: 4, background: '#ffffff08', borderRadius: 6, padding: 3 }}>
+              {(['unlock', 'import'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setModalTab(tab)}
+                  style={{
+                    flex: 1,
+                    padding: '5px 0',
+                    borderRadius: 4,
+                    border: 'none',
+                    background: modalTab === tab ? THEME.accent : 'transparent',
+                    color: modalTab === tab ? '#fff' : THEME.textDim,
+                    fontSize: 11,
+                    cursor: 'pointer',
+                    fontFamily: "'JetBrains Mono', monospace",
+                    textTransform: 'capitalize',
+                  }}
+                >
+                  {tab === 'unlock' ? (walletState === 'no-wallet' ? 'Create' : 'Unlock') : 'Import'}
+                </button>
+              ))}
+            </div>
+
+            {modalTab === 'unlock' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ fontSize: 11, color: THEME.textDim, fontFamily: "'IBM Plex Sans', sans-serif" }}>
+                  {walletState === 'no-wallet'
+                    ? 'Set a passphrase to protect your Archon identity'
+                    : 'Enter your passphrase to unlock the Mage wallet'}
+                </div>
                 <input
                   type="password"
-                  placeholder="Confirm passphrase"
-                  value={passphraseConfirm}
-                  onChange={e => setPassphraseConfirm(e.target.value)}
+                  placeholder="Passphrase"
+                  value={passphrase}
+                  onChange={e => setPassphrase(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handlePassphraseSubmit()}
+                  autoFocus
                   style={{
                     width: '100%',
                     padding: '8px 12px',
@@ -449,13 +453,83 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
                   onFocus={e => (e.target.style.borderColor = THEME.accent)}
                   onBlur={e => (e.target.style.borderColor = THEME.panelBorder)}
                 />
-              )}
-              {passphraseError && (
-                <div style={{ fontSize: 11, color: '#e94560', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {passphraseError}
+                {walletState === 'no-wallet' && (
+                  <input
+                    type="password"
+                    placeholder="Confirm passphrase"
+                    value={passphraseConfirm}
+                    onChange={e => setPassphraseConfirm(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handlePassphraseSubmit()}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      background: '#ffffff08',
+                      border: `1px solid ${THEME.panelBorder}`,
+                      borderRadius: 6,
+                      color: THEME.textBright,
+                      fontSize: 13,
+                      outline: 'none',
+                      fontFamily: "'IBM Plex Sans', sans-serif",
+                      boxSizing: 'border-box',
+                    }}
+                    onFocus={e => (e.target.style.borderColor = THEME.accent)}
+                    onBlur={e => (e.target.style.borderColor = THEME.panelBorder)}
+                  />
+                )}
+                {passphraseError && (
+                  <div style={{ fontSize: 11, color: '#e94560', fontFamily: "'JetBrains Mono', monospace" }}>
+                    {passphraseError}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {modalTab === 'import' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ fontSize: 11, color: THEME.textDim, fontFamily: "'IBM Plex Sans', sans-serif" }}>
+                  Import an encrypted Archon wallet JSON (exported from keymaster or another device)
                 </div>
-              )}
-            </div>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    padding: '10px 0',
+                    border: `1px dashed ${THEME.panelBorder}`,
+                    borderRadius: 6,
+                    color: THEME.textDim,
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}
+                >
+                  📂 Choose wallet file
+                  <input
+                    type="file"
+                    accept=".json"
+                    style={{ display: 'none' }}
+                    onChange={async e => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const text = await file.text();
+                        const data = JSON.parse(text) as StoredWallet;
+                        await importWallet(data);
+                        setModalTab('unlock');
+                      } catch {
+                        setPassphraseError('Invalid wallet file');
+                      }
+                    }}
+                  />
+                </label>
+                {passphraseError && (
+                  <div style={{ fontSize: 11, color: '#e94560', fontFamily: "'JetBrains Mono', monospace" }}>
+                    {passphraseError}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: 8 }}>
               <button
@@ -474,7 +548,7 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
               >
                 Cancel
               </button>
-              <button
+              {modalTab === 'unlock' && <button
                 onClick={handlePassphraseSubmit}
                 style={{
                   flex: 1,
@@ -490,7 +564,7 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
                 }}
               >
                 {walletState === 'no-wallet' ? 'Create' : 'Unlock'}
-              </button>
+              </button>}
             </div>
           </div>
         </div>
