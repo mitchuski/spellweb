@@ -1954,6 +1954,31 @@ export default function SpellWeb() {
     }
   }, [listVaultItems]);
 
+  const handleLoadVaultItem = useCallback(async (itemName: string) => {
+    const buf = await getVaultItem(itemName);
+    if (!buf) { console.warn(`[vault] no data for ${itemName}`); return; }
+    try {
+      const payload: MageArchonBackup = JSON.parse(new TextDecoder().decode(buf));
+      const spells = payload.mageSpells as typeof mageSpells;
+      setMageSpells(resolveNodeEmoji(spells));
+      const constellations = payload.savedConstellations as typeof savedConstellations;
+      setSavedConstellations(constellations.map(c => ({ ...c, marks: resolveNodeEmoji(c.marks) })));
+      const blades = payload.forgedBlades as typeof forgedBlades;
+      setForgedBlades(blades.map(b => ({ ...b, constellationMarks: resolveNodeEmoji(b.constellationMarks) })));
+      const equipped = payload.equippedBlade as typeof equippedBlade;
+      setEquippedBlade(equipped ? { ...equipped, constellationMarks: resolveNodeEmoji(equipped.constellationMarks) } : null);
+      setUserEdges(payload.userEdges as typeof userEdges);
+      if (typeof payload.manaPoints === 'number') setManaPoints(payload.manaPoints);
+      if (payload.swordsmanLink) {
+        saveSwordsmanLink(payload.swordsmanLink as SwordsmanLink);
+        setSwordsmanLink(payload.swordsmanLink as SwordsmanLink);
+      }
+      console.log(`[vault] loaded state from ${itemName}`);
+    } catch (err) {
+      console.error(`[vault] failed to parse ${itemName}:`, err);
+    }
+  }, [getVaultItem]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleDownloadVaultItem = useCallback(async (itemName: string) => {
     setDownloadingItem(itemName);
     try {
@@ -3432,18 +3457,32 @@ export default function SpellWeb() {
               {mageDid && vaultItems !== null && vaultItems.length === 0 && <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>No items in vault</div>}
               {mageDid && vaultItems !== null && vaultItems.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 160, overflowY: 'auto' }}>
-                  {vaultItems.map(name => (
-                    <div key={name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 6px', background: '#ffffff08', borderRadius: 4 }}>
-                      <span style={{ fontSize: 10, color: '#aaa', fontFamily: "'JetBrains Mono', monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
-                      <button
-                        onClick={() => handleDownloadVaultItem(name)}
-                        disabled={downloadingItem === name}
-                        style={{ padding: '2px 6px', borderRadius: 3, background: 'none', border: '1px solid #555', color: '#888', fontSize: 10, cursor: downloadingItem === name ? 'wait' : 'pointer', marginLeft: 8, flexShrink: 0 }}
-                      >
-                        {downloadingItem === name ? '…' : '↓'}
-                      </button>
-                    </div>
-                  ))}
+                  {vaultItems.map(name => {
+                    const isLoadable = name.startsWith('save-') && name.endsWith('.json');
+                    return (
+                      <div key={name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 6px', background: '#ffffff08', borderRadius: 4 }}>
+                        <span style={{ fontSize: 10, color: '#aaa', fontFamily: "'JetBrains Mono', monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                        <div style={{ display: 'flex', gap: 4, marginLeft: 8, flexShrink: 0 }}>
+                          {isLoadable && (
+                            <button
+                              onClick={() => handleLoadVaultItem(name)}
+                              title="Load this save into the current session"
+                              style={{ padding: '2px 6px', borderRadius: 3, background: 'none', border: '1px solid #9b59b660', color: '#9b59b6', fontSize: 10, cursor: 'pointer' }}
+                            >
+                              ↑ Load
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDownloadVaultItem(name)}
+                            disabled={downloadingItem === name}
+                            style={{ padding: '2px 6px', borderRadius: 3, background: 'none', border: '1px solid #555', color: '#888', fontSize: 10, cursor: downloadingItem === name ? 'wait' : 'pointer' }}
+                          >
+                            {downloadingItem === name ? '…' : '↓'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
