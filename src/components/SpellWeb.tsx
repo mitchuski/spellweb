@@ -27,7 +27,7 @@ import {
   type SwordsmanLink,
 } from '../lib/mageIdentity';
 import { useKeymaster } from '../contexts/KeymasterContext';
-import { type MageArchonBackup } from '../lib/mageHistory';
+import { type MageArchonBackup, MAGE_HISTORY_ITEM } from '../lib/mageHistory';
 // D3 simulation node type
 interface SimulationNode extends SpellwebNode {
   x: number;
@@ -1615,6 +1615,10 @@ export default function SpellWeb() {
     if (typeof restoredHistory.manaPoints === 'number') {
       setManaPoints(restoredHistory.manaPoints);
     }
+    if (restoredHistory.swordsmanLink) {
+      saveSwordsmanLink(restoredHistory.swordsmanLink as SwordsmanLink);
+      setSwordsmanLink(restoredHistory.swordsmanLink as SwordsmanLink);
+    }
     console.log('[SpellWeb] Mage history restored from Archon backup');
   }, [restoredHistory]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1633,6 +1637,7 @@ export default function SpellWeb() {
         equippedBlade,
         userEdges,
         manaPoints,
+        swordsmanLink: getSwordsmanLink(),
       };
       await backupMageHistory(payload);
       setBackupStatus('done');
@@ -1643,6 +1648,47 @@ export default function SpellWeb() {
       setTimeout(() => setBackupStatus('idle'), 3000);
     }
   }, [backupStatus, mageDid, mageSpells, savedConstellations, forgedBlades, equippedBlade, userEdges, manaPoints, backupMageHistory]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const [saveGameStatus, setSaveGameStatus] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
+
+  const handleSaveGame = useCallback(async () => {
+    if (saveGameStatus === 'busy' || !mageDid) return;
+    setSaveGameStatus('busy');
+    try {
+      const payload: MageArchonBackup = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        identity: getMageIdentity(),
+        mageSpells,
+        savedConstellations,
+        forgedBlades,
+        equippedBlade,
+        userEdges,
+        manaPoints,
+        swordsmanLink: getSwordsmanLink(),
+      };
+      const now = new Date();
+      const d = now.toISOString().slice(0, 10).replace(/-/g, '');
+      const t = now.toISOString().slice(11, 19).replace(/:/g, '');
+      const filename = `save-${d}-${t}.json`; // e.g. save-20260521-152741.json (24 chars, max 32)
+      // Save timestamped slot + overwrite the rolling checkpoint
+      // Sequential — vault writes are not atomic; parallel calls stomp each other
+      await saveBladeToVault(filename, JSON.stringify(payload, null, 2));
+      await backupMageHistory(payload);
+      setSaveGameStatus('done');
+      // Optimistic update — don't re-fetch (Archon DID propagation may lag)
+      setVaultItems(prev => {
+        const base = prev ?? [];
+        const names = new Set([...base, filename, MAGE_HISTORY_ITEM]);
+        return [...names];
+      });
+      setTimeout(() => setSaveGameStatus('idle'), 3000);
+    } catch (err) {
+      console.error('[save] Save game failed:', err);
+      setSaveGameStatus('error');
+      setTimeout(() => setSaveGameStatus('idle'), 3000);
+    }
+  }, [saveGameStatus, mageDid, mageSpells, savedConstellations, forgedBlades, equippedBlade, userEdges, manaPoints, saveBladeToVault, backupMageHistory, listVaultItems]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Build blade markdown from a ForgedBlade (used for vault auto-save)
   function generateBladeMd(blade: ForgedBlade): string {
@@ -1715,19 +1761,24 @@ export default function SpellWeb() {
     ].join("\n");
   }
 
-  // Auto-backup to vault when a new blade is forged
+  // Auto-backup to vault when a blade is forged or runecrafted
   useEffect(() => {
     if (!pendingAutoBackup || !mageDid) return;
     const blade = pendingAutoBackup;
     setPendingAutoBackup(null);
     const itemName = `blade-${blade.proof.signature}.md`;
     const md = generateBladeMd(blade);
-    void saveBladeToVault(itemName, md).catch(err =>
-      console.warn('[vault] blade save failed:', err)
-    );
-    void handleBackupToArchon().catch(err =>
-      console.warn('[vault] full backup failed:', err)
-    );
+    // Sequential — vault writes are not atomic; parallel calls stomp each other
+    saveBladeToVault(itemName, md)
+      .then(() => handleBackupToArchon())
+      .catch(err => console.warn('[vault] auto-save failed:', err))
+      .then(() => {
+      setVaultItems(prev => {
+        if (prev === null) return null; // browser not open yet
+        const names = new Set([...prev, itemName, MAGE_HISTORY_ITEM]);
+        return [...names];
+      });
+    });
   }, [pendingAutoBackup, mageDid]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleBrowseVault = useCallback(async () => {
@@ -1747,7 +1798,10 @@ export default function SpellWeb() {
     setDownloadingItem(itemName);
     try {
       const buf = await getVaultItem(itemName);
-      if (!buf) return;
+      if (!buf) {
+        console.warn(`[vault] download: no data returned for "${itemName}"`);
+        return;
+      }
       const isJson = itemName.endsWith('.json');
       const blob = new Blob([buf], { type: isJson ? 'application/json' : 'text/markdown' });
       const url = URL.createObjectURL(blob);
@@ -2046,31 +2100,27 @@ export default function SpellWeb() {
               </h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <button
-                  onClick={handleBackupToArchon}
-                  disabled={backupStatus === 'busy' || !mageDid}
-                  title={mageDid ? 'Backup Mage history to encrypted Archon asset' : 'Connect wallet to backup'}
+                  onClick={handleSaveGame}
+                  disabled={saveGameStatus === 'busy' || !mageDid}
+                  title={mageDid ? 'Save game — snapshot to Archon Vault with timestamp' : 'Connect wallet to save'}
                   style={{
-                    padding: "6px 12px",
+                    padding: "6px 10px",
                     borderRadius: 6,
-                    background: backupStatus === 'done'
+                    background: saveGameStatus === 'done'
                       ? 'linear-gradient(135deg, #2ecc7130, #27ae6020)'
-                      : backupStatus === 'error'
+                      : saveGameStatus === 'error'
                       ? 'linear-gradient(135deg, #e9456030, #c0392b20)'
-                      : 'linear-gradient(135deg, #3498db30, #2980b920)',
-                    border: `1px solid ${backupStatus === 'done' ? '#2ecc71' : backupStatus === 'error' ? '#e94560' : '#3498db'}`,
-                    color: backupStatus === 'done' ? '#2ecc71' : backupStatus === 'error' ? '#e94560' : '#3498db',
-                    fontSize: 11,
-                    cursor: backupStatus === 'busy' || !mageDid ? 'not-allowed' : 'pointer',
+                      : 'linear-gradient(135deg, #9b59b630, #7b68ee20)',
+                    border: `1px solid ${saveGameStatus === 'done' ? '#2ecc71' : saveGameStatus === 'error' ? '#e94560' : '#9b59b660'}`,
+                    color: saveGameStatus === 'done' ? '#2ecc71' : saveGameStatus === 'error' ? '#e94560' : '#9b59b6',
+                    fontSize: 14,
+                    cursor: saveGameStatus === 'busy' || !mageDid ? 'not-allowed' : 'pointer',
                     opacity: !mageDid ? 0.4 : 1,
-                    fontFamily: "'JetBrains Mono', monospace",
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
+                    lineHeight: 1,
                     transition: 'all 0.2s',
                   }}
                 >
-                  <span>{backupStatus === 'busy' ? '⏳' : backupStatus === 'done' ? '✓' : backupStatus === 'error' ? '✗' : '☁'}</span>
-                  {backupStatus === 'busy' ? 'Backing up…' : backupStatus === 'done' ? 'Backed up' : backupStatus === 'error' ? 'Failed' : 'Backup'}
+                  {saveGameStatus === 'busy' ? '⏳' : saveGameStatus === 'done' ? '✓' : saveGameStatus === 'error' ? '✗' : '💾'}
                 </button>
                 <button
                   onClick={handleExportMage}
@@ -5213,6 +5263,8 @@ export default function SpellWeb() {
                       setEquippedBlade(updatedBlade);
                       localStorage.setItem(SPELLWEB_STORAGE_KEYS.equippedBlade, JSON.stringify(updatedBlade));
                     }
+                    // Save runecrafted version to vault (overwrites pre-Runecraft copy)
+                    setPendingAutoBackup(updatedBlade);
                     setShowRunecraftModal(false);
                     setRunecraftBlade(null);
                     setRunecraftInput('');

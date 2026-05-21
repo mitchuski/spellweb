@@ -290,13 +290,17 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
   async function saveBladeToVault(itemName: string, content: string): Promise<void> {
     const km = keymasterRef.current;
     if (!km) throw new Error('Wallet not unlocked');
+    console.log(`[vault] saveBladeToVault: ${itemName} (${content.length} chars)`);
     let vaultId = await km.getAlias(MAGE_VAULT_ALIAS);
+    console.log(`[vault] vaultId: ${vaultId}`);
     if (!vaultId) {
       vaultId = await km.createVault();
       await km.addAlias(MAGE_VAULT_ALIAS, vaultId);
+      console.log(`[vault] created vault: ${vaultId}`);
     }
-    try { await km.removeVaultItem(vaultId, itemName); } catch { /* not yet present */ }
+    try { await km.removeVaultItem(vaultId, itemName); console.log(`[vault] removed existing ${itemName}`); } catch { /* not yet present */ }
     await km.addVaultItem(vaultId, itemName, Buffer.from(content));
+    console.log(`[vault] saved ${itemName} ✓`);
   }
 
   async function listVaultItems(): Promise<Record<string, unknown>> {
@@ -314,12 +318,15 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
     if (!vaultId) return null;
     try {
       const buf = await km.getVaultItem(vaultId, itemName) as Uint8Array | null;
-      if (!buf) return null;
-      // Copy into a fresh Uint8Array backed by a plain ArrayBuffer (avoids SharedArrayBuffer type issues)
+      if (!buf) {
+        console.warn(`[vault] getVaultItem: null returned for "${itemName}"`);
+        return null;
+      }
       const out = new Uint8Array(buf.length);
       out.set(buf);
       return out;
-    } catch {
+    } catch (err) {
+      console.error(`[vault] getVaultItem failed for "${itemName}":`, err);
       return null;
     }
   }

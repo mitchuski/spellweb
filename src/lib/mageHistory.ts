@@ -12,11 +12,12 @@ export const MAGE_HISTORY_ITEM = 'mage-history.json';
 export interface MageArchonBackup {
   version: 1;
   exportedAt: string;
-  identity: unknown;          // MageIdentity
-  mageSpells: unknown[];      // MageSpell[]
+  identity: unknown;               // MageIdentity
+  mageSpells: unknown[];           // MageSpell[]
   savedConstellations: unknown[];  // SavedConstellation[]
-  forgedBlades: unknown[];    // ForgedBlade[]
+  forgedBlades: unknown[];         // ForgedBlade[]
   equippedBlade: unknown | null;   // ForgedBlade | null
-  userEdges: unknown[];       // SpellwebEdge[]
+  userEdges: unknown[];            // SpellwebEdge[]
   manaPoints: number;
+  swordsmanLink?: unknown | null;  // SwordsmanLink — Excalibur binding
 }
