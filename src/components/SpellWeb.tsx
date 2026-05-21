@@ -75,7 +75,7 @@ function getFirstEmoji(str: string | undefined): string {
 }
 
 export default function SpellWeb() {
-  const { mageDid, walletState, connectWallet, backupMageHistory, saveBladeToVault, listVaultItems, getVaultItem, restoredHistory } = useKeymaster();
+  const { mageDid, walletState, connectWallet, exportWallet, backupMageHistory, saveBladeToVault, listVaultItems, getVaultItem, restoredHistory } = useKeymaster();
 
   const svgRef = useRef<SVGSVGElement>(null);
   const simRef = useRef<d3.Simulation<SimulationNode, SimulationEdge> | null>(null);
@@ -3397,13 +3397,22 @@ export default function SpellWeb() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: 11, color: '#9b59b6', fontFamily: "'JetBrains Mono', monospace" }}>☁ Archon Vault</span>
                 {mageDid ? (
-                  <button
-                    onClick={handleBrowseVault}
-                    disabled={vaultLoading}
-                    style={{ padding: '3px 8px', borderRadius: 4, background: 'none', border: '1px solid #9b59b660', color: '#9b59b6', fontSize: 10, cursor: vaultLoading ? 'wait' : 'pointer', fontFamily: "'JetBrains Mono', monospace" }}
-                  >
-                    {vaultLoading ? '…' : '↻ Browse'}
-                  </button>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button
+                      onClick={handleBrowseVault}
+                      disabled={vaultLoading}
+                      style={{ padding: '3px 8px', borderRadius: 4, background: 'none', border: '1px solid #9b59b660', color: '#9b59b6', fontSize: 10, cursor: vaultLoading ? 'wait' : 'pointer', fontFamily: "'JetBrains Mono', monospace" }}
+                    >
+                      {vaultLoading ? '…' : '↻ Browse'}
+                    </button>
+                    <button
+                      onClick={exportWallet}
+                      title="Download encrypted wallet JSON backup"
+                      style={{ padding: '3px 8px', borderRadius: 4, background: 'none', border: '1px solid #9b59b660', color: '#9b59b6', fontSize: 10, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace" }}
+                    >
+                      📤 Export
+                    </button>
+                  </div>
                 ) : (
                   <button
                     onClick={connectWallet}
