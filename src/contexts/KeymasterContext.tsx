@@ -50,6 +50,7 @@ interface KeymasterContextValue {
   backupMageHistory: (payload: MageArchonBackup) => Promise<void>;
   saveBladeToVault: (itemName: string, content: string) => Promise<void>;
   listVaultItems: () => Promise<Record<string, unknown>>;
+  getVaultItem: (itemName: string) => Promise<Uint8Array<ArrayBuffer> | null>;
   restoredHistory: MageArchonBackup | null;
 }
 
@@ -306,6 +307,23 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
     return (await km.listVaultItems(vaultId)) as Record<string, unknown>;
   }
 
+  async function getVaultItem(itemName: string): Promise<Uint8Array<ArrayBuffer> | null> {
+    const km = keymasterRef.current;
+    if (!km) return null;
+    const vaultId = await km.getAlias(MAGE_VAULT_ALIAS);
+    if (!vaultId) return null;
+    try {
+      const buf = await km.getVaultItem(vaultId, itemName) as Uint8Array | null;
+      if (!buf) return null;
+      // Copy into a fresh Uint8Array backed by a plain ArrayBuffer (avoids SharedArrayBuffer type issues)
+      const out = new Uint8Array(buf.length);
+      out.set(buf);
+      return out;
+    } catch {
+      return null;
+    }
+  }
+
   async function importWallet(walletData: StoredWallet): Promise<void> {
     const walletWeb = new WalletWeb();
     await walletWeb.saveWallet(walletData, true);
@@ -333,6 +351,7 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
     backupMageHistory,
     saveBladeToVault,
     listVaultItems,
+    getVaultItem,
     restoredHistory,
   };
 

@@ -61,7 +61,7 @@ function getFirstEmoji(str: string | undefined): string {
 }
 
 export default function SpellWeb() {
-  const { mageDid, backupMageHistory, saveBladeToVault, restoredHistory } = useKeymaster();
+  const { mageDid, backupMageHistory, saveBladeToVault, listVaultItems, getVaultItem, restoredHistory } = useKeymaster();
 
   const svgRef = useRef<SVGSVGElement>(null);
   const simRef = useRef<d3.Simulation<SimulationNode, SimulationEdge> | null>(null);
@@ -176,6 +176,9 @@ export default function SpellWeb() {
   const [showMageMenu, setShowMageMenu] = useState(false); // Mage spell menu (M key)
   const [backupStatus, setBackupStatus] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
   const [pendingAutoBackup, setPendingAutoBackup] = useState<ForgedBlade | null>(null);
+  const [vaultItems, setVaultItems] = useState<string[] | null>(null);
+  const [vaultLoading, setVaultLoading] = useState(false);
+  const [downloadingItem, setDownloadingItem] = useState<string | null>(null);
   const [showCeremonyMenu, setShowCeremonyMenu] = useState(false); // Ceremony menu (Y key) - ☯️ Sun/Moon poems
   const [latestProof, setLatestProof] = useState<SpellProof | null>(null);
   const [forgePhase, setForgePhase] = useState<'ignite' | 'forge' | 'temper' | 'complete' | 'naming' | 'manifesting'>('ignite');
@@ -1727,6 +1730,41 @@ export default function SpellWeb() {
     );
   }, [pendingAutoBackup, mageDid]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleBrowseVault = useCallback(async () => {
+    setVaultLoading(true);
+    try {
+      const items = await listVaultItems();
+      setVaultItems(Object.keys(items));
+    } catch (err) {
+      console.warn('[vault] list failed:', err);
+      setVaultItems([]);
+    } finally {
+      setVaultLoading(false);
+    }
+  }, [listVaultItems]);
+
+  const handleDownloadVaultItem = useCallback(async (itemName: string) => {
+    setDownloadingItem(itemName);
+    try {
+      const buf = await getVaultItem(itemName);
+      if (!buf) return;
+      const isJson = itemName.endsWith('.json');
+      const blob = new Blob([buf], { type: isJson ? 'application/json' : 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = itemName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.warn('[vault] download failed:', err);
+    } finally {
+      setDownloadingItem(null);
+    }
+  }, [getVaultItem]);
+
   // Mage bundle — identity + spell loadout + saved constellations as one .md
   const handleExportMage = useCallback(() => {
     const mageIdentity = getMageIdentity();
@@ -2325,6 +2363,109 @@ export default function SpellWeb() {
               ) : (
                 <div style={{ fontSize: 12, color: '#666', textAlign: 'center', padding: 20 }}>
                   Create a constellation to discover spells
+                </div>
+              )}
+            </div>
+
+            {/* Archon Vault Browser */}
+            <div style={{
+              padding: 16,
+              background: mageDid ? '#3498db08' : '#ffffff05',
+              borderRadius: 8,
+              border: `1px solid ${mageDid ? '#3498db40' : '#333'}`,
+              marginBottom: 16,
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: vaultItems !== null ? 12 : 0,
+              }}>
+                <span style={{ fontSize: 11, color: mageDid ? '#3498db' : '#666', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1 }}>
+                  ☁ ARCHON VAULT
+                </span>
+                <button
+                  onClick={handleBrowseVault}
+                  disabled={!mageDid || vaultLoading}
+                  title={mageDid ? 'List items saved in Archon Vault' : 'Connect wallet to browse vault'}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: 5,
+                    background: '#3498db20',
+                    border: '1px solid #3498db60',
+                    color: mageDid ? '#3498db' : '#555',
+                    fontSize: 10,
+                    cursor: !mageDid || vaultLoading ? 'not-allowed' : 'pointer',
+                    opacity: !mageDid ? 0.4 : 1,
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}
+                >
+                  {vaultLoading ? '⏳ loading…' : '↻ Browse'}
+                </button>
+              </div>
+              {vaultItems !== null && (
+                vaultItems.length === 0 ? (
+                  <div style={{ fontSize: 11, color: '#666', textAlign: 'center', paddingTop: 8 }}>
+                    Vault is empty
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {vaultItems.map(name => {
+                      const isBladeFile = name.startsWith('blade-') && name.endsWith('.md');
+                      const icon = name === 'mage-history.json' ? '🧙' : isBladeFile ? '🗡️' : '📄';
+                      const isDownloading = downloadingItem === name;
+                      return (
+                        <div
+                          key={name}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            padding: '6px 8px',
+                            borderRadius: 6,
+                            background: '#ffffff06',
+                            border: '1px solid #ffffff10',
+                          }}
+                        >
+                          <span style={{ fontSize: 13 }}>{icon}</span>
+                          <span style={{
+                            flex: 1,
+                            fontSize: 10,
+                            color: '#bbb',
+                            fontFamily: "'JetBrains Mono', monospace",
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}>
+                            {name}
+                          </span>
+                          <button
+                            onClick={() => handleDownloadVaultItem(name)}
+                            disabled={isDownloading}
+                            title={`Download ${name}`}
+                            style={{
+                              padding: '3px 8px',
+                              borderRadius: 4,
+                              background: '#2ecc7115',
+                              border: '1px solid #2ecc7140',
+                              color: isDownloading ? '#555' : '#2ecc71',
+                              fontSize: 10,
+                              cursor: isDownloading ? 'wait' : 'pointer',
+                              fontFamily: "'JetBrains Mono', monospace",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {isDownloading ? '⏳' : '↓ dl'}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )
+              )}
+              {!mageDid && (
+                <div style={{ fontSize: 10, color: '#555', marginTop: 8 }}>
+                  Connect wallet to access vault
                 </div>
               )}
             </div>
