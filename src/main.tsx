@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import SpellWeb from './components/SpellWeb'
 import MobileSpell from './components/MobileSpell'
 import { useIsMobile } from './hooks/useIsMobile'
+import { KeymasterProvider } from './contexts/KeymasterContext'
 import './index.css'
 
 function Root() {
@@ -12,6 +13,8 @@ function Root() {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Root />
+    <KeymasterProvider>
+      <Root />
+    </KeymasterProvider>
   </StrictMode>,
 )

@@ -1,4 +1,5 @@
 import type { SpellwebNode } from '../types/graph';
+import { REGISTRY_NODES as POH_CLOAK_NODES } from './poh-cloak-contribution';
 
 // ═══════════════════════════════════════════════════════════════
 // FULL AGENTPRIVACY KNOWLEDGE GRAPH DATA
@@ -1747,4 +1748,6 @@ export const NODES: SpellwebNode[] = [
 
   // === END OF NODES ===
 
+  // PoH Cloak registry contribution (Archon-linked nodes)
+  ...POH_CLOAK_NODES,
 ];
