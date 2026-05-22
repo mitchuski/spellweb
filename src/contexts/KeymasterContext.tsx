@@ -27,6 +27,7 @@ const GATEKEEPER_KEY = 'spellweb-gatekeeper-url';
 // flaxlap.local (192.168.1.23) hosts the Archon Gatekeeper. Browsers bypass
 // mDNS so the hostname doesn't resolve — use the IP directly.
 export const DEFAULT_GATEKEEPER_URL = 'http://192.168.1.23:4224';
+export const WEAVER_VAULT_ALIAS = 'spellweb-weaver-vault';
 
 // Module-level singletons — one gatekeeper connection and cipher for the app lifetime
 const gatekeeper = new DrawbridgeClient();
@@ -56,6 +57,8 @@ interface KeymasterContextValue {
   listVaultItems: () => Promise<Record<string, unknown>>;
   getVaultItem: (itemName: string) => Promise<Uint8Array<ArrayBuffer> | null>;
   deleteVaultItem: (itemName: string) => Promise<void>;
+  listWeaverVaultItems: () => Promise<Record<string, unknown>>;
+  getWeaverVaultItem: (itemName: string) => Promise<Uint8Array<ArrayBuffer> | null>;
   restoredHistory: MageArchonBackup | null;
 }
 
@@ -345,6 +348,31 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
     await km.removeVaultItem(vaultId, itemName);
   }
 
+  async function listWeaverVaultItems(): Promise<Record<string, unknown>> {
+    const km = keymasterRef.current;
+    if (!km) return {};
+    const vaultId = await km.getAlias(WEAVER_VAULT_ALIAS);
+    if (!vaultId) return {};
+    return (await km.listVaultItems(vaultId)) as Record<string, unknown>;
+  }
+
+  async function getWeaverVaultItem(itemName: string): Promise<Uint8Array<ArrayBuffer> | null> {
+    const km = keymasterRef.current;
+    if (!km) return null;
+    const vaultId = await km.getAlias(WEAVER_VAULT_ALIAS);
+    if (!vaultId) return null;
+    try {
+      const buf = await km.getVaultItem(vaultId, itemName) as Uint8Array | null;
+      if (!buf) return null;
+      const out = new Uint8Array(buf.length);
+      out.set(buf);
+      return out;
+    } catch (err) {
+      console.error(`[weaver-vault] getVaultItem failed for "${itemName}":`, err);
+      return null;
+    }
+  }
+
   async function importWallet(walletData: StoredWallet): Promise<void> {
     const walletWeb = new WalletWeb();
     await walletWeb.saveWallet(walletData, true);
@@ -374,6 +402,8 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
     listVaultItems,
     getVaultItem,
     deleteVaultItem,
+    listWeaverVaultItems,
+    getWeaverVaultItem,
     restoredHistory,
   };
 

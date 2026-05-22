@@ -414,6 +414,7 @@ export const SPELLWEB_STORAGE_KEYS = {
   // exclusively with the original Sovereign (chronicle §3.2). True-name is bearer-private
   // and NEVER displayed without explicit consent.
   boundFamiliars: 'spellweb-bound-familiars',
+  weaverImportedNodes: 'spellweb-weaver-imported-nodes',
 } as const;
 
 // v1.6.0 · An imported bound-familiar entry. The bond stays exclusively with the

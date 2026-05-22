@@ -75,7 +75,7 @@ function getFirstEmoji(str: string | undefined): string {
 }
 
 export default function SpellWeb() {
-  const { mageDid, walletState, connectWallet, exportWallet, backupMageHistory, saveBladeToVault, listVaultItems, getVaultItem, deleteVaultItem, restoredHistory } = useKeymaster();
+  const { mageDid, walletState, connectWallet, exportWallet, backupMageHistory, saveBladeToVault, listVaultItems, getVaultItem, deleteVaultItem, listWeaverVaultItems, getWeaverVaultItem, restoredHistory } = useKeymaster();
 
   const svgRef = useRef<SVGSVGElement>(null);
   const simRef = useRef<d3.Simulation<SimulationNode, SimulationEdge> | null>(null);
@@ -315,6 +315,19 @@ export default function SpellWeb() {
   const [vaultLoading, setVaultLoading] = useState(false);
   const [downloadingItem, setDownloadingItem] = useState<string | null>(null);
   const [deletingItem, setDeletingItem] = useState<string | null>(null);
+  // Weaver vault state
+  const [weaverVaultItems, setWeaverVaultItems] = useState<string[] | null>(null);
+  const [weaverVaultLoading, setWeaverVaultLoading] = useState(false);
+  const [downloadingWeaverItem, setDownloadingWeaverItem] = useState<string | null>(null);
+  const [importingWeaverItem, setImportingWeaverItem] = useState<string | null>(null);
+  // Weaver imported nodes — persisted across sessions; merged into D3 graph
+  const [weaverImportedNodes, setWeaverImportedNodes] = useState<SpellwebNode[]>(() => {
+    try {
+      const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.weaverImportedNodes);
+      return saved ? (JSON.parse(saved) as SpellwebNode[]) : [];
+    } catch { return []; }
+  });
+  const [nodeDataVersion, setNodeDataVersion] = useState(0);
   const [saveGameStatus, setSaveGameStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [pendingAutoBackup, setPendingAutoBackup] = useState<ForgedBlade | null>(null);
 
@@ -394,6 +407,11 @@ export default function SpellWeb() {
   useEffect(() => {
     localStorage.setItem(SPELLWEB_STORAGE_KEYS.userEdges, JSON.stringify(userEdges));
   }, [userEdges]);
+
+  // Persist weaverImportedNodes to localStorage
+  useEffect(() => {
+    localStorage.setItem(SPELLWEB_STORAGE_KEYS.weaverImportedNodes, JSON.stringify(weaverImportedNodes));
+  }, [weaverImportedNodes]);
 
   // Persist canonicalEdgeKeys to localStorage (Set serialized as string[])
   useEffect(() => {
@@ -476,6 +494,23 @@ export default function SpellWeb() {
   useEffect(() => {
     localStorage.setItem(SPELLWEB_STORAGE_KEYS.mageSpells, JSON.stringify(mageSpells));
   }, [mageSpells]);
+
+  // Sync newly-imported Weaver nodes into the running D3 simulation.
+  // On init, weaverImportedNodes are already in nodeDataRef (via the initialization effect).
+  // This handles nodes added at runtime (after graph is already running).
+  useEffect(() => {
+    if (!graphInitialized.current || !simRef.current) return;
+    const existingIds = new Set(nodeDataRef.current.map(n => n.id));
+    const newNodes = weaverImportedNodes.filter(n => !existingIds.has(n.id));
+    if (newNodes.length === 0) return;
+    const cx = dimensions.w / 2;
+    const cy = dimensions.h / 2;
+    newNodes.forEach(n => {
+      nodeDataRef.current.push({ ...n, x: cx + (Math.random() - 0.5) * 200, y: cy + (Math.random() - 0.5) * 200 } as SimulationNode);
+    });
+    simRef.current.nodes(nodeDataRef.current).alpha(0.1).restart();
+    setNodeDataVersion(v => v + 1);
+  }, [weaverImportedNodes]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keyboard shortcuts for hemispheric control scheme
   // S = Cycle through swordsman blades (right brain, deliberate)
@@ -761,8 +796,8 @@ export default function SpellWeb() {
     g.append("g").attr("class", "constellation-connections");
     g.append("g").attr("class", "nodes");
 
-    // Clone all data for D3 mutation (use ALL nodes initially)
-    nodeDataRef.current = NODES.map((n) => ({ ...n, x: graphW / 2 + (Math.random() - 0.5) * 200, y: h / 2 + (Math.random() - 0.5) * 200 }));
+    // Clone all data for D3 mutation (canonical NODES + any Weaver-imported nodes)
+    nodeDataRef.current = [...NODES, ...weaverImportedNodes].map((n) => ({ ...n, x: graphW / 2 + (Math.random() - 0.5) * 200, y: h / 2 + (Math.random() - 0.5) * 200 }));
     // Include both static EDGES and userEdges
     const allEdges = [...EDGES, ...userEdges];
     edgeDataRef.current = allEdges.map((e) => ({
@@ -1175,7 +1210,7 @@ export default function SpellWeb() {
         }, 1500);
       }
     });
-  }, [filters, typeFilters, spellbookFilters, searchMatches, connectionMode, waypoint, handleWaypointAddNode, mageSpells]);
+  }, [filters, typeFilters, spellbookFilters, searchMatches, connectionMode, waypoint, handleWaypointAddNode, mageSpells, nodeDataVersion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fog-of-war refresh: when witnessedShops changes, re-apply opacity to existing nodes/labels
   // without rebuilding the whole d3 simulation (which would jolt node positions and mess up
@@ -2007,6 +2042,65 @@ export default function SpellWeb() {
       setDeletingItem(null);
     }
   }, [deleteVaultItem]);
+
+  const handleBrowseWeaverVault = useCallback(async () => {
+    setWeaverVaultLoading(true);
+    try {
+      const record = await listWeaverVaultItems();
+      setWeaverVaultItems(Object.keys(record).sort().reverse());
+    } finally {
+      setWeaverVaultLoading(false);
+    }
+  }, [listWeaverVaultItems]);
+
+  const handleImportWeaverItem = useCallback(async (itemName: string) => {
+    setImportingWeaverItem(itemName);
+    try {
+      const buf = await getWeaverVaultItem(itemName);
+      if (!buf) { console.warn(`[weaver-vault] no data for ${itemName}`); return; }
+      const { nodes, edges } = JSON.parse(new TextDecoder().decode(buf)) as {
+        nodes: SpellwebNode[];
+        edges: SpellwebEdge[];
+      };
+      // Merge nodes (skip IDs already imported or canonical)
+      setWeaverImportedNodes(prev => {
+        const existing = new Set([...NODES.map(n => n.id), ...prev.map(n => n.id)]);
+        const fresh = nodes.filter(n => !existing.has(n.id));
+        return fresh.length > 0 ? [...prev, ...fresh] : prev;
+      });
+      // Merge edges into userEdges (skip duplicates)
+      setUserEdges(prev => {
+        const existingKeys = new Set(prev.map(e => {
+          const s = typeof e.source === 'string' ? e.source : (e.source as SpellwebNode).id;
+          const t = typeof e.target === 'string' ? e.target : (e.target as SpellwebNode).id;
+          return `${s}::${t}::${e.type}`;
+        }));
+        const fresh = edges
+          .filter(e => !existingKeys.has(`${e.source}::${e.target}::${e.type}`))
+          .map(e => ({ source: e.source, target: e.target, type: e.type as SpellwebEdge['type'] }));
+        return fresh.length > 0 ? [...prev, ...fresh] : prev;
+      });
+    } catch (err) {
+      console.error(`[weaver-vault] import failed for "${itemName}":`, err);
+    } finally {
+      setImportingWeaverItem(null);
+    }
+  }, [getWeaverVaultItem]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDownloadWeaverItem = useCallback(async (itemName: string) => {
+    setDownloadingWeaverItem(itemName);
+    try {
+      const buf = await getWeaverVaultItem(itemName);
+      if (!buf) { console.warn(`[weaver-vault] no data for ${itemName}`); return; }
+      const blob = new Blob([buf], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = itemName; a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setDownloadingWeaverItem(null);
+    }
+  }, [getWeaverVaultItem]);
 
   const handleSaveGame = useCallback(async () => {
     if (!mageDid) return;
@@ -3508,6 +3602,62 @@ export default function SpellWeb() {
                 </div>
               )}
             </div>
+
+            {/* Weaver Vault Browser */}
+            {mageDid && (
+              <div style={{ marginTop: 16, padding: 16, background: '#0a0a1a', borderRadius: 8, border: '1px solid #2ecc7140' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <div>
+                    <span style={{ fontSize: 11, color: '#2ecc71', fontFamily: "'JetBrains Mono', monospace" }}>🧵 Weaver Vault</span>
+                    {weaverImportedNodes.length > 0 && (
+                      <span style={{ marginLeft: 6, fontSize: 9, color: '#2ecc71', opacity: 0.6, fontFamily: "'JetBrains Mono', monospace" }}>
+                        {weaverImportedNodes.length} imported
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleBrowseWeaverVault}
+                    disabled={weaverVaultLoading}
+                    style={{ padding: '3px 8px', borderRadius: 4, background: 'none', border: '1px solid #2ecc7160', color: '#2ecc71', fontSize: 10, cursor: weaverVaultLoading ? 'wait' : 'pointer', fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {weaverVaultLoading ? '…' : '↻ Browse'}
+                  </button>
+                </div>
+                {weaverVaultItems === null && (
+                  <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>Browse to import Weaver registry snapshots into the graph</div>
+                )}
+                {weaverVaultItems !== null && weaverVaultItems.length === 0 && (
+                  <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>No Weaver snapshots in vault</div>
+                )}
+                {weaverVaultItems !== null && weaverVaultItems.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 140, overflowY: 'auto' }}>
+                    {weaverVaultItems.map(name => (
+                      <div key={name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 6px', background: '#ffffff08', borderRadius: 4 }}>
+                        <span style={{ fontSize: 10, color: '#aaa', fontFamily: "'JetBrains Mono', monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                        <div style={{ display: 'flex', gap: 4, marginLeft: 8, flexShrink: 0 }}>
+                          <button
+                            onClick={() => handleImportWeaverItem(name)}
+                            disabled={importingWeaverItem === name}
+                            title="Import nodes & edges into the Spellweb graph"
+                            style={{ padding: '2px 6px', borderRadius: 3, background: importingWeaverItem === name ? 'none' : '#2ecc7120', border: '1px solid #2ecc7160', color: '#2ecc71', fontSize: 10, cursor: importingWeaverItem === name ? 'wait' : 'pointer' }}
+                          >
+                            {importingWeaverItem === name ? '…' : '↑ Import'}
+                          </button>
+                          <button
+                            onClick={() => handleDownloadWeaverItem(name)}
+                            disabled={downloadingWeaverItem === name}
+                            title="Download snapshot JSON"
+                            style={{ padding: '2px 6px', borderRadius: 3, background: 'none', border: '1px solid #555', color: '#888', fontSize: 10, cursor: downloadingWeaverItem === name ? 'wait' : 'pointer' }}
+                          >
+                            {downloadingWeaverItem === name ? '…' : '↓'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div style={{
               marginTop: 12,
