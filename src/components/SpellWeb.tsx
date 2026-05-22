@@ -75,7 +75,7 @@ function getFirstEmoji(str: string | undefined): string {
 }
 
 export default function SpellWeb() {
-  const { mageDid, walletState, connectWallet, exportWallet, backupMageHistory, saveBladeToVault, listVaultItems, getVaultItem, restoredHistory } = useKeymaster();
+  const { mageDid, walletState, connectWallet, exportWallet, backupMageHistory, saveBladeToVault, listVaultItems, getVaultItem, deleteVaultItem, restoredHistory } = useKeymaster();
 
   const svgRef = useRef<SVGSVGElement>(null);
   const simRef = useRef<d3.Simulation<SimulationNode, SimulationEdge> | null>(null);
@@ -314,6 +314,7 @@ export default function SpellWeb() {
   const [vaultItems, setVaultItems] = useState<string[] | null>(null);
   const [vaultLoading, setVaultLoading] = useState(false);
   const [downloadingItem, setDownloadingItem] = useState<string | null>(null);
+  const [deletingItem, setDeletingItem] = useState<string | null>(null);
   const [saveGameStatus, setSaveGameStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [pendingAutoBackup, setPendingAutoBackup] = useState<ForgedBlade | null>(null);
 
@@ -1994,6 +1995,19 @@ export default function SpellWeb() {
     }
   }, [getVaultItem]);
 
+  const handleDeleteVaultItem = useCallback(async (itemName: string) => {
+    if (!window.confirm(`Delete "${itemName}" from vault?`)) return;
+    setDeletingItem(itemName);
+    try {
+      await deleteVaultItem(itemName);
+      setVaultItems(prev => prev ? prev.filter(n => n !== itemName) : prev);
+    } catch (err) {
+      console.error(`[vault] delete failed for "${itemName}":`, err);
+    } finally {
+      setDeletingItem(null);
+    }
+  }, [deleteVaultItem]);
+
   const handleSaveGame = useCallback(async () => {
     if (!mageDid) return;
     setSaveGameStatus('saving');
@@ -3478,6 +3492,14 @@ export default function SpellWeb() {
                             style={{ padding: '2px 6px', borderRadius: 3, background: 'none', border: '1px solid #555', color: '#888', fontSize: 10, cursor: downloadingItem === name ? 'wait' : 'pointer' }}
                           >
                             {downloadingItem === name ? '…' : '↓'}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteVaultItem(name)}
+                            disabled={deletingItem === name}
+                            title="Delete this item from vault"
+                            style={{ padding: '2px 6px', borderRadius: 3, background: 'none', border: '1px solid #c0392b60', color: '#c0392b', fontSize: 10, cursor: deletingItem === name ? 'wait' : 'pointer' }}
+                          >
+                            {deletingItem === name ? '…' : '×'}
                           </button>
                         </div>
                       </div>

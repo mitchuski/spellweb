@@ -30,6 +30,10 @@ export const DEFAULT_GATEKEEPER_URL = 'http://192.168.1.23:4224';
 
 // Module-level singletons — one gatekeeper connection and cipher for the app lifetime
 const gatekeeper = new DrawbridgeClient();
+// Drawbridge JSON-encodes plain-text responses, wrapping returned CIDs in quotes.
+// Strip outer quotes so vault item CIDs are stored as bare strings.
+const _addText = gatekeeper.addText.bind(gatekeeper);
+gatekeeper.addText = async (data: string) => (await _addText(data)).replace(/^"|"$/g, '');
 const cipher = new CipherWeb();
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -51,6 +55,7 @@ interface KeymasterContextValue {
   saveBladeToVault: (itemName: string, content: string) => Promise<void>;
   listVaultItems: () => Promise<Record<string, unknown>>;
   getVaultItem: (itemName: string) => Promise<Uint8Array<ArrayBuffer> | null>;
+  deleteVaultItem: (itemName: string) => Promise<void>;
   restoredHistory: MageArchonBackup | null;
 }
 
@@ -332,6 +337,14 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function deleteVaultItem(itemName: string): Promise<void> {
+    const km = keymasterRef.current;
+    if (!km) throw new Error('Wallet not unlocked');
+    const vaultId = await km.getAlias(MAGE_VAULT_ALIAS);
+    if (!vaultId) throw new Error('No vault found');
+    await km.removeVaultItem(vaultId, itemName);
+  }
+
   async function importWallet(walletData: StoredWallet): Promise<void> {
     const walletWeb = new WalletWeb();
     await walletWeb.saveWallet(walletData, true);
@@ -360,6 +373,7 @@ export function KeymasterProvider({ children }: { children: ReactNode }) {
     saveBladeToVault,
     listVaultItems,
     getVaultItem,
+    deleteVaultItem,
     restoredHistory,
   };
 
