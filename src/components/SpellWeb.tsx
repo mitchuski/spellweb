@@ -31,6 +31,9 @@ import {
   exportMageKeyBackup,
   type SwordsmanLink,
 } from '../lib/mageIdentity';
+import { useKeymaster } from '../contexts/KeymasterContext';
+import { type MageArchonBackup, MAGE_HISTORY_ITEM } from '../lib/mageHistory';
+
 // D3 simulation node type
 interface SimulationNode extends SpellwebNode {
   x: number;
@@ -54,6 +57,14 @@ interface ConnectionState {
   sourceNode: SpellwebNode | null;
 }
 
+// Resolve '✦' placeholder emoji to the current node definition's emoji
+function resolveNodeEmoji<T extends { nodeId: string; emoji?: string }>(items: T[]): T[] {
+  return items.map(item => {
+    if (item.emoji && item.emoji !== '✦') return item;
+    return { ...item, emoji: NODES.find(n => n.id === item.nodeId)?.emoji || '✦' } as T;
+  });
+}
+
 // Helper to extract the first emoji from a string (handles multi-emoji strings)
 function getFirstEmoji(str: string | undefined): string {
   if (!str) return '✦';
@@ -64,6 +75,8 @@ function getFirstEmoji(str: string | undefined): string {
 }
 
 export default function SpellWeb() {
+  const { mageDid, walletState, connectWallet, exportWallet, backupMageHistory, saveBladeToVault, listVaultItems, getVaultItem, deleteVaultItem, listWeaverVaultItems, getWeaverVaultItem, restoredHistory } = useKeymaster();
+
   const svgRef = useRef<SVGSVGElement>(null);
   const simRef = useRef<d3.Simulation<SimulationNode, SimulationEdge> | null>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -161,7 +174,9 @@ export default function SpellWeb() {
   const [savedConstellations, setSavedConstellations] = useState<SavedConstellation[]>(() => {
     try {
       const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.constellations);
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed: SavedConstellation[] = JSON.parse(saved);
+      return parsed.map(c => ({ ...c, marks: resolveNodeEmoji(c.marks) }));
     } catch { return []; }
   });
   const [activeConstellationId, setActiveConstellationId] = useState<string | null>(null);
@@ -218,7 +233,9 @@ export default function SpellWeb() {
   const [forgedBlades, setForgedBlades] = useState<ForgedBlade[]>(() => {
     try {
       const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.forgedBlades);
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed: ForgedBlade[] = JSON.parse(saved);
+      return parsed.map(b => ({ ...b, constellationMarks: resolveNodeEmoji(b.constellationMarks) }));
     } catch { return []; }
   });
   const [activeBlade, setActiveBlade] = useState<ForgedBlade | null>(null); // Currently highlighted blade
@@ -230,7 +247,9 @@ export default function SpellWeb() {
   const [equippedBlade, setEquippedBlade] = useState<ForgedBlade | null>(() => {
     try {
       const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.equippedBlade);
-      return saved ? JSON.parse(saved) : null;
+      if (!saved) return null;
+      const b: ForgedBlade = JSON.parse(saved);
+      return { ...b, constellationMarks: resolveNodeEmoji(b.constellationMarks) };
     } catch { return null; }
   });
 
@@ -247,7 +266,7 @@ export default function SpellWeb() {
   const [mageSpells, setMageSpells] = useState<MageSpell[]>(() => {
     try {
       const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.mageSpells);
-      return saved ? JSON.parse(saved) : [];
+      return saved ? resolveNodeEmoji(JSON.parse(saved)) : [];
     } catch { return []; }
   });
 
@@ -290,6 +309,27 @@ export default function SpellWeb() {
     }
   };
   const MANA_COST = getManaCostPerCast();
+
+  // Archon vault state
+  const [vaultItems, setVaultItems] = useState<string[] | null>(null);
+  const [vaultLoading, setVaultLoading] = useState(false);
+  const [downloadingItem, setDownloadingItem] = useState<string | null>(null);
+  const [deletingItem, setDeletingItem] = useState<string | null>(null);
+  // Weaver vault state
+  const [weaverVaultItems, setWeaverVaultItems] = useState<string[] | null>(null);
+  const [weaverVaultLoading, setWeaverVaultLoading] = useState(false);
+  const [downloadingWeaverItem, setDownloadingWeaverItem] = useState<string | null>(null);
+  const [importingWeaverItem, setImportingWeaverItem] = useState<string | null>(null);
+  // Weaver imported nodes — persisted across sessions; merged into D3 graph
+  const [weaverImportedNodes, setWeaverImportedNodes] = useState<SpellwebNode[]>(() => {
+    try {
+      const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.weaverImportedNodes);
+      return saved ? (JSON.parse(saved) as SpellwebNode[]) : [];
+    } catch { return []; }
+  });
+  const [nodeDataVersion, setNodeDataVersion] = useState(0);
+  const [saveGameStatus, setSaveGameStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [pendingAutoBackup, setPendingAutoBackup] = useState<ForgedBlade | null>(null);
 
   // Refs for d3 handlers to access current state (avoids stale closure)
   const manaPointsRef = useRef(manaPoints);
@@ -367,6 +407,11 @@ export default function SpellWeb() {
   useEffect(() => {
     localStorage.setItem(SPELLWEB_STORAGE_KEYS.userEdges, JSON.stringify(userEdges));
   }, [userEdges]);
+
+  // Persist weaverImportedNodes to localStorage
+  useEffect(() => {
+    localStorage.setItem(SPELLWEB_STORAGE_KEYS.weaverImportedNodes, JSON.stringify(weaverImportedNodes));
+  }, [weaverImportedNodes]);
 
   // Persist canonicalEdgeKeys to localStorage (Set serialized as string[])
   useEffect(() => {
@@ -449,6 +494,23 @@ export default function SpellWeb() {
   useEffect(() => {
     localStorage.setItem(SPELLWEB_STORAGE_KEYS.mageSpells, JSON.stringify(mageSpells));
   }, [mageSpells]);
+
+  // Sync newly-imported Weaver nodes into the running D3 simulation.
+  // On init, weaverImportedNodes are already in nodeDataRef (via the initialization effect).
+  // This handles nodes added at runtime (after graph is already running).
+  useEffect(() => {
+    if (!graphInitialized.current || !simRef.current) return;
+    const existingIds = new Set(nodeDataRef.current.map(n => n.id));
+    const newNodes = weaverImportedNodes.filter(n => !existingIds.has(n.id));
+    if (newNodes.length === 0) return;
+    const cx = dimensions.w / 2;
+    const cy = dimensions.h / 2;
+    newNodes.forEach(n => {
+      nodeDataRef.current.push({ ...n, x: cx + (Math.random() - 0.5) * 200, y: cy + (Math.random() - 0.5) * 200 } as SimulationNode);
+    });
+    simRef.current.nodes(nodeDataRef.current).alpha(0.1).restart();
+    setNodeDataVersion(v => v + 1);
+  }, [weaverImportedNodes]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keyboard shortcuts for hemispheric control scheme
   // S = Cycle through swordsman blades (right brain, deliberate)
@@ -734,8 +796,8 @@ export default function SpellWeb() {
     g.append("g").attr("class", "constellation-connections");
     g.append("g").attr("class", "nodes");
 
-    // Clone all data for D3 mutation (use ALL nodes initially)
-    nodeDataRef.current = NODES.map((n) => ({ ...n, x: graphW / 2 + (Math.random() - 0.5) * 200, y: h / 2 + (Math.random() - 0.5) * 200 }));
+    // Clone all data for D3 mutation (canonical NODES + any Weaver-imported nodes)
+    nodeDataRef.current = [...NODES, ...weaverImportedNodes].map((n) => ({ ...n, x: graphW / 2 + (Math.random() - 0.5) * 200, y: h / 2 + (Math.random() - 0.5) * 200 }));
     // Include both static EDGES and userEdges
     const allEdges = [...EDGES, ...userEdges];
     edgeDataRef.current = allEdges.map((e) => ({
@@ -1148,7 +1210,7 @@ export default function SpellWeb() {
         }, 1500);
       }
     });
-  }, [filters, typeFilters, spellbookFilters, searchMatches, connectionMode, waypoint, handleWaypointAddNode, mageSpells]);
+  }, [filters, typeFilters, spellbookFilters, searchMatches, connectionMode, waypoint, handleWaypointAddNode, mageSpells, nodeDataVersion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fog-of-war refresh: when witnessedShops changes, re-apply opacity to existing nodes/labels
   // without rebuilding the whole d3 simulation (which would jolt node positions and mess up
@@ -1901,6 +1963,231 @@ export default function SpellWeb() {
   // Mage bundle — Sovereign's Mage identity + 8-spell loadout + saved
   // constellations summary as one .md. Lives in the Mage panel top-right
   // alongside the × close. Mirrors the Swordsman bundle for the Mage side.
+  // ── Archon Vault helpers ─────────────────────────────────────
+  const handleBackupToArchon = useCallback(async () => {
+    const payload: MageArchonBackup = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      identity: getMageIdentity(),
+      mageSpells,
+      savedConstellations,
+      forgedBlades,
+      equippedBlade,
+      userEdges,
+      manaPoints,
+      swordsmanLink: getSwordsmanLink(),
+    };
+    await backupMageHistory(payload);
+  }, [mageSpells, savedConstellations, forgedBlades, equippedBlade, userEdges, manaPoints, backupMageHistory]);
+
+  const handleBrowseVault = useCallback(async () => {
+    setVaultLoading(true);
+    try {
+      const record = await listVaultItems();
+      setVaultItems(Object.keys(record).sort());
+    } finally {
+      setVaultLoading(false);
+    }
+  }, [listVaultItems]);
+
+  const handleLoadVaultItem = useCallback(async (itemName: string) => {
+    const buf = await getVaultItem(itemName);
+    if (!buf) { console.warn(`[vault] no data for ${itemName}`); return; }
+    try {
+      const payload: MageArchonBackup = JSON.parse(new TextDecoder().decode(buf));
+      const spells = payload.mageSpells as typeof mageSpells;
+      setMageSpells(resolveNodeEmoji(spells));
+      const constellations = payload.savedConstellations as typeof savedConstellations;
+      setSavedConstellations(constellations.map(c => ({ ...c, marks: resolveNodeEmoji(c.marks) })));
+      const blades = payload.forgedBlades as typeof forgedBlades;
+      setForgedBlades(blades.map(b => ({ ...b, constellationMarks: resolveNodeEmoji(b.constellationMarks) })));
+      const equipped = payload.equippedBlade as typeof equippedBlade;
+      setEquippedBlade(equipped ? { ...equipped, constellationMarks: resolveNodeEmoji(equipped.constellationMarks) } : null);
+      setUserEdges(payload.userEdges as typeof userEdges);
+      if (typeof payload.manaPoints === 'number') setManaPoints(payload.manaPoints);
+      if (payload.swordsmanLink) {
+        saveSwordsmanLink(payload.swordsmanLink as SwordsmanLink);
+        setSwordsmanLink(payload.swordsmanLink as SwordsmanLink);
+      }
+      console.log(`[vault] loaded state from ${itemName}`);
+    } catch (err) {
+      console.error(`[vault] failed to parse ${itemName}:`, err);
+    }
+  }, [getVaultItem]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDownloadVaultItem = useCallback(async (itemName: string) => {
+    setDownloadingItem(itemName);
+    try {
+      const buf = await getVaultItem(itemName);
+      if (!buf) { console.warn(`[vault] no data for ${itemName}`); return; }
+      const blob = new Blob([buf], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = itemName; a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setDownloadingItem(null);
+    }
+  }, [getVaultItem]);
+
+  const handleDeleteVaultItem = useCallback(async (itemName: string) => {
+    if (!window.confirm(`Delete "${itemName}" from vault?`)) return;
+    setDeletingItem(itemName);
+    try {
+      await deleteVaultItem(itemName);
+      setVaultItems(prev => prev ? prev.filter(n => n !== itemName) : prev);
+    } catch (err) {
+      console.error(`[vault] delete failed for "${itemName}":`, err);
+    } finally {
+      setDeletingItem(null);
+    }
+  }, [deleteVaultItem]);
+
+  const handleBrowseWeaverVault = useCallback(async () => {
+    setWeaverVaultLoading(true);
+    try {
+      const record = await listWeaverVaultItems();
+      setWeaverVaultItems(Object.keys(record).sort().reverse());
+    } finally {
+      setWeaverVaultLoading(false);
+    }
+  }, [listWeaverVaultItems]);
+
+  const handleImportWeaverItem = useCallback(async (itemName: string) => {
+    setImportingWeaverItem(itemName);
+    try {
+      const buf = await getWeaverVaultItem(itemName);
+      if (!buf) { console.warn(`[weaver-vault] no data for ${itemName}`); return; }
+      const { nodes, edges } = JSON.parse(new TextDecoder().decode(buf)) as {
+        nodes: SpellwebNode[];
+        edges: SpellwebEdge[];
+      };
+      // Merge nodes (skip IDs already imported or canonical)
+      setWeaverImportedNodes(prev => {
+        const existing = new Set([...NODES.map(n => n.id), ...prev.map(n => n.id)]);
+        const fresh = nodes.filter(n => !existing.has(n.id));
+        return fresh.length > 0 ? [...prev, ...fresh] : prev;
+      });
+      // Merge edges into userEdges (skip duplicates)
+      setUserEdges(prev => {
+        const existingKeys = new Set(prev.map(e => {
+          const s = typeof e.source === 'string' ? e.source : (e.source as SpellwebNode).id;
+          const t = typeof e.target === 'string' ? e.target : (e.target as SpellwebNode).id;
+          return `${s}::${t}::${e.type}`;
+        }));
+        const fresh = edges
+          .filter(e => !existingKeys.has(`${e.source}::${e.target}::${e.type}`))
+          .map(e => ({ source: e.source, target: e.target, type: e.type as SpellwebEdge['type'] }));
+        return fresh.length > 0 ? [...prev, ...fresh] : prev;
+      });
+    } catch (err) {
+      console.error(`[weaver-vault] import failed for "${itemName}":`, err);
+    } finally {
+      setImportingWeaverItem(null);
+    }
+  }, [getWeaverVaultItem]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDownloadWeaverItem = useCallback(async (itemName: string) => {
+    setDownloadingWeaverItem(itemName);
+    try {
+      const buf = await getWeaverVaultItem(itemName);
+      if (!buf) { console.warn(`[weaver-vault] no data for ${itemName}`); return; }
+      const blob = new Blob([buf], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = itemName; a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setDownloadingWeaverItem(null);
+    }
+  }, [getWeaverVaultItem]);
+
+  const handleSaveGame = useCallback(async () => {
+    if (!mageDid) return;
+    setSaveGameStatus('saving');
+    try {
+      const now = new Date();
+      const d = now.toISOString().slice(0, 10).replace(/-/g, '');
+      const t = now.toISOString().slice(11, 19).replace(/:/g, '');
+      const filename = `save-${d}-${t}.json`;
+      const payload: MageArchonBackup = {
+        version: 1,
+        exportedAt: now.toISOString(),
+        identity: getMageIdentity(),
+        mageSpells,
+        savedConstellations,
+        forgedBlades,
+        equippedBlade,
+        userEdges,
+        manaPoints,
+        swordsmanLink: getSwordsmanLink(),
+      };
+      const json = JSON.stringify(payload, null, 2);
+      await saveBladeToVault(filename, json);
+      await handleBackupToArchon();
+      setVaultItems(prev => {
+        const base = prev ?? [];
+        const names = new Set([...base, filename, MAGE_HISTORY_ITEM]);
+        return [...names];
+      });
+      setSaveGameStatus('saved');
+      setTimeout(() => setSaveGameStatus('idle'), 3000);
+    } catch (err) {
+      console.error('[vault] save game failed:', err);
+      setSaveGameStatus('error');
+      setTimeout(() => setSaveGameStatus('idle'), 4000);
+    }
+  }, [mageDid, mageSpells, savedConstellations, forgedBlades, equippedBlade, userEdges, manaPoints, saveBladeToVault, handleBackupToArchon]);
+
+  // Auto-backup to Archon Vault after blade forge (sequential writes to avoid race)
+  useEffect(() => {
+    if (!pendingAutoBackup || !mageDid) return;
+    const blade = pendingAutoBackup;
+    setPendingAutoBackup(null);
+    const now = new Date();
+    const d = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const t = now.toISOString().slice(11, 19).replace(/:/g, '');
+    const itemName = `save-${d}-${t}.json`;
+    const md = JSON.stringify({
+      version: 1, exportedAt: now.toISOString(),
+      identity: getMageIdentity(), mageSpells, savedConstellations,
+      forgedBlades, equippedBlade: blade, userEdges, manaPoints,
+      swordsmanLink: getSwordsmanLink(),
+    }, null, 2);
+    saveBladeToVault(itemName, md)
+      .then(() => handleBackupToArchon())
+      .catch(err => console.warn('[vault] auto-backup failed:', err))
+      .then(() => {
+        setVaultItems(prev => {
+          if (prev === null) return null;
+          const names = new Set([...prev, itemName, MAGE_HISTORY_ITEM]);
+          return [...names];
+        });
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAutoBackup]);
+
+  // Restore from Archon backup on first unlock when local state is empty
+  useEffect(() => {
+    if (!restoredHistory) return;
+    if (mageSpells.length > 0 || savedConstellations.length > 0) return;
+    const spells = restoredHistory.mageSpells as typeof mageSpells;
+    setMageSpells(resolveNodeEmoji(spells));
+    const constellations = restoredHistory.savedConstellations as typeof savedConstellations;
+    setSavedConstellations(constellations.map(c => ({ ...c, marks: resolveNodeEmoji(c.marks) })));
+    const blades = restoredHistory.forgedBlades as typeof forgedBlades;
+    setForgedBlades(blades.map(b => ({ ...b, constellationMarks: resolveNodeEmoji(b.constellationMarks) })));
+    const equipped = restoredHistory.equippedBlade as typeof equippedBlade;
+    setEquippedBlade(equipped ? { ...equipped, constellationMarks: resolveNodeEmoji(equipped.constellationMarks) } : null);
+    setUserEdges(restoredHistory.userEdges as typeof userEdges);
+    if (typeof restoredHistory.manaPoints === 'number') setManaPoints(restoredHistory.manaPoints);
+    if (restoredHistory.swordsmanLink) {
+      saveSwordsmanLink(restoredHistory.swordsmanLink as SwordsmanLink);
+      setSwordsmanLink(restoredHistory.swordsmanLink as SwordsmanLink);
+    }
+  }, [restoredHistory]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ─────────────────────────────────────────────────────────────
+
   const handleExportMage = useCallback(() => {
     const mageIdentity = getMageIdentity();
     const backup = hasMageIdentity() ? exportMageKeyBackup() : null;
@@ -2707,6 +2994,29 @@ export default function SpellWeb() {
                 🧙 Mage Spellbook
               </h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {mageDid && (
+                  <button
+                    onClick={handleSaveGame}
+                    disabled={saveGameStatus === 'saving'}
+                    title="Save current Mage state to Archon Vault"
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: 6,
+                      background: saveGameStatus === 'saved' ? 'linear-gradient(135deg, #50c87830, #22c55e20)' : 'linear-gradient(135deg, #9b59b630, #7b68ee20)',
+                      border: `1px solid ${saveGameStatus === 'saved' ? '#50c878' : saveGameStatus === 'error' ? '#e74c3c' : '#9b59b6'}`,
+                      color: saveGameStatus === 'saved' ? '#50c878' : saveGameStatus === 'error' ? '#e74c3c' : '#9b59b6',
+                      fontSize: 11,
+                      cursor: saveGameStatus === 'saving' ? 'wait' : 'pointer',
+                      fontFamily: "'JetBrains Mono', monospace",
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    <span>{saveGameStatus === 'saved' ? '✓' : saveGameStatus === 'error' ? '✗' : '💾'}</span>
+                    {saveGameStatus === 'saving' ? 'Saving…' : saveGameStatus === 'saved' ? 'Saved' : saveGameStatus === 'error' ? 'Error' : 'Save'}
+                  </button>
+                )}
                 <button
                   onClick={handleExportMage}
                   title={`Bundle Mage identity${hasMageIdentity() ? ' (with keys)' : ''} + ${mageSpells.length} spells + ${savedConstellations.length} saved constellations into one .md`}
@@ -3214,6 +3524,140 @@ export default function SpellWeb() {
                 </div>
               )}
             </div>
+
+            {/* Archon Vault Browser */}
+            <div style={{ marginTop: 16, padding: 16, background: '#0a0a1a', borderRadius: 8, border: '1px solid #9b59b640' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 11, color: '#9b59b6', fontFamily: "'JetBrains Mono', monospace" }}>☁ Archon Vault</span>
+                {mageDid ? (
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button
+                      onClick={handleBrowseVault}
+                      disabled={vaultLoading}
+                      style={{ padding: '3px 8px', borderRadius: 4, background: 'none', border: '1px solid #9b59b660', color: '#9b59b6', fontSize: 10, cursor: vaultLoading ? 'wait' : 'pointer', fontFamily: "'JetBrains Mono', monospace" }}
+                    >
+                      {vaultLoading ? '…' : '↻ Browse'}
+                    </button>
+                    <button
+                      onClick={exportWallet}
+                      title="Download encrypted wallet JSON backup"
+                      style={{ padding: '3px 8px', borderRadius: 4, background: 'none', border: '1px solid #9b59b660', color: '#9b59b6', fontSize: 10, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace" }}
+                    >
+                      📤 Export
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={connectWallet}
+                    disabled={walletState === 'checking'}
+                    style={{ padding: '3px 8px', borderRadius: 4, background: 'linear-gradient(135deg, #9b59b630, #7b68ee20)', border: '1px solid #9b59b6', color: '#9b59b6', fontSize: 10, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {walletState === 'checking' ? '…' : '🔑 Connect'}
+                  </button>
+                )}
+              </div>
+              {!mageDid && (
+                <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>
+                  Connect your Archon wallet to enable vault save &amp; restore
+                </div>
+              )}
+              {mageDid && vaultItems === null && <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>Click Browse to load vault items</div>}
+              {mageDid && vaultItems !== null && vaultItems.length === 0 && <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>No items in vault</div>}
+              {mageDid && vaultItems !== null && vaultItems.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 160, overflowY: 'auto' }}>
+                  {vaultItems.map(name => {
+                    const isLoadable = name.startsWith('save-') && name.endsWith('.json');
+                    return (
+                      <div key={name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 6px', background: '#ffffff08', borderRadius: 4 }}>
+                        <span style={{ fontSize: 10, color: '#aaa', fontFamily: "'JetBrains Mono', monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                        <div style={{ display: 'flex', gap: 4, marginLeft: 8, flexShrink: 0 }}>
+                          {isLoadable && (
+                            <button
+                              onClick={() => handleLoadVaultItem(name)}
+                              title="Load this save into the current session"
+                              style={{ padding: '2px 6px', borderRadius: 3, background: 'none', border: '1px solid #9b59b660', color: '#9b59b6', fontSize: 10, cursor: 'pointer' }}
+                            >
+                              ↑ Load
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDownloadVaultItem(name)}
+                            disabled={downloadingItem === name}
+                            style={{ padding: '2px 6px', borderRadius: 3, background: 'none', border: '1px solid #555', color: '#888', fontSize: 10, cursor: downloadingItem === name ? 'wait' : 'pointer' }}
+                          >
+                            {downloadingItem === name ? '…' : '↓'}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteVaultItem(name)}
+                            disabled={deletingItem === name}
+                            title="Delete this item from vault"
+                            style={{ padding: '2px 6px', borderRadius: 3, background: 'none', border: '1px solid #c0392b60', color: '#c0392b', fontSize: 10, cursor: deletingItem === name ? 'wait' : 'pointer' }}
+                          >
+                            {deletingItem === name ? '…' : '×'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Weaver Vault Browser */}
+            {mageDid && (
+              <div style={{ marginTop: 16, padding: 16, background: '#0a0a1a', borderRadius: 8, border: '1px solid #2ecc7140' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <div>
+                    <span style={{ fontSize: 11, color: '#2ecc71', fontFamily: "'JetBrains Mono', monospace" }}>🧵 Weaver Vault</span>
+                    {weaverImportedNodes.length > 0 && (
+                      <span style={{ marginLeft: 6, fontSize: 9, color: '#2ecc71', opacity: 0.6, fontFamily: "'JetBrains Mono', monospace" }}>
+                        {weaverImportedNodes.length} imported
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleBrowseWeaverVault}
+                    disabled={weaverVaultLoading}
+                    style={{ padding: '3px 8px', borderRadius: 4, background: 'none', border: '1px solid #2ecc7160', color: '#2ecc71', fontSize: 10, cursor: weaverVaultLoading ? 'wait' : 'pointer', fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {weaverVaultLoading ? '…' : '↻ Browse'}
+                  </button>
+                </div>
+                {weaverVaultItems === null && (
+                  <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>Browse to import Weaver registry snapshots into the graph</div>
+                )}
+                {weaverVaultItems !== null && weaverVaultItems.length === 0 && (
+                  <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace" }}>No Weaver snapshots in vault</div>
+                )}
+                {weaverVaultItems !== null && weaverVaultItems.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 140, overflowY: 'auto' }}>
+                    {weaverVaultItems.map(name => (
+                      <div key={name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 6px', background: '#ffffff08', borderRadius: 4 }}>
+                        <span style={{ fontSize: 10, color: '#aaa', fontFamily: "'JetBrains Mono', monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                        <div style={{ display: 'flex', gap: 4, marginLeft: 8, flexShrink: 0 }}>
+                          <button
+                            onClick={() => handleImportWeaverItem(name)}
+                            disabled={importingWeaverItem === name}
+                            title="Import nodes & edges into the Spellweb graph"
+                            style={{ padding: '2px 6px', borderRadius: 3, background: importingWeaverItem === name ? 'none' : '#2ecc7120', border: '1px solid #2ecc7160', color: '#2ecc71', fontSize: 10, cursor: importingWeaverItem === name ? 'wait' : 'pointer' }}
+                          >
+                            {importingWeaverItem === name ? '…' : '↑ Import'}
+                          </button>
+                          <button
+                            onClick={() => handleDownloadWeaverItem(name)}
+                            disabled={downloadingWeaverItem === name}
+                            title="Download snapshot JSON"
+                            style={{ padding: '2px 6px', borderRadius: 3, background: 'none', border: '1px solid #555', color: '#888', fontSize: 10, cursor: downloadingWeaverItem === name ? 'wait' : 'pointer' }}
+                          >
+                            {downloadingWeaverItem === name ? '…' : '↓'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div style={{
               marginTop: 12,

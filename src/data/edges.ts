@@ -1,4 +1,5 @@
 import type { SpellwebEdge } from '../types/graph';
+import { REGISTRY_EDGES as POH_CLOAK_EDGES } from './poh-cloak-contribution';
 
 // ══════════════════════════════════════════════════════════════
 // v1.4.0 (Solchanting · 2026-05-12) + v1.6.0 (Threshold District + Chart Shop · 2026-05-14)
@@ -2210,4 +2211,7 @@ export const EDGES: SpellwebEdge[] = [
 
   // v1.7.0 + v1.7.1 admissions (Tome VIII · the Library · the Archivist · Vitalik · Register of Invitations)
   ...V1_7_X_EDGES,
+
+  // PoH Cloak registry contribution (Archon-linked edges)
+  ...POH_CLOAK_EDGES,
 ];
