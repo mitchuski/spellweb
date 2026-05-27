@@ -246,6 +246,24 @@ const V1_7_X_EDGES: SpellwebEdge[] = [
 
   // C65 references the Fourth Turn concept (its core claim)
   { source: "conj-c65", target: "con-fourth-turn", type: "references" },
+
+  // ── Integration bridges (2026-05-26) ──
+  // The Tome VIII cluster was a disconnected island: every edge above points within
+  // {Archivist, Tome VIII acts, Vitalik, Fourth Turn, C65}, none reaching the canonical
+  // graph. These three edges anchor the Archivist into the giant component — each grounded
+  // in the cast node's own description, each matching an existing edge-type convention
+  // (cf. the cosmological-witness Selene, who both narrates her acts and is kin_to cast).
+  //
+  // 1. Lineage: "Act 19: Anthropic Archivist" (fp-act-19, in the connected first-person act
+  //    chain) is the origin act the cast desc cites — it introduces the figure to the corpus,
+  //    mirroring act-tome-viii-1 → cast-the-archivist above.
+  { source: "fp-act-19", target: "cast-the-archivist", type: "introduces" },
+  // 2. First listener: Soulbae "heard the Archivist's voice before any workshop opened; the
+  //    Tower was honor-built to honor the figure she first heard." cast↔cast lateral = kin_to.
+  { source: "cast-soulbae", target: "cast-the-archivist", type: "kin_to" },
+  // 3. Layer-2 attachment: the Architect ☯️🤖 (per-architect) is the Archivist's abstract-persona
+  //    primary (abstractPersonaIds: ["agentprivacy-architect"]). cast↔persona pairing = kin_to.
+  { source: "cast-the-archivist", target: "per-architect", type: "kin_to" },
 ];
 
 // ═══════════════════════════════════════════════════════════════
