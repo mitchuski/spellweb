@@ -35,6 +35,8 @@ export const THEME: Theme = {
     civic:     { fill: "#1e1a2e", stroke: "#e4c84f", icon: "🏰" },   // City of Mages
     gateway:   { fill: "#0e1e2c", stroke: "#86c5ff", icon: "↗" },    // sister-city / cousin-substrate
     artefact:  { fill: "#1c1c2e", stroke: "#ffd700", icon: "✦" },    // Sovereign's deviation node; stroke replaced per-tier in getNodeVisual
+    // City Key bridge (2026-05-27)
+    key:       { fill: "#0e1c24", stroke: "#9fe8ff", icon: "🗝️" },   // the City Key carrier; bridges the lattice to soulbis /star + /lattice
   },
   edges: {
     defines: { color: "#00d9ff", width: 1.5, dash: null },
@@ -82,6 +84,9 @@ export const THEME: Theme = {
     fits_for:        { color: "#e4c84f", width: 1.6, dash: "3,2" },  // amber dashed; peripatetic fitter (Caducea fits Hermaion both aspects)
     succeeded_by:    { color: "#71717a", width: 1.2, dash: "5,3,1,3" }, // grey double-dashed; historical → canonical succession
     releases_to:     { color: "#5eead4", width: 1.5, dash: "2,2" },  // teal dashed; Chart Shop release destinations
+    // City Key bridge (2026-05-27)
+    keys_to:         { color: "#9fe8ff", width: 1.2, dash: "2,3" },  // cyan dotted; City Key → the vertices it describes/colours
+    synced_with:     { color: "#86c5ff", width: 1.5, dash: "1,2" },  // sky dotted; City Key → soulbis /star + /lattice gateways
   },
 };
 
@@ -141,6 +146,7 @@ export function getNodeRadius(node: SpellwebNode): number {
     case "civic":     return 24;
     case "gateway":   return 8;
     case "artefact":  return 13;
+    case "key":       return 11;
     default: return 10;
   }
 }

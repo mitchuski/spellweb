@@ -349,6 +349,7 @@ export default function SpellWeb() {
     civic: true,
     gateway: true,
     artefact: true,
+    key: true,
   });
 
   const [spellbookFilters, setSpellbookFilters] = useState<SpellbookFilterState>({

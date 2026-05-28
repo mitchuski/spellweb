@@ -1330,6 +1330,7 @@ const NODE_TYPE_LABEL: Record<NodeType, string> = {
   civic: 'City',
   gateway: 'Sister Cities',
   artefact: 'Your Artefacts',
+  key: "Swordsman's Keys",
 };
 
 const NODE_TYPE_GLYPH: Record<NodeType, string> = {
@@ -1349,6 +1350,7 @@ const NODE_TYPE_GLYPH: Record<NodeType, string> = {
   civic: '🏰',
   gateway: '↗',
   artefact: '✦',
+  key: '🗝️',
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -1403,6 +1405,7 @@ const NODE_COLOR_BY_TYPE: Record<NodeType, string> = {
   civic:     '#e4c84f',
   gateway:   '#86c5ff',
   artefact:  '#ffd700',
+  key:       '#9fe8ff',
 };
 
 function WebScreen({
@@ -1865,6 +1868,7 @@ function ArchiveScreen({ onBack }: { onBack: () => void }) {
       civic: [],
       gateway: [],
       artefact: [],
+      key: [],
     };
     NODES.forEach(n => {
       if (out[n.type]) out[n.type].push(n);

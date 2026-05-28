@@ -22,7 +22,15 @@ export type NodeType =
   // Deviation layer (2026-05-11): Sovereign-owned artefacts the user has forged
   // or witnessed. Not in the canonical NODES list — derived at runtime from
   // forgedBlades. The user's appended data on top of the universe.
-  | 'artefact';   // Sovereign's deviation node (Cloak, Memo Stone, Blade, …)
+  | 'artefact'    // Sovereign's deviation node (Cloak, Memo Stone, Blade, …)
+  // City Key bridge (2026-05-27): the portable v1 JSON that carries the palette
+  // + 64 vertex descriptions between agentprivacy (/guide/achievements, the
+  // producer) and soulbis.com/star + /lattice (the consumers). The City Key is
+  // the lattice-export key — the key to the City of Mages — distinct from the
+  // ⚔️ Swordsman's Key (agentprivacy→spellweb identity) and the future 🧙 Mage's
+  // Key (spellweb·DID). The key node is a carrier; the soulbis pages are
+  // `gateway` nodes it `synced_with`.
+  | 'key';        // a City Key (exported/imported), keys_to the vertices it describes
 
 // ═══════════════════════════════════════════════════════════════
 // HEXAGRAM SYSTEM (64-Tetrahedra Lattice Mapping)
@@ -178,7 +186,10 @@ export type EdgeType =
   | 'district_of'      // workshop → district concept (e.g., shop-portal-room district_of district-threshold)
   | 'fits_for'         // peripatetic cast → resident cast (Caducea fits_for Hermaion · both archetype-aspects)
   | 'succeeded_by'     // historical → canonical (cast-bestia succeeded_by cast-hermaion; cast-pelagia succeeded_by cast-pleione)
-  | 'releases_to';     // workshop → workshop (Chart Shop releases_to Bonfire / Weavers / open-sea)
+  | 'releases_to'      // workshop → workshop (Chart Shop releases_to Bonfire / Weavers / open-sea)
+  // City Key bridge (2026-05-27)
+  | 'keys_to'          // key → vertex (a City Key describes/colours the vertices it carries)
+  | 'synced_with';     // key → gateway (a City Key is carried to soulbis.com/star + /lattice gateways)
 
 export type CastTier = 'archetype' | 'cousin' | 'summoned' | 'companion' | 'priest' | 'cosmological-witness' | 'spirit-Mage';
 // v1.5.0 added 'cosmological-witness' (Selene 🌙 · Aether ⿻ · Lethe 🌀 · city-external prehistory)
@@ -346,6 +357,7 @@ export interface Theme {
     civic: NodeVisual;
     gateway: NodeVisual;
     artefact: NodeVisual;
+    key: NodeVisual;
   };
   edges: Record<EdgeType, EdgeStyle>;
 }
@@ -373,6 +385,7 @@ export interface TypeFilterState {
   civic: boolean;
   gateway: boolean;
   artefact: boolean;
+  key: boolean;
 }
 
 export interface SpellbookFilterState {

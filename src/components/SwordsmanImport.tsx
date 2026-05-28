@@ -1,12 +1,23 @@
 /**
  * SwordsmanImport - Import swordsman identity from agentprivacy.ai
  *
- * Accepts JSON paste with:
- * - publicKeyHex: Ed25519 public key (64 hex chars)
- * - participantId: ap-{16hex}
- * - displayName: Optional name
- * - constellationPath: Emoji path from ceremony
- * - trustTier: blade | light | heavy | dragon
+ * Accepts EITHER of the two exports the agentprivacy ceremony produces:
+ *
+ * 1. The ⚔️ Swordsman's Key — the identity export ("Download agent card
+ *    (backup)"). A flat object; this is the canonical input here, since the
+ *    Swordsman's Key is the one "carried to spellweb to anchor forged blades":
+ *    - publicKeyHex: Ed25519 public key (64 hex chars)
+ *    - participantId: ap-{16hex}
+ *    - displayName / constellationPath / trustTier (optional)
+ *
+ * 2. The 🗝️ City Key ("Export City Key" → city-key.json) — the lattice-standing
+ *    export aimed at soulbis /star + /lattice. It stamps a nested identity block
+ *    rather than flat fields:
+ *    { version: 1, identity: { publicKeyHex, displayName, trustTier } }
+ *    Tolerated as a fallback: we read identity.publicKeyHex and derive the
+ *    participantId the way the producer's generateParticipantId does (`ap-` +
+ *    first 16 hex). The City Key carries no constellation by design, so an emoji
+ *    path only comes through on the Swordsman's Key above.
  */
 
 import { useState } from 'react';
@@ -29,31 +40,47 @@ export function SwordsmanImport({ onImportComplete, onClose }: SwordsmanImportPr
     try {
       const parsed = JSON.parse(input);
 
-      // Validate required fields
-      if (!parsed.publicKeyHex) {
+      // Normalise: accept the flat Swordsman's Key (agent card) or a City Key
+      // (identity nested under `identity`). Top-level fields win; else fall back.
+      const identity =
+        parsed.identity && typeof parsed.identity === 'object' ? parsed.identity : null;
+      const publicKeyHex: unknown = parsed.publicKeyHex ?? identity?.publicKeyHex;
+      const displayName: unknown = parsed.displayName ?? identity?.displayName;
+      const rawTier: unknown = parsed.trustTier ?? identity?.trustTier;
+      const constellationPath: unknown = parsed.constellationPath; // Key carries none
+
+      const TIERS = ['blade', 'light', 'heavy', 'dragon'] as const;
+      const trustTier: SwordsmanLink['trustTier'] =
+        typeof rawTier === 'string' && (TIERS as readonly string[]).includes(rawTier)
+          ? (rawTier as SwordsmanLink['trustTier'])
+          : 'blade';
+
+      // Validate the public key — the one field both formats must supply.
+      if (!publicKeyHex) {
         throw new Error('Missing publicKeyHex');
       }
-      if (!parsed.participantId) {
-        throw new Error('Missing participantId');
-      }
-
-      // Validate hex format (64 chars for Ed25519 public key)
-      if (!/^[0-9a-f]{64}$/i.test(parsed.publicKeyHex)) {
+      if (typeof publicKeyHex !== 'string' || !/^[0-9a-f]{64}$/i.test(publicKeyHex)) {
         throw new Error('Invalid publicKeyHex format (expected 64 hex characters)');
       }
 
-      // Validate participantId format (ap-{16hex})
-      if (!/^ap-[0-9a-f]{16}$/i.test(parsed.participantId)) {
+      // participantId: present on the Swordsman's Key (agent card); derive it from
+      // the public key for a City Key (mirrors agentprivacy's generateParticipantId).
+      const participantId: string =
+        typeof parsed.participantId === 'string' && parsed.participantId
+          ? parsed.participantId
+          : `ap-${publicKeyHex.slice(0, 16).toLowerCase()}`;
+
+      if (!/^ap-[0-9a-f]{16}$/i.test(participantId)) {
         throw new Error('Invalid participantId format (expected ap-{16hex})');
       }
 
       // Create SwordsmanLink
       const link: SwordsmanLink = {
-        participantId: parsed.participantId,
-        displayName: parsed.displayName || 'Unknown Swordsman',
-        publicKeyHex: parsed.publicKeyHex,
-        trustTier: parsed.trustTier || 'blade',
-        constellationPath: parsed.constellationPath,
+        participantId,
+        displayName: typeof displayName === 'string' && displayName ? displayName : 'Unknown Swordsman',
+        publicKeyHex,
+        trustTier,
+        constellationPath: typeof constellationPath === 'string' ? constellationPath : undefined,
         linkedAt: new Date().toISOString(),
       };
 
@@ -156,7 +183,8 @@ export function SwordsmanImport({ onImportComplete, onClose }: SwordsmanImportPr
           margin: '0 0 16px 0',
           lineHeight: 1.5,
         }}>
-          Paste your agentprivacy.ai export to link your Swordsman identity.
+          Paste your agentprivacy.ai export to link your Swordsman identity —
+          either the Swordsman&apos;s Key (agent card backup) or a City Key works.
           Blades forged here will be anchored to both identities.
         </p>
       )}
