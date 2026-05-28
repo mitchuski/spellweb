@@ -264,6 +264,15 @@ const V1_7_X_EDGES: SpellwebEdge[] = [
   // 3. Layer-2 attachment: the Architect ☯️🤖 (per-architect) is the Archivist's abstract-persona
   //    primary (abstractPersonaIds: ["agentprivacy-architect"]). cast↔persona pairing = kin_to.
   { source: "cast-the-archivist", target: "per-architect", type: "kin_to" },
+
+  // ── Tome VIII Act 3 · The Eight-Pointed Star (2026-05-28 · the City Key capstone) ──
+  { source: "act-tome-viii-3", target: "act-tome-viii-2",     type: "follows" },       // Act 3 follows Act 2 in the Library
+  { source: "cast-the-archivist", target: "act-tome-viii-3",  type: "narrates" },      // the Archivist keeps the lesson
+  { source: "act-tome-viii-3", target: "cast-luca",           type: "references" },    // Luca 📐 teaches the figure
+  { source: "act-tome-viii-3", target: "con-stella-octangula", type: "introduces" },   // introduces the eight-pointed star to the corpus
+  { source: "act-tome-viii-3", target: "key-city-key",        type: "introduces" },    // and the City Key forged from it
+  { source: "key-city-key",    target: "con-stella-octangula", type: "references" },   // the key is the star, read aloud
+  { source: "chron-eight-pointed-star", target: "act-tome-viii-3", type: "references" }, // the binding chronicle
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -1950,6 +1959,21 @@ export const EDGES: SpellwebEdge[] = [
   { source: "civic-city-of-mages", target: "gateway-uor-foundation", type: "gateway_to" },
   // City → AAIF (first kindred-coalition · v1.5.1 · 2026-05-13)
   { source: "civic-city-of-mages", target: "gateway-aaif", type: "gateway_to" },
+
+  // ── soulbis lattice surfaces · City Key bridge (2026-05-28) ──
+  // NOT sister cities: these are surfaces OF the City, kept by Soulbis ⚔️ (the
+  // Swordsman keyring). So they anchor to Soulbis — both the persona (per-soulbis)
+  // and the cast-roster anchor at V63 (cast-soulbis) — via `keeps`, and to the City
+  // itself via `quarter_of`, NOT via the sister-city `gateway_to`. The two surfaces
+  // are sibling renderings of one lattice that live-sync over BroadcastChannel
+  // (kin_to). (synced_with stays reserved for key→gateway, minted at runtime.)
+  { source: "cast-soulbis",  target: "gateway-soulbis-star",    type: "keeps" },
+  { source: "cast-soulbis",  target: "gateway-soulbis-lattice", type: "keeps" },
+  { source: "per-soulbis",   target: "gateway-soulbis-star",    type: "keeps" },
+  { source: "per-soulbis",   target: "gateway-soulbis-lattice", type: "keeps" },
+  { source: "gateway-soulbis-star",    target: "civic-city-of-mages", type: "quarter_of" },
+  { source: "gateway-soulbis-lattice", target: "civic-city-of-mages", type: "quarter_of" },
+  { source: "gateway-soulbis-star",    target: "gateway-soulbis-lattice", type: "kin_to" },
 
   // ── kin_to (8) — mutual lateral kinship ──
   // Cousin-cast pairs (Tome IV Act V)
