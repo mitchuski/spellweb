@@ -67,13 +67,13 @@ The 14 named vertices each need their spellweb node updated with the inhabitant 
 1. **V63** — Sovereign Anchor — *the reader; flaxscrip 📜🎲 (cousin)*
 2. **V28** — Mage canonical — *Pallia 🪡, Soulbae 🧙, GenitriX (multiple inhabitants)*
 3. **V31** — Recursion / Holon vertex — *Vagari 🌳* (agentprivacy-canonical)
-4. **V25** — Aletheia blade — *Aletheia 🔮 (the persona)* (persona-vs-vertex distinction critical)
+4. **V38** — Aletheia blade — *Aletheia 🔮 (the persona)* (persona-vs-vertex distinction critical)
 5. **V57** — Curatrix blade — *Aria Silverhue 🪞🖼️*
 6. **V55** — Covenant vertex — *Manifestia 🤲🌿* (Priest tier; first-of-its-kind)
 7. **V49** — Working-day blade — *Custos 🔏 + Lampyra 💠 (shared)*
 8. **V51** — Commitment / Language / Model blade — *Adamantia 💎*
 9. **V19** — Plonkish blade — *Vulcana ⚒️*
-10. **V5** — Chronicle vertex — *Memora 📜*
+10. **V41** — Chronicle vertex — *Memora 📜*
 11. **V24** — Hephaestus — *Socrat0x 🔥❓ (provisional; companion-Mage tier)*
 12. **V12** — Schema vertex — *Sovereign-direct (no resident Mage; render as available-for-direct-action)*
 13. **V15** — VC vertex — *Sovereign-direct (no resident Mage; bilateral type emerges from structural relationship)*
@@ -129,7 +129,7 @@ The City of Mages is built upon Drake Island. The Island's elder (the Drake) is 
 Seven trade quarters with shop URLs (per `city_anatomy.trade_quarters`):
 
 - `/tailor` — Pallia 🪡 at V28 — Weavers
-- `/shield` — Memora 📜 at V5 — zShields
+- `/shield` — Memora 📜 at V41 — zShields
 - `/forget` — Vulcana ⚒️ at V19 — **Forge(t)** *(intentional wordplay: forge + forget; canonical per grimoire)*
 - `/etherchanting` — Adamantia 💎 at V51 — Etherchanting
 - `/jeweler` — Lampyra 💠 at V49 — Jeweller

@@ -12,10 +12,14 @@
  * Spec: docs/chronicles/CHRONICLE_LATTICE_ITEMS_INTERFACE_2026-05-14.md
  */
 
-import { useMemo, useState, useEffect, useCallback } from 'react';
-import type { SpellwebNode, ArtefactClass, EntityKind, HeldConstellation, BoundFamiliar, DispatchReceipt } from '../types/graph';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
+import type { SpellwebNode, ArtefactClass, EntityKind, HeldConstellation, BoundFamiliar, DispatchReceipt, SwordsmanCityKey } from '../types/graph';
 import { NODES } from '../data/nodes';
 import { THEME } from '../data/theme';
+import {
+  loadKey, saveKey, emptyKey, stamp, makeCharge, glyphAt, importKeyJSON, CITY_KEY_EVENT,
+  type KeyIdentity,
+} from '../lib/cityKey';
 
 export type LatticeMode = 'items' | 'lattice';
 
@@ -40,11 +44,17 @@ interface ItemLatticeViewProps {
   // v1.6.0 (2026-05-15) · proof-of-presence + import surface migrated from the retired side panel
   witnessedShops?: Record<string, string>;
   forgedBlades?: LatticeForgedBlade[];
+  // 2026-06-11 · bearer identity for the holonic Swordsman City Key (κ folds it into the reading)
+  keyIdentity?: KeyIdentity;
   onCreateImport?: (file: File) => void;   // ✦ Create import — master template / canonical seed
   onCraftImport?: (file: File) => void;    // ⚒️ Craft import — forged artefact / Sovereign's own work
   // Export hooks · migrated from the retired ArtefactPanel
   onExportArtefact?: (bladeId: string) => void;       // 📥 download a forged blade as .md
   onExportCatalogue?: (nodeId: string) => void;       // 📥 download a canonical workshop card as .md
+  // 2026-06-12 · key carry-out surfaced in the inventory (the keys panel's carry row)
+  onExportSwordsman?: () => void;                     // ⚔️ the Swordsman bundle .md (includes the City Key section)
+  onExportMage?: () => void;                          // 🧙 the Mage bundle .md (spells + constellations + identity)
+  onExportCityKey?: () => void;                       // 🗝️ the content-addressed City Key .json (κ stamped)
   // Post-import Evoke CTA · surfaced when a constellation is loaded but the ceremony hasn't been triggered
   hasConstellation?: boolean;        // true when the canvas holds an imported constellation
   onBeginEvoke?: () => void;         // closes the lattice + starts the casting ceremony
@@ -200,9 +210,13 @@ export default function ItemLatticeView({
   onSwitchMode,
   witnessedShops = {},
   forgedBlades = [],
+  keyIdentity = {},
   onCreateImport,
   onCraftImport,
   onExportArtefact,
+  onExportSwordsman,
+  onExportMage,
+  onExportCityKey,
   onExportCatalogue,
   hasConstellation = false,
   onBeginEvoke,
@@ -805,6 +819,13 @@ export default function ItemLatticeView({
               provenSet={provenSet}
             />
             <ForgedInventory forgedBlades={forgedBlades} />
+            <SwordsmanCityKeyPanel
+              activeNode={pinnedVertex !== null ? activeNode : null}
+              keyIdentity={keyIdentity}
+              onExportSwordsman={onExportSwordsman}
+              onExportMage={onExportMage}
+              onExportCityKey={onExportCityKey}
+            />
           </aside>
           )}
         </div>
@@ -1718,5 +1739,322 @@ function ForgedItemCard({
         )}
       </div>
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// SwordsmanCityKeyPanel · the holonic City Key — C87 "The Key Accumulates"
+// Every Strike folds a charge in (a step circuit), re-derives κ over the key's
+// reading, and chains the prior κ via `supersedes`. The sigil is the κ drawn:
+// 64 glyphs, one per vertex. "Every fold is a deliberate act."
+// ─────────────────────────────────────────────────────────────────────
+function SwordsmanCityKeyPanel({
+  activeNode,
+  keyIdentity,
+  onExportSwordsman,
+  onExportMage,
+  onExportCityKey,
+}: {
+  activeNode: SpellwebNode | null;
+  keyIdentity: KeyIdentity;
+  onExportSwordsman?: () => void;
+  onExportMage?: () => void;
+  onExportCityKey?: () => void;
+}) {
+  const [key, setKey] = useState<SwordsmanCityKey | null>(() => loadKey());
+  const [busy, setBusy] = useState(false);
+  const [explainOpen, setExplainOpen] = useState(false);
+  const importRef = useRef<HTMLInputElement>(null);
+
+  // Rotation intake — adopt a City Key exported by /star, /lattice, /sigil, /skye or
+  // agentprivacy /city. κ is re-derived (never trusted); the prior-chain carries through.
+  const handleImportFile = useCallback(async (file: File) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const text = await file.text();
+      const result = await importKeyJSON(text, keyIdentity);
+      if (!result.verified) {
+        const ok = window.confirm(
+          `κ claim does not re-derive.\n\nclaimed: ${result.claimedKappa ?? '(none)'}\nderived: ${result.derivedKappa ?? '(crypto unavailable)'}\n\nAdopt this key anyway?`,
+        );
+        if (!ok) return;
+      }
+      if (key && key.charges.some(c => c.source !== 'key-import')) {
+        const ok = window.confirm(
+          `Adopting this key replaces the current one (κ ${key.kappa?.slice(0, 23) ?? 'unstruck'}…, ${key.charges.length} charge${key.charges.length === 1 ? '' : 's'}).\n\nContinue?`,
+        );
+        if (!ok) return;
+      }
+      saveKey(result.key);
+      setKey(result.key);
+    } catch (err) {
+      window.alert(`Could not read that City Key JSON: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setBusy(false);
+    }
+  }, [busy, key, keyIdentity]);
+
+  // Re-sync if another surface (or tab) folds a charge
+  useEffect(() => {
+    const onChange = () => setKey(loadKey());
+    window.addEventListener(CITY_KEY_EVENT, onChange);
+    window.addEventListener('storage', onChange);
+    return () => {
+      window.removeEventListener(CITY_KEY_EVENT, onChange);
+      window.removeEventListener('storage', onChange);
+    };
+  }, []);
+
+  // Create-on-first-strike, folding the bearer's known identity into the reading.
+  const ensureKey = useCallback((): SwordsmanCityKey => {
+    if (key) return key;
+    const fresh = emptyKey(keyIdentity);
+    saveKey(fresh);
+    return fresh;
+  }, [key, keyIdentity]);
+
+  const strikeLabel = activeNode
+    ? `⚔️ Strike with ${activeNode.artefactName ?? activeNode.label}`
+    : '🪬 Stamp sigil';
+
+  const handleStrike = useCallback(async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const base = ensureKey();
+      const charge = activeNode
+        ? makeCharge({
+            label: activeNode.artefactName ?? activeNode.label,
+            source: activeNode.id,
+            vertex: activeNode.vertex,
+            // heavier vertices (more sovereignty bits) fold in more mass
+            weight: activeNode.vertex !== undefined ? Math.max(1, popcount(activeNode.vertex)) : 1,
+          })
+        : makeCharge({ label: 'Stamped sigil', source: 'sigil-stamp', weight: 1 });
+      const next = await stamp(base, charge);
+      setKey(next);
+    } finally {
+      setBusy(false);
+    }
+  }, [busy, ensureKey, activeNode]);
+
+  const charges = key?.charges ?? [];
+
+  return (
+    <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(255, 215, 0, 0.18)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: 10, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1.2 }}>
+          🗝️ swordsman city key
+        </div>
+        <div style={{ fontSize: 10, color: '#ffd700', fontFamily: "'JetBrains Mono', monospace" }}>
+          weight {key?.weight ?? 0} · {charges.length} charge{charges.length === 1 ? '' : 's'}
+        </div>
+      </div>
+
+      {/* κ readout + prior-chain */}
+      <div style={{ padding: '8px 10px', background: 'rgba(255, 215, 0, 0.04)', border: '1px solid rgba(255, 215, 0, 0.2)', borderRadius: 6, fontFamily: "'JetBrains Mono', monospace", fontSize: 10, lineHeight: 1.6 }}>
+        <div style={{ color: THEME.textDim }}>
+          κ <span style={{ color: key?.kappa ? '#ffd700' : THEME.textDim }}>{key?.kappa ? key.kappa.slice(0, 27) + '…' : 'unstruck — strike to derive a name'}</span>
+        </div>
+        {key?.priorKappa && (
+          <div style={{ color: THEME.textDim }}>
+            <span style={{ color: '#e8523a' }}>supersedes</span> {key.priorKappa.slice(7, 23)}…
+          </div>
+        )}
+      </div>
+
+      {/* The sigil — κ drawn as 64 glyphs on the lattice */}
+      <SigilPreview kappa={key?.kappa ?? null} />
+
+      {/* Strike */}
+      <button
+        onClick={handleStrike}
+        disabled={busy}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          padding: '8px 12px',
+          background: busy ? 'rgba(255,215,0,0.06)' : 'linear-gradient(135deg, rgba(255,215,0,0.18), rgba(232,82,58,0.10))',
+          border: '1px solid #ffd700aa',
+          color: '#ffd700',
+          borderRadius: 6,
+          cursor: busy ? 'wait' : 'pointer',
+          fontSize: 12,
+          fontFamily: 'inherit',
+          fontWeight: 600,
+        }}
+        title={activeNode
+          ? 'Fold this pinned artefact into the key — a C87 step. κ re-derives and the prior κ is superseded.'
+          : 'Stamp the sigil — fold a charge into the key. Pin an artefact first to strike with it.'}
+      >
+        {busy ? 'folding…' : strikeLabel}
+      </button>
+
+      {/* The hammering, explained — collapsible so the panel stays quiet by default */}
+      <button
+        onClick={() => setExplainOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: 0, background: 'transparent', border: 'none',
+          color: THEME.textDim, fontSize: 9.5, cursor: 'pointer',
+          fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1,
+        }}
+        aria-expanded={explainOpen}
+      >
+        <span aria-hidden style={{ color: '#ffd700aa' }}>{explainOpen ? '▾' : '▸'}</span>
+        the hammering, explained
+      </button>
+      {explainOpen && (
+        <div style={{ padding: '8px 10px', background: 'rgba(255, 215, 0, 0.03)', border: '1px dashed rgba(255, 215, 0, 0.22)', borderRadius: 4, fontSize: 10, color: THEME.textDim, lineHeight: 1.65 }}>
+          Each <span style={{ color: '#ffd700' }}>strike</span> is a hammer-blow on the anvil: it folds one
+          charge into the key — the pinned artefact if one is pinned (heavier vertices fold in more mass:
+          weight = the vertex&apos;s stratum), or a plain sigil-stamp if not.
+          <br /><br />
+          The key&apos;s name is its content: after every blow its κ (<span style={{ color: '#ffd700aa' }}>sha256
+          of the key&apos;s reading</span>) is re-derived, and the old κ is chained behind it —{' '}
+          <span style={{ color: '#e8523a' }}>supersedes</span> — so the key carries a lineage of its former
+          selves. That is <span style={{ color: '#ffd700aa' }}>C87 · the Key Accumulates</span>.
+          <br /><br />
+          The <span style={{ color: '#ffd700' }}>sigil</span> above is the κ drawn: 64 hex glyphs, one per
+          lattice vertex — brighter glyph, higher digit. Carry the key out with the buttons below; the same
+          κ re-derives on /star, /lattice, /sigil, /skye and agentprivacy /city, and an import here carries
+          a rotation back.
+        </div>
+      )}
+
+      {/* Carry the keys — sword + mage bundle exports, the content-addressed key, and rotation intake */}
+      <div style={{ fontSize: 9.5, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1, marginTop: 2 }}>
+        carry · export ⊥ import
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+        {onExportSwordsman && (
+          <CarryButton
+            label="⚔️ Swordsman.md"
+            color="#e8523a"
+            onClick={onExportSwordsman}
+            title="Export the Swordsman bundle — forged artefacts, witnessed shops, and this City Key (κ + tape) as one .md"
+          />
+        )}
+        {onExportMage && (
+          <CarryButton
+            label="🧙 Mage.md"
+            color="#67e8f9"
+            onClick={onExportMage}
+            title="Export the Mage bundle — spells, saved constellations, and mage identity as one .md"
+          />
+        )}
+        {onExportCityKey && (
+          <CarryButton
+            label="🗝️ City Key.json"
+            color="#ffd700"
+            onClick={onExportCityKey}
+            disabled={!key?.kappa}
+            title={key?.kappa
+              ? 'Export the content-addressed City Key (κ stamped) — round-trips to /star, /lattice, /sigil and agentprivacy /city'
+              : 'The key is unstruck — strike once to derive a κ before carrying it out'}
+          />
+        )}
+        <CarryButton
+          label="⤵ import Key.json"
+          color="#ffd700"
+          dashed
+          onClick={() => importRef.current?.click()}
+          disabled={busy}
+          title="Adopt a City Key JSON exported from /star, /lattice, /sigil, /skye or agentprivacy /city — κ is re-derived, the prior-chain carries through, and your next strike supersedes it."
+        />
+      </div>
+      <input
+        ref={importRef}
+        type="file"
+        accept=".json,application/json"
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void handleImportFile(f);
+          e.target.value = '';
+        }}
+      />
+
+      {/* Recent charges (the accumulator tape · newest first · last 3) */}
+      {charges.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {[...charges].reverse().slice(0, 3).map((c, i) => (
+            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace" }}>
+              <span style={{ color: '#ffd700aa' }}>{charges.length - i}</span>
+              <span style={{ flex: 1, color: THEME.textBright, fontFamily: 'inherit', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.label}</span>
+              {c.vertex !== undefined && <span>V{c.vertex}</span>}
+              <span style={{ color: '#ffd700aa' }}>+{c.weight}</span>
+            </div>
+          ))}
+          {charges.length > 3 && (
+            <div style={{ fontSize: 9, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace" }}>
+              +{charges.length - 3} earlier fold{charges.length - 3 === 1 ? '' : 's'} on the tape
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Compact export/import chip for the key panel's carry row.
+function CarryButton({
+  label,
+  color,
+  onClick,
+  title,
+  disabled,
+  dashed,
+}: {
+  label: string;
+  color: string;
+  onClick: () => void;
+  title: string;
+  disabled?: boolean;
+  dashed?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+        padding: '6px 8px',
+        background: disabled ? 'transparent' : `${color}14`,
+        border: `1px ${dashed ? 'dashed' : 'solid'} ${color}${disabled ? '44' : 'aa'}`,
+        color: disabled ? `${color}66` : color,
+        borderRadius: 6,
+        cursor: disabled ? 'default' : 'pointer',
+        fontSize: 10.5,
+        fontFamily: "'JetBrains Mono', monospace",
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+// Mini sigil — κ rendered as 64 glyphs on the Pascal's-row lattice. Brightness = glyph/15.
+function SigilPreview({ kappa }: { kappa: string | null }) {
+  const W = 330, H = 104, pad = 8;
+  const rowSpace = (H - pad * 2) / 6;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }} role="img" aria-label="the key's sigil — κ drawn on the lattice">
+      {ROWS.flatMap((row, s) => {
+        const y = pad + s * rowSpace;
+        const innerW = W - pad * 2 - 12;
+        return row.map((v, i) => {
+          const x = pad + 6 + (innerW / row.length) * (i + 0.5);
+          const g = glyphAt(kappa, v);
+          const op = g === null ? 0.06 : 0.14 + 0.86 * (g / 15);
+          const r = g === null ? 1.6 : 1.6 + 2.4 * (g / 15);
+          return <circle key={`sg-${v}`} cx={x} cy={y} r={r} fill="#ffd700" fillOpacity={op} />;
+        });
+      })}
+    </svg>
   );
 }

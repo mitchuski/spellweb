@@ -87,6 +87,18 @@ export const THEME: Theme = {
     // City Key bridge (2026-05-27)
     keys_to:         { color: "#9fe8ff", width: 1.2, dash: "2,3" },  // cyan dotted; City Key → the vertices it describes/colours
     synced_with:     { color: "#86c5ff", width: 1.5, dash: "1,2" },  // sky dotted; City Key → soulbis /star + /lattice gateways
+    // Key/sigil vocabulary (2026-06-11) · content-addressed identity
+    carries:               { color: "#ffd700", width: 1.6, dash: null },   // gold solid; sigil/key carries content (the Swordsman bears his mark)
+    derives_identity_from: { color: "#c4b5fd", width: 1.3, dash: "4,2" },  // violet dashed; κ ← canonical form (Law L5)
+    supersedes:            { color: "#e8523a", width: 1.4, dash: "5,3" },  // coral dashed; κ-chain — this self supersedes the prior
+    boots_over:            { color: "#5eead4", width: 1.5, dash: "1,3" },  // teal dotted; surface boots over substrate (holospaces)
+    // Proof-packet tracing (2026-06-12 · the Tracing Protocol)
+    instance_of:           { color: "#a78bfa", width: 1.3, dash: "4,2" },  // violet dashed; packet → workshop class
+    forged_by:             { color: "#ffd700", width: 1.4, dash: "3,2" },  // gold dashed; packet → bearer/cast (who forged)
+    witnessed_by:          { color: "#9fe8ff", width: 1.2, dash: "2,3" },  // cyan dotted; packet → cast (who attested)
+    composed_of:           { color: "#34d399", width: 1.4, dash: "1,2" },  // green dotted; Reliquary → child packets
+    traced_through:        { color: "#e4c84f", width: 1.1, dash: "1,3" },  // amber dotted; packet → vertex (evoke evidence)
+    anchors_to:            { color: "#c4a8ff", width: 1.3, dash: "5,3" },  // violet dashed; instance → canon (class proof · root)
   },
 };
 

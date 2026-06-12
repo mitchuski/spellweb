@@ -326,7 +326,7 @@ This skill was generated from the 0xagentprivacy architecture.
 
 **Verify the source:**
 - Architecture documentation: [sync.soulbis.com](https://sync.soulbis.com)
-- Agent intelligence: [intel.agentkyra.ai](https://intel.agentkyra.ai)
+- Agent intelligence: [intel.agentprivacy.ai](https://intel.agentprivacy.ai)
 - Repository: [github.com/mitchuski/agentprivacy-docs](https://github.com/mitchuski/agentprivacy-docs)
 - Contact: mage@agentprivacy.ai
 

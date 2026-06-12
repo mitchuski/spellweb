@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import * as d3 from "d3";
 import type { SpellwebNode, SpellwebEdge, FilterState, TypeFilterState, SpellbookFilterState } from '../types/graph';
-import { SPELLWEB_STORAGE_KEYS, stratumToMoonPhase, getMoonPhaseInfo, type HeldConstellation, type DispatchReceipt, type BoundFamiliar } from '../types/graph';
+import { SPELLWEB_STORAGE_KEYS, stratumToMoonPhase, getMoonPhaseInfo, type HeldConstellation, type DispatchReceipt, type BoundFamiliar, type ImportedProofPacket } from '../types/graph';
+import { getImportedPackets, ingestPacketsPayload, packetNodeId, PROOF_PACKETS_CHANGE_EVENT } from '../lib/proofPackets';
 import { NODES } from '../data/nodes';
 import { EDGES } from '../data/edges';
 import { CONSTELLATION_PRESETS } from '../data/presets';
@@ -31,6 +32,7 @@ import {
   exportMageKeyBackup,
   type SwordsmanLink,
 } from '../lib/mageIdentity';
+import { loadKey as loadCityKey, serializeKeyMarkdown, exportKeyJSON } from '../lib/cityKey';
 // D3 simulation node type
 interface SimulationNode extends SpellwebNode {
   x: number;
@@ -423,6 +425,15 @@ export default function SpellWeb() {
     localStorage.setItem(SPELLWEB_STORAGE_KEYS.boundFamiliars, JSON.stringify(boundFamiliars));
   }, [boundFamiliars]);
 
+  // Imported trust-task proof packets (the Tracing Protocol). Persisted by the
+  // proofPackets lib on ingest; here we mirror to state + refresh on the event.
+  const [importedPackets, setImportedPackets] = useState<ImportedProofPacket[]>(() => getImportedPackets());
+  useEffect(() => {
+    const refresh = () => setImportedPackets(getImportedPackets());
+    if (typeof window !== 'undefined') window.addEventListener(PROOF_PACKETS_CHANGE_EVENT, refresh);
+    return () => { if (typeof window !== 'undefined') window.removeEventListener(PROOF_PACKETS_CHANGE_EVENT, refresh); };
+  }, []);
+
   // v1.6.0 · Dispatch-receipt log · Portal Room routing receipts (chronicle §3.4).
   // Ephemeral by design — auto-prune at boot if older than 30d.
   const [dispatchReceipts, setDispatchReceipts] = useState<DispatchReceipt[]>(() => {
@@ -603,6 +614,59 @@ export default function SpellWeb() {
       });
   }, [deviationNodes]);
 
+  // Proof-packet deviation layer — imported trust-task packets (the Tracing
+  // Protocol). Each becomes an `artefact` node carrying its content-addressed
+  // proof + witness-derived payloadMode. Sealed packets carry only a commitment.
+  const packetNodes = useMemo<SpellwebNode[]>(() => {
+    return importedPackets.map((p) => {
+      const shopId = `shop-${p.shopHref.replace(/^\//, '')}`;
+      const workshop = NODES.find(n => n.id === shopId);
+      const sealed = p.payloadMode === 'sealed' || p.payloadMode === 'refractive';
+      return {
+        id: packetNodeId(p.proof),
+        type: 'artefact',
+        label: workshop?.artefactName ?? p.shopHref.replace(/^\//, ''),
+        domain: workshop?.domain ?? 'shared',
+        layer: 'narrative',
+        desc: `proof packet · ${p.class} · ${p.witness} · ${p.payloadMode}${sealed ? ' (sealed · commitment only)' : ''} · ${p.ceremony} · forged ${new Date(p.timestamp).toLocaleDateString()}`,
+        emoji: sealed ? '🔏' : '🔓',
+        vertex: p.vertex ?? workshop?.vertex,
+        proof: p.proof,
+        classProof: p.anchoredTo,
+        payloadMode: p.payloadMode,
+        witness: p.witness,
+        ceremony: p.ceremony,
+        commitment: p.commitment,
+        forgedAt: p.timestamp,
+        shopAnchor: p.shopHref,
+        artefactClass: workshop?.artefactClass,
+        artefactArchetype: workshop?.artefactArchetype,
+      } as SpellwebNode;
+    });
+  }, [importedPackets]);
+
+  const packetEdges = useMemo<SpellwebEdge[]>(() => {
+    const edges: SpellwebEdge[] = [];
+    const nodeIds = new Set(NODES.map(n => n.id));
+    for (const p of importedPackets) {
+      const pid = packetNodeId(p.proof);
+      const shopId = `shop-${p.shopHref.replace(/^\//, '')}`;
+      // instance_of → the workshop class it instantiates
+      if (nodeIds.has(shopId)) edges.push({ source: pid, target: shopId, type: 'instance_of' as const });
+      // inhabits → the lattice vertex (geometric position). `anchors_to` (packet →
+      // class proof) stays a node FIELD (classProof) — there is no class-proof node
+      // to target; A5 keeps the two lineage relations distinct.
+      if (p.vertex != null && nodeIds.has(`vertex-v${p.vertex}`)) {
+        edges.push({ source: pid, target: `vertex-v${p.vertex}`, type: 'inhabits' as const });
+      }
+      // composed_of → child packets (Reliquary provenance)
+      for (const childProof of p.composedOf ?? []) {
+        edges.push({ source: pid, target: packetNodeId(childProof), type: 'composed_of' as const });
+      }
+    }
+    return edges;
+  }, [importedPackets]);
+
   const filteredNodes = useMemo(
     () => {
       const canonical = NODES.filter((n) => {
@@ -612,10 +676,10 @@ export default function SpellWeb() {
         if (n.type === 'act' && n.tome && !spellbookFilters.tomes) return false;
         return true;
       });
-      const deviations = typeFilters.artefact ? deviationNodes : [];
+      const deviations = typeFilters.artefact ? [...deviationNodes, ...packetNodes] : [];
       return [...canonical, ...deviations];
     },
-    [filters, typeFilters, spellbookFilters, deviationNodes]
+    [filters, typeFilters, spellbookFilters, deviationNodes, packetNodes]
   );
 
   const filteredNodeIds = useMemo(
@@ -625,15 +689,15 @@ export default function SpellWeb() {
 
   const filteredEdges = useMemo(
     () => {
-      // Combine static edges with user-created edges + deviation edges (artefact → workshop)
-      const allEdges = [...EDGES, ...userEdges, ...deviationEdges];
+      // Combine static edges with user-created edges + deviation edges + packet edges
+      const allEdges = [...EDGES, ...userEdges, ...deviationEdges, ...packetEdges];
       return allEdges.filter((e) => {
         const sourceId = typeof e.source === "string" ? e.source : e.source.id;
         const targetId = typeof e.target === "string" ? e.target : e.target.id;
         return filteredNodeIds.has(sourceId) && filteredNodeIds.has(targetId);
       });
     },
-    [filteredNodeIds, userEdges, deviationEdges]
+    [filteredNodeIds, userEdges, deviationEdges, packetEdges]
   );
 
   const searchMatches = useMemo(() => {
@@ -2099,6 +2163,12 @@ export default function SpellWeb() {
       );
     }
 
+    // The holonic City Key — the Swordsman carries his κ back to the graph (C87)
+    const cityKey = loadCityKey();
+    if (cityKey) {
+      lines.push(serializeKeyMarkdown(cityKey), '');
+    }
+
     lines.push(
       '---',
       '*Forged in the 64-Tetrahedra Lattice · the City of Mages*',
@@ -2115,6 +2185,22 @@ export default function SpellWeb() {
     a.click();
     URL.revokeObjectURL(url);
   }, [forgedBlades, swordsmanLink, witnessedShops, userEdges, canonicalEdgeKeys, edgeKey]);
+
+  // Standalone content-addressed City Key — star-compatible JSON (κ stamped), round-trips
+  // to soulbis /star + /lattice + agentprivacy_master. Null when the key is unstruck.
+  const handleExportCityKeyJSON = useCallback(() => {
+    const cityKey = loadCityKey();
+    if (!cityKey) return;
+    const json = exportKeyJSON(cityKey);
+    const kshort = (cityKey.kappa ?? 'unstruck').replace(/^sha256:/, '').slice(0, 10);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `city-key-${kshort}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, []);
 
   const handleExportConstellation = useCallback((saved: SavedConstellation) => {
     // Get the forged blade for this constellation
@@ -3264,6 +3350,14 @@ export default function SpellWeb() {
         onSwitchMode={(m) => setLatticeMode(m)}
         witnessedShops={witnessedShops}
         forgedBlades={forgedBlades}
+        keyIdentity={{
+          bearerName: swordsmanLink?.displayName,
+          swordsmanId: swordsmanLink?.participantId,
+          mageId: getMageIdentity()?.mageId,
+        }}
+        onExportSwordsman={handleExportSwordsman}
+        onExportMage={handleExportMage}
+        onExportCityKey={handleExportCityKeyJSON}
         heldConstellations={heldConstellations}
         boundFamiliars={boundFamiliars}
         dispatchReceipts={dispatchReceipts}
@@ -3276,6 +3370,15 @@ export default function SpellWeb() {
           await handleWitnessBladeFile(file);
         }}
         onCraftImport={async (file) => {
+          // First try the Tracing-Protocol packets bundle (spellweb.bearer.packets);
+          // fall through to the witness-blade .md importer if it isn't one.
+          try {
+            const text = await file.text();
+            const res = ingestPacketsPayload(JSON.parse(text));
+            if (res) { setImportedPackets(getImportedPackets()); return; }
+          } catch {
+            // not JSON / not a packets payload — fall through
+          }
           await handleWitnessBladeFile(file);
         }}
         onExportArtefact={(bladeId) => {
@@ -5721,6 +5824,26 @@ export default function SpellWeb() {
                     <span>📥</span> Swordsman.md
                   </button>
                 )}
+                {/* Holonic City Key — standalone content-addressed JSON (κ stamped) */}
+                <button
+                  onClick={handleExportCityKeyJSON}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: 6,
+                    background: "linear-gradient(135deg, #ffd70028, #e8523a18)",
+                    border: "1px solid #ffd700aa",
+                    color: "#ffd700",
+                    fontSize: 11,
+                    cursor: "pointer",
+                    fontFamily: "'JetBrains Mono', monospace",
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                  title="Export your holonic City Key as content-addressed JSON (κ stamped) — round-trips to /star, /lattice, agentprivacy"
+                >
+                  <span>🗝️</span> City Key.json
+                </button>
                 <button
                   onClick={() => setShowBladesModal(false)}
                   style={{

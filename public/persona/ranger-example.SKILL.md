@@ -244,7 +244,7 @@ For the seeker's journal: [references/reconstruction-journal.md](references/reco
 
 This skill was generated from the 0xagentprivacy architecture.
 
-**Verify:** [sync.soulbis.com](https://sync.soulbis.com) · [intel.agentkyra.ai](https://intel.agentkyra.ai) · [github.com/mitchuski/agentprivacy-docs](https://github.com/mitchuski/agentprivacy-docs)
+**Verify:** [sync.soulbis.com](https://sync.soulbis.com) · [intel.agentprivacy.ai](https://intel.agentprivacy.ai) · [github.com/mitchuski/agentprivacy-docs](https://github.com/mitchuski/agentprivacy-docs)
 
 **The equation belongs to 0xagentprivacy. The application belongs to the seeker. The proverbs belong to whoever writes them. The architecture is open. The story must be yours.**
 

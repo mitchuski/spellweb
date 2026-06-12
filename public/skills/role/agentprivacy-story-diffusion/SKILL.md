@@ -84,7 +84,7 @@ The agentprivacy documentation suite is intentionally fragmented across platform
 
 - **agentprivacy.ai** → Technical architecture (the specification)
 - **sync.soulbis.com** → Privacy is Value blog series (the narrative)
-- **intel.agentkyra.ai** → Technical updates (the operational)
+- **intel.agentprivacy.ai** → Technical updates (the operational)
 - **GitHub repos** → Code and skills (the executable)
 - **Standards bodies** → Policy proposals (the institutional)
 

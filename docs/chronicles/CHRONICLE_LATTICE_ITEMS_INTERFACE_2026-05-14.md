@@ -41,7 +41,7 @@ The agentprivacy_master `/guide/achievements` page already solves this for the c
 │                    │                                   │                     │
 │  ┌──────────────┐  │           V0 (1)                  │  worn:              │
 │  │ Astrolabe    │  │                                   │   • —               │
-│  │ V44 · Chart  │  │       V1·V2·V4·V8·V16·V32 (6)     │                     │
+│  │ V44 · Chart  │  │       V1·V2·V8·V4·V2·V32 (6)     │                     │
 │  │ Aquamarine   │  │                                   │  borne:             │
 │  │ Hold·Compare │  │   V3·V5·V6·...·V48 (15)          │   • Astrolabe       │
 │  │ ·Map         │  │                                   │     (Chart Shop ·   │

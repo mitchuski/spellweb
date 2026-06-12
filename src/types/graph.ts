@@ -178,7 +178,7 @@ export type EdgeType =
   | 'adjacent_to'      // vertex → vertex (lattice geometry; declared but unused this session)
   // V5.5 Attachment Architecture (2026-05-11): three-layer model (primary × attachment × vertex)
   | 'divergent_of'     // cast → primary persona, with register-shift (Lethae divergent_of moonkeeper · mage_register)
-  | 'complement_pair'  // cast → cast, vertex bit-complement pairing (Aletheia V25 ⊥ Lethae V38; V25⊕V38=V63)
+  | 'complement_pair'  // cast → cast, vertex bit-complement pairing (Aletheia V38 ⊥ Lethae V25; V25⊕V38=V63)
   // v1.6.0 (2026-05-14): district restructure · Chart Shop · archetype-modal-shop · succession edges
   | 'keeps'            // cast → workshop (Pleione keeps shop-charthouse; Hermaion keeps shop-staff)
   | 'wields'           // cast → artefact (Pleione wields artefact-astrolabe)
@@ -189,7 +189,19 @@ export type EdgeType =
   | 'releases_to'      // workshop → workshop (Chart Shop releases_to Bonfire / Weavers / open-sea)
   // City Key bridge (2026-05-27)
   | 'keys_to'          // key → vertex (a City Key describes/colours the vertices it carries)
-  | 'synced_with';     // key → gateway (a City Key is carried to soulbis.com/star + /lattice gateways)
+  | 'synced_with'      // key → gateway (a City Key is carried to soulbis.com/star + /lattice gateways)
+  // Key/sigil vocabulary (2026-06-11): content-addressed identity · the Swordsman walks his κ back to the graph
+  | 'carries'              // image/file → content (a sigil PNG carries the City Key JSON; the Swordsman's Key carries its sigil)
+  | 'derives_identity_from'// key → canonical form (Law L5: κ = sha256:H(canonical form), re-derived, never trusted)
+  | 'supersedes'           // key κ → prior key κ (the holonic accumulator's prior-chain; content-addressed lineage of selves)
+  | 'boots_over'           // surface → substrate (the Swordsman's Key boots over the holospaces · kindred-substrate UOR edge)
+  // Proof-packet tracing (2026-06-12 · the Tracing Protocol): per-packet artefact provenance
+  | 'instance_of'          // artefact (proof packet) → workshop (the class it instantiates)
+  | 'forged_by'            // artefact → cast/bearer (who forged it)
+  | 'witnessed_by'         // artefact → cast (who attested it · Agora/Threshold)
+  | 'composed_of'          // artefact → artefact (Reliquary provenance to child packets)
+  | 'traced_through'       // artefact → vertex (the ceremony's evoke evidence)
+  | 'anchors_to';          // artefact → vertex / class-proof (instance → canon · district_root)
 
 export type CastTier = 'archetype' | 'cousin' | 'summoned' | 'companion' | 'priest' | 'cosmological-witness' | 'spirit-Mage';
 // v1.5.0 added 'cosmological-witness' (Selene 🌙 · Aether ⿻ · Lethe 🌀 · city-external prehistory)
@@ -197,7 +209,12 @@ export type CastTier = 'archetype' | 'cousin' | 'summoned' | 'companion' | 'prie
 export type TradeQuarter = 'producer' | 'gathering' | 'temple' | 'bonfire' | 'placeholder';
 export type OperatorStatus = 'operational' | 'partial' | 'tease' | 'placeholder' | 'gathering';
 export type Attribution = 'agentprivacy' | 'cousin-blade' | 'cousin-substrate' | 'kindred' | 'kindred-protocol' | 'kindred-coalition' | 'open';
-export type ConjectureStatus = 'canonical' | 'provisional' | 'observation' | 'resonant';
+export type ConjectureStatus = 'canonical' | 'provisional' | 'observation' | 'resonant'
+  // 2026-06-11 · register statuses from CONJECTURE_REGISTER_V6 (agentprivacy-docs)
+  | 'active' | 'alias' | 'occupied' | 'convergent' | 'challenged' | 'reserved' | 'resolved';
+// Conjecture lineage per the authoritative register: `core` (PVM, agentprivacy-docs) ·
+// `city` (Tomes, cityofmages) · `shared`. When prose and register disagree, register wins.
+export type ConjectureRegister = 'core' | 'city' | 'shared';
 export type ArtefactArchetype = 'swordsman' | 'mage' | 'bilateral';
 export type ArtefactClass = 'trinket' | 'tool' | 'weapon' | 'staff' | 'clothing' | 'tome';
 // `weapon` (blade) is Swordsman-equipment; `staff` (NEW v1.6.0) is the Mage-equipment sister-class
@@ -243,7 +260,7 @@ export interface SpellwebNode {
   vertex?: number;              // 0–63, position on the 64-vertex lattice
   bits?: string;                // 6-bit binary, e.g. "011100" for V28
   hammingWeight?: number;       // 0–6, the stratum (Pascal's row)
-  tome?: 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII';   // For act nodes: which tome (v1.7.1 extends with VIII · the Library)
+  tome?: 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII' | 'IX';   // For act nodes: which tome (v1.7.1 → VIII the Library · v1.8.0 → IX the Horizon)
   act?: number;                 // For act nodes: act number within the tome
   sigil?: string;               // Cast-member sigil (emoji or emoji-pair)
   gem?: string;                 // Workshop palette gem name (e.g. "Amethyst")
@@ -252,7 +269,11 @@ export interface SpellwebNode {
   gemColorMage?: string;        // Mage-aspect color for archetype-modal shops (e.g., Staff Shop alexandrite green "#3d7c47")
   gemColorSwordsman?: string;   // Swordsman-aspect color for archetype-modal shops (e.g., Staff Shop alexandrite red "#a23a3a")
   archetypeModal?: boolean;     // True when the gem shifts with visitor archetype (Staff Shop is first canonical instance)
-  district?: string;            // Workshop district (e.g., "Threshold" · "Navigation")
+  district?: string;            // Workshop district (e.g., "Threshold" · "Navigation" · "Horizon")
+  // v1.8.0 (2026-06-09): dormant-annex workshops — open only once a gate condition is met.
+  // The Salvage Yard is the first instance (opens when the Horizon District is operational).
+  workshopStatus?: 'active' | 'dormant';
+  activationGate?: string;      // human-readable condition that opens a dormant workshop
   // v1.6.0 (2026-05-14): runecrafting protocol — the ceremony grammar each workshop performs
   ceremony?: string;            // e.g. "Run · Evoke · Craft" · "Hold · Compare · Map" · "Display · Choose · Dispatch"
   workshopRegister?: 'producer' | 'gathering' | 'spawn_and_bind' | 'attentional';  // C63 fourth-class candidate at v1.6.0
@@ -266,6 +287,8 @@ export interface SpellwebNode {
   conjectureId?: string;        // e.g. "C39" or "C26-C29"
   conjectureStatus?: ConjectureStatus;
   conjectureConfidence?: number | null;  // 0..1 for provisional; null for observation
+  conjectureRegister?: ConjectureRegister;  // 2026-06-11 · lineage per CONJECTURE_REGISTER_V6
+  conjectureAliasOf?: string;   // e.g. 'C85' for CM-C47, 'C32' for C46 — same claim, retained for continuity
   // Artefact metadata (for `workshop` nodes — what the shop yields to whom)
   artefactName?: string;            // common item name: e.g. "Cloak", "Memo Stone", "Witness Blade"
   artefactRootName?: string;        // truth-form participle: e.g. "Woven Cloak", "Witnessed Blade"
@@ -289,6 +312,13 @@ export interface SpellwebNode {
   isWitness?: boolean;              // true if this is someone else's blade traced as witness
   forgedAt?: string;                // ISO timestamp
   bladeId?: string;                 // original ForgedBlade id reference
+  // ── Proof-packet fields (2026-06-12): present on `artefact` nodes carrying a trust-task proof packet ──
+  proof?: string;                   // sha256:… the packet's content-addressed identity (Law L5)
+  classProof?: string;              // sha256:… the class descriptor it instantiates (anchoredTo)
+  payloadMode?: 'sealed' | 'revealed' | 'refractive' | 'composed' | 'relational';
+  witness?: string;                 // the witness stance (ZK-witness, Transparent-witness, …)
+  // (the node's existing `ceremony?` field carries the ceremony triad)
+  commitment?: string;              // sha256 of sealed content (sealed/refractive · raw never carried)
   // ── V5.5 Attachment Architecture fields (2026-05-11) ──
   // For `cast` nodes: which Layer-1 primary personas this cast instances,
   // what attachment kind (A·workshop · B·cross-shop · C·peripatetic), and
@@ -299,6 +329,10 @@ export interface SpellwebNode {
   abstractPersonaIds?: string[];    // Layer-1 primary persona ids (e.g., ['forgemaster', 'forgecaller'])
   castStatus?: 'seated' | 'anticipated' | 'provisional';  // V5.5 attachment status in the current grimoire
   complementOfCast?: string;        // For vertex-complement pairs (e.g., 'cast-aletheia' for Lethae)
+  // ── City Key / sigil fields (2026-06-11): only present on `key` nodes ──
+  // κ is the content-address of the key: sha256:H(canonical form), re-derived on load
+  // (Law L5), never trusted. Canon is byte-identical to the star repo's /sigil page.
+  kappa?: string;                   // e.g. "sha256:abc123…" — the key's derived name
   // D3 simulation properties (added at runtime)
   x?: number;
   y?: number;
@@ -427,6 +461,15 @@ export const SPELLWEB_STORAGE_KEYS = {
   // exclusively with the original Sovereign (chronicle §3.2). True-name is bearer-private
   // and NEVER displayed without explicit consent.
   boundFamiliars: 'spellweb-bound-familiars',
+  // 2026-06-11 · the bearer's holonic Swordsman City Key — the C87 accumulator.
+  // One key per bearer; each "stamp" folds a charge in and re-derives κ, chaining the
+  // prior κ via `supersedes`. Serializes into the Swordsman.md bundle + a standalone
+  // City Key JSON so it round-trips to agentprivacy_master's worn-artefact collection.
+  swordsmanCityKey: 'spellweb-swordsman-city-key',
+  // 2026-06-12 · the bearer's imported trust-task proof packets (the Tracing Protocol).
+  // Ingested from agentprivacy_master's `spellweb.bearer.packets` export; each becomes an
+  // artefact deviation node anchored to district_root. Sealed packets carry only a commitment.
+  proofPackets: 'spellweb-proof-packets',
 } as const;
 
 // v1.6.0 · An imported bound-familiar entry. The bond stays exclusively with the
@@ -484,6 +527,66 @@ export interface HeldConstellation {
   witnessedAt: string;                // from frontmatter (ISO timestamp)
   importedAt: string;                 // ISO timestamp when this client received the .md
   successionBanner?: string | null;   // surfaces when imported keeper is superseded (chronicle §4.2)
+}
+
+// 2026-06-12 · An imported trust-task PROOF PACKET (the Tracing Protocol · spec in
+// agentprivacy_master/docs/experience/SPEC_proof_packets_and_tracing_v1.md). The granular,
+// content-addressed unit of a bearer's workshop work — forged in the browser at Cast time,
+// hashed under Law L5. SEALED packets carry only a `commitment`; the raw content is NEVER
+// present here (the seal holds across the bridge). Each becomes an `artefact` deviation node
+// anchored to its class proof + the district_root.
+export interface ImportedProofPacket {
+  proof: string;                      // sha256:… content-addressed identity (de-dup key)
+  shopHref: string;                   // '/circuit'
+  vertex: number | null;
+  class: string;                      // artefact class (clothing | tool | trinket | …)
+  witness: string;                    // witness stance
+  ceremony: string;                   // ceremony triad
+  payloadMode: 'sealed' | 'revealed' | 'refractive' | 'composed' | 'relational';
+  body?: string;                      // revealed only
+  commitment?: string;                // sealed/refractive only
+  composedOf?: string[];              // composed only · child packet proofs
+  witnessedBy?: string;               // the witness signature
+  anchoredTo: string;                 // class descriptor proof (sha256:…)
+  districtRoot: string;               // the artefact-set root at forge time
+  bearer?: { publicKeyHex?: string; displayName?: string };
+  timestamp: string;                  // when forged (from the packet)
+  importedAt: string;                 // when this client received it
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HOLONIC SWORDSMAN CITY KEY (2026-06-11 · C87 "The Key Accumulates")
+// ═══════════════════════════════════════════════════════════════
+// The key is a holon: a whole that contains parts and is itself a part of the City.
+// Each "stamp" folds a charge in — an IVC step (C87: Key = accumulator, trust tasks =
+// step circuits, Charge = folding step, V63 = attested invariant). Folding re-derives κ
+// and chains the prior κ via `supersedes`. The κ derivation is byte-identical to the
+// star repo's /sigil page (canonicalJSON + sha256, κ excluded from its own preimage).
+
+/** One folded step — a single C87 step-circuit applied to the accumulator. */
+export interface CityKeyCharge {
+  id: string;                 // de-dup key, e.g. `charge-{source}-{foldedAt}`
+  label: string;              // human label of the fold (e.g. "Equipped the Astrolabe", "Stamped sigil")
+  source: string;             // workshop id · 'sigil-stamp' · trust-task id
+  vertex?: number;            // lattice vertex this charge touches, if any
+  weight: number;             // this fold's contribution to accumulated weight
+  foldedAt: string;           // ISO timestamp
+  kappaAfter: string | null;  // running κ invariant after this fold (IVC step output); null if crypto unavailable
+}
+
+/** The bearer's holonic City Key — the accumulator the Swordsman carries back to the graph. */
+export interface SwordsmanCityKey {
+  version: 1;
+  bearerName?: string;        // swordsmanLink.displayName
+  swordsmanId?: string;       // swordsmanLink.participantId
+  mageId?: string;            // mageIdentity.mageId
+  kappa: string | null;       // current content address sha256:H(canonical payload); null if uncomputed
+  priorKappa: string | null;  // the κ this key supersedes (prior-chain head); null at inception
+  weight: number;             // Σ charge weights — the holon's accumulated mass
+  charges: CityKeyCharge[];   // folded steps in order (the accumulator tape)
+  payload: Record<string, unknown>; // star-compatible City Key object; κ derives from this (kappa-excluded)
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ═══════════════════════════════════════════════════════════════

@@ -251,7 +251,7 @@ export const SHIELD_BLADE_PRESET: PresetConstellation = {
   id: 'preset-shield-memora',
   name: 'The Shielded Inscription',
   emoji: '📜',
-  description: 'The zShields shop on the City of Mages — Memora 📜 at V5 (Tome V Act 3, *The Shielded Memo*). Trace this constellation to forge the shielded-blade: chronicle work in the shielded register where what cannot be seen must still be remembered. The viewing key as relational disclosure primitive. Half-life of trust begins ticking from inscription. Show artefact.md to /shield and Memora binds the chronicle on your behalf.',
+  description: 'The zShields shop on the City of Mages — Memora 📜 at V41 (Tome V Act 3, *The Shielded Memo*). Trace this constellation to forge the shielded-blade: chronicle work in the shielded register where what cannot be seen must still be remembered. The viewing key as relational disclosure primitive. Half-life of trust begins ticking from inscription. Show artefact.md to /shield and Memora binds the chronicle on your behalf.',
   proverb: 'Inscribe what cannot be seen but must be remembered. The half-life starts at the inscription.',
   ceremony: 'celestial',
   tier: 'heavy',
@@ -274,7 +274,7 @@ export const SHIELD_BLADE_PRESET: PresetConstellation = {
     { sourceId: 'doc-privacymage-grimoire-v10-2', targetId: 'per-person' },
   ],
   inscribedSpell: '⚖️ → 🔄 → 🧙📖 → 🌑 → 🗝️ → 📚 → 😊',
-  reflection: 'Memora at V5 inscribes what cannot be seen but must be remembered. The shielded register has its own half-life clock — trust accumulates through recallable witness, not public witness. Show your artefact.md to /shield; trust unlocks; the chronicle binds.',
+  reflection: 'Memora at V41inscribes what cannot be seen but must be remembered. The shielded register has its own half-life clock — trust accumulates through recallable witness, not public witness. Show your artefact.md to /shield; trust unlocks; the chronicle binds.',
 };
 
 export const FORGE_BLADE_PRESET: PresetConstellation = {

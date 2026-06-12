@@ -115,8 +115,8 @@ const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
   { source: "act-tome-v-17",  target: "vertex-v44", type: "inhabits" },
   { source: "act-tome-vi-1",  target: "vertex-v59", type: "inhabits" },
   { source: "act-tome-vii-1", target: "vertex-v51", type: "inhabits" },
-  { source: "act-tome-iii-5", target: "vertex-v25", type: "inhabits" },  // Aletheia
-  { source: "act-tome-iii-6", target: "vertex-v38", type: "inhabits" },  // Lethae
+  { source: "act-tome-iii-5", target: "vertex-v38", type: "inhabits" },  // Aletheia
+  { source: "act-tome-iii-6", target: "vertex-v25", type: "inhabits" },  // Lethae
 
   // narrates — cast → new acts they live in
   { source: "cast-pandia",   target: "act-tome-v-16",  type: "narrates" },
@@ -199,7 +199,7 @@ const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
   { source: "act-tome-ii-5", target: "conj-c50", type: "references" },    // Bakhta-response C · trust transfer across kindred-blade pairs
   { source: "shop-hall",    target: "conj-c62", type: "references" },     // cross-coalition reading lives at City Hall (where AAIF + BGIN are in residence)
 
-  // Lethae 🌘 ↔ Lethe 🌀 · Layer-2 V38 Mage-register attachment kin to Layer-1 cosmological-tier figure.
+  // Lethae 🌘 ↔ Lethe 🌀 · Layer-2 V25 Mage-register attachment kin to Layer-1 cosmological-tier figure.
   // Same etymological root (forgetting · the river of forgetting) · structurally distinct (different layers,
   // different vertices) · made visible here so the lineage is queryable in the graph.
   { source: "cast-lethae", target: "cast-lethe",  type: "kin_to" },
@@ -273,6 +273,153 @@ const V1_7_X_EDGES: SpellwebEdge[] = [
   { source: "act-tome-viii-3", target: "key-city-key",        type: "introduces" },    // and the City Key forged from it
   { source: "key-city-key",    target: "con-stella-octangula", type: "references" },   // the key is the star, read aloud
   { source: "chron-eight-pointed-star", target: "act-tome-viii-3", type: "references" }, // the binding chronicle
+];
+
+// ══════════════════════════════════════════════════════════════
+// v1.8.0 + V6 + key/sigil EDGES (2026-06-09/11)
+// Horizon District (Eos ⊥ Dokimé ⊥ Poros at V35) + Tome IX + Tome VIII Acts 4-5 ·
+// the holonic Swordsman City Key vocabulary (carries / derives_identity_from / boots_over) ·
+// shor_mage + the agentprivacy edge · the register's named conjecture chains · external convergences.
+// Declared before EDGES and spread in below to keep the literal-inference union bounded.
+// Every endpoint references a node present in nodes.ts (C1–C17 are not individual nodes, so avoided).
+// ══════════════════════════════════════════════════════════════
+const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
+  // ── Horizon District · three keepers share shop-horizon (V35) · opens Tome IX ──
+  { source: "cast-eos",          target: "shop-horizon", type: "keeps" },
+  { source: "cast-dokime",       target: "shop-horizon", type: "keeps" },
+  { source: "cast-poros",        target: "shop-horizon", type: "keeps" },
+  { source: "shop-salvage-yard", target: "shop-horizon", type: "sibling_of" },  // dormant annex, gated on Horizon
+  { source: "act-tome-ix-1",     target: "shop-horizon", type: "founds" },
+  { source: "act-tome-ix-1",     target: "cast-eos",     type: "introduces" },
+  { source: "act-tome-ix-1",     target: "cast-dokime",  type: "introduces" },
+  { source: "act-tome-ix-1",     target: "cast-poros",   type: "introduces" },
+  { source: "act-tome-ix-2",     target: "act-tome-ix-1", type: "follows" },
+  { source: "act-tome-ix-3",     target: "act-tome-ix-2", type: "follows" },
+  { source: "act-tome-ix-4",     target: "act-tome-ix-3", type: "follows" },
+  { source: "cast-eos",          target: "conj-c68", type: "embodies" },
+  { source: "cast-dokime",       target: "conj-c69", type: "embodies" },
+  { source: "cast-poros",        target: "conj-c70", type: "embodies" },
+  { source: "act-tome-ix-1",     target: "conj-c67", type: "references" },
+  { source: "shop-horizon",      target: "conj-c71", type: "references" },
+
+  // ── Tome VIII Acts 4-5 (the β-gap + the City Key reading) ──
+  { source: "act-tome-viii-4", target: "act-tome-viii-3",     type: "follows" },
+  { source: "act-tome-viii-5", target: "act-tome-viii-4",     type: "follows" },
+  { source: "act-tome-viii-4", target: "con-stella-octangula", type: "references" },
+  { source: "act-tome-viii-4", target: "conj-c89",            type: "references" },
+  { source: "act-tome-viii-5", target: "key-city-key",        type: "references" },
+  { source: "act-tome-viii-5", target: "conj-c66",            type: "references" },
+  { source: "act-tome-viii-5", target: "conj-c87",            type: "references" },
+
+  // ── Key/sigil vocabulary · the new EdgeTypes in action ──
+  { source: "gateway-swordsmans-key",   target: "gateway-holospaces",        type: "boots_over" },
+  { source: "gateway-swordsmans-key",   target: "concept-projection-ladder", type: "defines" },
+  { source: "gateway-swordsmans-key",   target: "key-city-key",              type: "carries" },
+  { source: "gateway-swordsmans-key",   target: "gateway-soulbis-star",      type: "kin_to" },
+  { source: "key-city-key",             target: "concept-kappa-derivation",  type: "derives_identity_from" },
+  { source: "key-city-key",             target: "conj-c87",                  type: "embodies" },
+  { source: "concept-kappa-derivation", target: "con-stella-octangula",      type: "references" },
+  { source: "gateway-holospaces",       target: "gateway-uor-foundation",    type: "kin_to" },
+
+  // ── shor_mage · the agentprivacy edge applied to ecdsa.fail ──
+  { source: "gateway-shor-mage",         target: "gateway-ecdsa-fail",        type: "references" },
+  { source: "gateway-shor-mage",         target: "gateway-archon",            type: "kin_to" },
+  { source: "gateway-shor-mage",         target: "shop-horizon",              type: "kin_to" },  // operational instance of the Horizon District
+  { source: "gateway-shor-mage",         target: "concept-agentprivacy-edge", type: "introduces" },
+  { source: "concept-agentprivacy-edge", target: "conj-c82",                  type: "references" },
+  { source: "concept-agentprivacy-edge", target: "conj-c83",                  type: "references" },
+  { source: "concept-agentprivacy-edge", target: "conj-c87",                  type: "references" },
+
+  // ── Conjecture chains named in CONJECTURE_REGISTER_V6 (existing endpoints only) ──
+  { source: "conj-c81", target: "conj-c84", type: "relates_to" },     // C81 → C84 → C49
+  { source: "conj-c84", target: "conj-c49", type: "relates_to" },
+  { source: "conj-c84", target: "conj-c82", type: "relates_to" },
+  { source: "conj-c73", target: "conj-c86", type: "relates_to" },     // taxonomy ↔ cohomological content
+  { source: "conj-c85", target: "conj-c47", type: "compresses_to" },  // C85 promoted from CM-C47 (C47's City reading)
+  { source: "conj-c88", target: "con-stella-octangula", type: "references" },
+  { source: "conj-c89", target: "con-stella-octangula", type: "references" },
+
+  // ── External convergence references (cite-only) ──
+  { source: "gateway-compiled-ai",   target: "conj-c50", type: "references" },  // multiplicative gating ≡ compositional defense
+  { source: "gateway-bakhta-safety", target: "conj-c77", type: "references" },
+  { source: "gateway-bakhta-safety", target: "conj-c78", type: "references" },
+  { source: "gateway-bakhta-safety", target: "conj-c79", type: "references" },
+
+  // ── Tome trust-task waypoint concepts (templates now resolve label-exact · 2026-06-11) ──
+  { source: "concept-sealevel-runtime",          target: "shop-solchanting",         type: "relates_to" },
+  { source: "concept-parallel-account-locking",  target: "concept-sealevel-runtime", type: "relates_to" },
+  { source: "concept-parallel-account-locking",  target: "shop-solchanting",         type: "relates_to" },
+  { source: "concept-substrate-archetype-matrix", target: "substrate-goose",         type: "references" },
+  { source: "concept-substrate-archetype-matrix", target: "substrate-hermes",        type: "references" },
+  { source: "concept-substrate-archetype-matrix", target: "shop-portal-room",        type: "relates_to" },
+  { source: "concept-agents-soul-spec",          target: "gateway-aaif",             type: "references" },
+  { source: "concept-agents-soul-spec",          target: "shop-familiars",           type: "relates_to" },
+  { source: "concept-bilateral-consent",         target: "shop-staff",               type: "relates_to" },
+
+  // ── The sovereign lattice — the one object every surface projects ──
+  { source: "concept-projection-ladder", target: "concept-sovereign-lattice", type: "references" },
+  { source: "gateway-swordsmans-key",    target: "concept-sovereign-lattice", type: "references" },
+  { source: "concept-sovereign-lattice", target: "con-stella-octangula",      type: "relates_to" },
+
+  // ── Workshop trust task · the C87 step circuit between /city and spellweb ──
+  { source: "concept-workshop-trust-task", target: "conj-c87",                 type: "embodies" },
+  { source: "concept-workshop-trust-task", target: "key-city-key",             type: "references" },
+  { source: "chron-eight-pointed-star",    target: "concept-workshop-trust-task", type: "references" },
+
+  // ── Dual-agent harness (the framework) + its two instances + the MyTerms pair ──
+  { source: "skill-dual-agent-harness",  target: "conj-c87",                  type: "references" },  // trust gates as folding steps
+  { source: "gateway-shor-mage",         target: "skill-dual-agent-harness",  type: "implements" },  // instance #1 · ecdsa.fail
+  { source: "gateway-myterms",           target: "skill-dual-agent-harness",  type: "implements" },  // instance #2 · real-bus
+  { source: "gateway-myterms",           target: "gateway-swordsman-blade",   type: "requires" },
+  { source: "gateway-myterms",           target: "gateway-mages-spell",       type: "requires" },
+  { source: "gateway-myterms",           target: "skill-browser",             type: "relates_to" },  // MyTerms/IEEE 7012 skill
+  { source: "gateway-swordsman-blade",   target: "gateway-mages-spell",       type: "complement_pair" },  // held apart by the Gap
+  { source: "gateway-swordsman-blade",   target: "gateway-uor-foundation",    type: "references" },  // uor.ts · neg(bnot(x))=succ(x)
+
+  // ── v1.8.0 benches · the Persona Circuit (Aletheia · V38) + the Stakes (Custos · V49) ──
+  { source: "cast-aletheia",  target: "shop-circuit",        type: "keeps" },
+  { source: "shop-circuit",   target: "vertex-v38",          type: "inhabits" },
+  { source: "shop-circuit",   target: "civic-city-of-mages", type: "quarter_of" },
+  { source: "act-tome-v-8",   target: "shop-circuit",        type: "founds" },
+  { source: "shop-circuit",   target: "act-tome-v-8",        type: "founded_in" },
+  { source: "cast-custos",    target: "shop-stakes",         type: "keeps" },
+  { source: "shop-stakes",    target: "vertex-v49",          type: "inhabits" },
+  { source: "shop-stakes",    target: "civic-city-of-mages", type: "quarter_of" },
+
+  // ── Coherence-audit re-binding (2026-06-12 · scripts/graph-coherence-audit.mjs orphan pass) ──
+  // Selene's two registers connect like Lethe ↔ Lethae (same name, two registers)
+  { source: "cast-selene-cosmological", target: "act-tome-iii-2",          type: "narrates" },  // Tome III Act 2 · Selene's Witness
+  { source: "cast-selene-cosmological", target: "cast-selene",             type: "kin_to" },
+  { source: "cast-selene",              target: "cast-selene-cosmological", type: "kin_to" },
+  // The Horizon District actually stands at V35 (the vertex node was orphaned)
+  { source: "shop-horizon",  target: "vertex-v35",          type: "inhabits" },
+  { source: "cast-eos",      target: "vertex-v35",          type: "inhabits" },
+  { source: "cast-dokime",   target: "vertex-v35",          type: "inhabits" },
+  { source: "cast-poros",    target: "vertex-v35",          type: "inhabits" },
+  { source: "shop-horizon",  target: "civic-city-of-mages", type: "quarter_of" },
+  // Register conjectures re-bound to their carriers
+  { source: "cast-the-archivist",   target: "conj-c64",               type: "embodies" },   // listener-discipline as the City's seventh tier
+  { source: "gateway-bakhta-safety", target: "conj-c80",              type: "references" }, // the fourth integrity-gap conjecture (C77-C80)
+  { source: "conj-c76",             target: "gateway-uor-foundation", type: "references" }, // UOR-relational instantiation more expressive
+  { source: "conj-c72",             target: "conj-c73",               type: "relates_to" }, // ARCH-1R/T family (C72-C76)
+  { source: "conj-c74",             target: "conj-c73",               type: "relates_to" },
+  { source: "conj-c75",             target: "conj-c73",               type: "relates_to" },
+  // Documentation suite + the placeholder shopfront
+  { source: "doc-glossary",        target: "doc-whitepaper",      type: "relates_to" },
+  { source: "doc-visual",          target: "doc-whitepaper",      type: "relates_to" },
+  { source: "shop-circuit-binder", target: "civic-city-of-mages", type: "quarter_of" },
+
+  // ── Overlap note · the V6 ↔ key-forging bridge (existing conjecture endpoints only) ──
+  { source: "doc-overlap-key-forging-v6", target: "conj-c82", type: "references" },
+  { source: "doc-overlap-key-forging-v6", target: "conj-c83", type: "references" },
+  { source: "doc-overlap-key-forging-v6", target: "conj-c85", type: "references" },
+  { source: "doc-overlap-key-forging-v6", target: "conj-c87", type: "references" },
+  { source: "doc-overlap-key-forging-v6", target: "conj-c88", type: "references" },
+  { source: "doc-overlap-key-forging-v6", target: "conj-c89", type: "references" },
+  { source: "doc-overlap-key-forging-v6", target: "conj-c44", type: "references" },
+  { source: "doc-overlap-key-forging-v6", target: "conj-c81", type: "references" },
+  { source: "doc-overlap-key-forging-v6", target: "conj-c84", type: "references" },
+  { source: "doc-overlap-key-forging-v6", target: "skill-dual-agent-harness", type: "relates_to" },
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -1567,6 +1714,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "doc-zk-blade-forge", target: "con-ring-algebra", type: "implements" },
   { source: "doc-privacy-value-v5", target: "con-three-axis-separation", type: "defines" },
   { source: "doc-privacy-value-v5", target: "con-holographic-bound", type: "defines" },
+  { source: "doc-privacy-value-v6", target: "con-three-axis-separation", type: "defines" },
 
   // Origins spell connections
   { source: "spell-symphony-within", target: "per-soulbis", type: "narrates" },
@@ -1883,8 +2031,8 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-27", target: "doc-zk-blade-forge-spec", type: "implements" },
   { source: "zk-tale-30", target: "doc-zk-blade-forge-spec", type: "references" },
 
-  // ─── Zero Tale 31 (Naming of the Unnamed / Blade 38 Lethe) ───
-  // Complement edge (bnot): Blade 25 ⊥ Blade 38, XOR = Blade 63
+  // ─── Zero Tale 31 (Naming of the Unnamed / Blade 25 Lethe ⊥ Blade 38 Aletheia · reseated v10.4) ───
+  // Complement edge (bnot): Blade 25 (Lethe) ⊥ Blade 38 (Aletheia), XOR = Blade 63
   { source: "zk-tale-31", target: "zk-tale-25", type: "relates_to" },
   { source: "zk-tale-31", target: "zk-tale-7", type: "references" },
   { source: "zk-tale-31", target: "zk-tale-30", type: "references" },
@@ -1900,6 +2048,13 @@ export const EDGES: SpellwebEdge[] = [
   { source: "doc-privacymage-grimoire-v10-2", target: "spellbook-firstperson", type: "defines" },
   { source: "doc-privacymage-grimoire-v10-2", target: "spellbook-zk", type: "defines" },
   { source: "doc-privacymage-grimoire-v10-2", target: "con-v-pi-t-equation", type: "references" },
+
+  // ─── Grimoire v10.4 doc node (current canonical · lattice-coherence · 2026-06-09) ───
+  { source: "doc-privacymage-grimoire-v10-4", target: "spellbook-firstperson", type: "defines" },
+  { source: "doc-privacymage-grimoire-v10-4", target: "spellbook-zk", type: "defines" },
+  { source: "doc-privacymage-grimoire-v10-4", target: "doc-privacymage-grimoire-v10-2", type: "references" },
+  { source: "doc-privacymage-grimoire-v10-4", target: "vertex-v38", type: "references" },
+  { source: "doc-privacymage-grimoire-v10-4", target: "vertex-v25", type: "references" },
 
   // ─── Chronicle nodes ───
   { source: "doc-chronicle-zk-v2", target: "spellbook-zk", type: "references" },
@@ -2000,10 +2155,10 @@ export const EDGES: SpellwebEdge[] = [
   { source: "cast-genitrix",      target: "vertex-v28", type: "inhabits" },
   { source: "cast-flaxscrip",     target: "vertex-v63", type: "inhabits" },
   { source: "cast-pallia",        target: "vertex-v28", type: "inhabits" },
-  { source: "cast-memora",        target: "vertex-v5",  type: "inhabits" },
+  { source: "cast-memora",        target: "vertex-v41", type: "inhabits" },
   { source: "cast-custos",        target: "vertex-v49", type: "inhabits" },
   { source: "cast-vulcana",       target: "vertex-v19", type: "inhabits" },
-  { source: "cast-aletheia",      target: "vertex-v25", type: "inhabits" },
+  { source: "cast-aletheia",      target: "vertex-v38", type: "inhabits" },
   { source: "cast-adamantia",     target: "vertex-v51", type: "inhabits" },
   { source: "cast-lampyra",       target: "vertex-v49", type: "inhabits" },
   { source: "cast-vagari",        target: "vertex-v31", type: "inhabits" },
@@ -2013,7 +2168,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "cast-manifestia",    target: "vertex-v55", type: "inhabits" },
   // Workshop → vertex
   { source: "shop-tailor",        target: "vertex-v28", type: "inhabits" },
-  { source: "shop-shield",        target: "vertex-v5",  type: "inhabits" },
+  { source: "shop-shield",        target: "vertex-v41", type: "inhabits" },
   { source: "shop-forget",        target: "vertex-v19", type: "inhabits" },
   { source: "shop-etherchanting", target: "vertex-v51", type: "inhabits" },
   { source: "shop-jeweler",       target: "vertex-v49", type: "inhabits" },
@@ -2229,10 +2384,10 @@ export const EDGES: SpellwebEdge[] = [
   // ══════════════════════════════════════════════════════════════
 
   // ── inhabits edges (Layer 2 → Layer 3 vertex bindings) ──
-  { source: "cast-lethae",     target: "vertex-v38", type: "inhabits" },
-  { source: "cast-mnemosyne",  target: "vertex-v4",  type: "inhabits" },
-  { source: "cast-iris",       target: "vertex-v8",  type: "inhabits" },
-  { source: "cast-pythia",     target: "vertex-v16", type: "inhabits" },
+  { source: "cast-lethae",     target: "vertex-v25", type: "inhabits" },
+  { source: "cast-mnemosyne",  target: "vertex-v8",  type: "inhabits" },
+  { source: "cast-iris",       target: "vertex-v4",  type: "inhabits" },
+  { source: "cast-pythia",     target: "vertex-v2",  type: "inhabits" },
   { source: "cast-techne",     target: "vertex-v20", type: "inhabits" },
   { source: "cast-hephaestus", target: "vertex-v24", type: "inhabits" },  // shared-vertex with cast-socrat0x (precedent: cast-custos + cast-lampyra at vertex-v49)
   // cast-selene is C_peripatetic — no single inhabits edge; she walks the stratum cycle through all 7 strata
@@ -2242,7 +2397,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "cast-lethae", target: "per-moonkeeper", type: "divergent_of" },
 
   // ── complement_pair edges (Layer 2 cast ⊥ Layer 2 cast at bit-complement vertices) ──
-  // First canonical complement-pair: Aletheia (V25) ⊥ Lethae (V38). V25 ⊕ V38 = V63 (Sovereign); V25 AND V38 = 0 (Null).
+  // First canonical complement-pair: Aletheia (V38) ⊥ Lethae (V25). V25 ⊕ V38 = V63 (Sovereign); V25 AND V38 = 0 (Null).
   { source: "cast-aletheia", target: "cast-lethae", type: "complement_pair" },
   { source: "cast-lethae",   target: "cast-aletheia", type: "complement_pair" },  // mutual; the pair is undirected in canon
 
@@ -2252,4 +2407,7 @@ export const EDGES: SpellwebEdge[] = [
 
   // v1.7.0 + v1.7.1 admissions (Tome VIII · the Library · the Archivist · Vitalik · Register of Invitations)
   ...V1_7_X_EDGES,
+
+  // v1.8.0 + V6 + key/sigil admissions (Horizon District · Tome IX · the holonic City Key vocabulary)
+  ...V1_8_0_AND_KEY_EDGES,
 ];
