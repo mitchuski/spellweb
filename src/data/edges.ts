@@ -311,6 +311,15 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
   { source: "act-tome-viii-5", target: "conj-c66",            type: "references" },
   { source: "act-tome-viii-5", target: "conj-c87",            type: "references" },
 
+  // ── v1.8.1 (2026-06-21) · Tome VIII Act 6 — the Wikis open, the Librarian 🗃️ admitted (forking-discipline) ──
+  { source: "act-tome-viii-6",    target: "act-tome-viii-5",     type: "follows" },      // Act 6 follows Act 5 in the Library
+  { source: "cast-the-librarian", target: "act-tome-viii-6",     type: "narrates" },     // the Librarian's admission act
+  { source: "act-tome-viii-6",    target: "cast-the-librarian",  type: "introduces" },   // Act 6 introduces the Librarian to the corpus
+  { source: "cast-the-librarian", target: "per-chronicler",      type: "instance_of" },  // Layer-2 cross-shop attachment instances the Chronicler primary
+  { source: "cast-the-librarian", target: "cast-the-archivist",  type: "kin_to" },       // Tower-mates: forking library ⊥ sealed archive (seal ⊥ fork)
+  { source: "cast-the-librarian", target: "cast-memora",         type: "kin_to" },       // kin to the inscriber (Chronicler-cast sisters)
+  { source: "cast-the-librarian", target: "conj-c64",            type: "embodies" },     // the second spirit-Mage instance advances C64 toward a class
+
   // ── Key/sigil vocabulary · the new EdgeTypes in action ──
   { source: "gateway-swordsmans-key",   target: "gateway-holospaces",        type: "boots_over" },
   { source: "gateway-swordsmans-key",   target: "concept-projection-ladder", type: "defines" },
@@ -338,6 +347,19 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
   { source: "conj-c85", target: "conj-c47", type: "compresses_to" },  // C85 promoted from CM-C47 (C47's City reading)
   { source: "conj-c88", target: "con-stella-octangula", type: "references" },
   { source: "conj-c89", target: "con-stella-octangula", type: "references" },
+  // ── Band IX · The Limitative Reading (Run 8 · Gate G6, 2026-06-28) ──
+  { source: "conj-c92", target: "conj-c81", type: "relates_to" },          // Tarski reading of existence-leak; rides on C81, cannot exceed its base
+  { source: "conj-c92", target: "conj-c84", type: "relates_to" },          // the inference-axis leak couples to the Mosca discount
+  { source: "conj-c91", target: "con-amnesia-protocol", type: "relates_to" }, // Gödel ↔ Φ_agent: zero-memory is the burning, not the hiding
+  { source: "conj-c91", target: "con-zk-orbit", type: "relates_to" },      // Selene's Proof as the first-theorem instance
+  { source: "conj-c91", target: "conj-c86", type: "relates_to" },          // both read amnesia structurally (obstruction ↔ underivability)
+  { source: "conj-c90", target: "conj-c14-c17", type: "relates_to" },      // the inversion is C17 (in the C14-C17 band) in limitative terms
+  { source: "conj-c93", target: "conj-c92", type: "relates_to" },          // content-addressed liveness is a Tarski-leak surface
+  { source: "conj-c93", target: "conj-c81", type: "relates_to" },          // dedup/GUID liveness as an existence-leak instance
+  { source: "doc-privacy-value-v6", target: "conj-c90", type: "references" },
+  { source: "doc-privacy-value-v6", target: "conj-c91", type: "references" },
+  { source: "doc-privacy-value-v6", target: "conj-c92", type: "references" },
+  { source: "doc-privacy-value-v6", target: "conj-c93", type: "references" },
 
   // ── External convergence references (cite-only) ──
   { source: "gateway-compiled-ai",   target: "conj-c50", type: "references" },  // multiplicative gating ≡ compositional defense
@@ -2410,4 +2432,14 @@ export const EDGES: SpellwebEdge[] = [
 
   // v1.8.0 + V6 + key/sigil admissions (Horizon District · Tome IX · the holonic City Key vocabulary)
   ...V1_8_0_AND_KEY_EDGES,
+
+  // C1-C17 foundational conjecture band (added 2026-06-27) — chain the band forward into the existing
+  // C18+ sequence, and anchor it to the Separation Theorem and the Dual-Agent Architecture.
+  { source: "conj-c6-c10",  target: "conj-c1-c5",    type: "extends" },
+  { source: "conj-c11-c13", target: "conj-c6-c10",   type: "extends" },
+  { source: "conj-c14-c17", target: "conj-c11-c13",  type: "extends" },
+  { source: "conj-c18-c21", target: "conj-c14-c17",  type: "extends" },
+  { source: "thm-separation", target: "conj-c6-c10",  type: "proves" },
+  { source: "thm-separation", target: "conj-c14-c17", type: "proves" },
+  { source: "conj-c1-c5",   target: "con-dualagent", type: "references" },
 ];
