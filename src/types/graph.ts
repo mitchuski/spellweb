@@ -208,7 +208,7 @@ export type CastTier = 'archetype' | 'cousin' | 'summoned' | 'companion' | 'prie
 // v1.7.0 added 'spirit-Mage' (the Archivist 📚 · Tower-resident · city-internal prehistory · tutelary register)
 export type TradeQuarter = 'producer' | 'gathering' | 'temple' | 'bonfire' | 'placeholder';
 export type OperatorStatus = 'operational' | 'partial' | 'tease' | 'placeholder' | 'gathering';
-export type Attribution = 'agentprivacy' | 'cousin-blade' | 'cousin-substrate' | 'kindred' | 'kindred-protocol' | 'kindred-coalition' | 'open';
+export type Attribution = 'agentprivacy' | 'cousin-blade' | 'cousin-forge' | 'cousin-substrate' | 'kindred' | 'kindred-protocol' | 'kindred-coalition' | 'open';
 export type ConjectureStatus = 'canonical' | 'provisional' | 'observation' | 'resonant'
   // 2026-06-11 · register statuses from CONJECTURE_REGISTER_V6 (agentprivacy-docs)
   | 'active' | 'alias' | 'occupied' | 'convergent' | 'challenged' | 'reserved' | 'resolved';
@@ -260,7 +260,7 @@ export interface SpellwebNode {
   vertex?: number;              // 0–63, position on the 64-vertex lattice
   bits?: string;                // 6-bit binary, e.g. "011100" for V28
   hammingWeight?: number;       // 0–6, the stratum (Pascal's row)
-  tome?: 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII' | 'IX';   // For act nodes: which tome (v1.7.1 → VIII the Library · v1.8.0 → IX the Horizon)
+  tome?: 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII' | 'IX' | 'X';   // For act nodes: which tome (v1.7.1 → VIII the Library · v1.8.0 → IX the Horizon · v1.9.1 → X the Hearth)
   act?: number;                 // For act nodes: act number within the tome
   sigil?: string;               // Cast-member sigil (emoji or emoji-pair)
   gem?: string;                 // Workshop palette gem name (e.g. "Amethyst")
