@@ -2508,6 +2508,22 @@ export const EDGES: SpellwebEdge[] = [
   { source: "gateway-lexon-pvm",          target: "vertex-v19",                  type: "relates_to" },  // the Runecraft register, a grammar on the anvil
   { source: "gateway-lexon-pvm",          target: "vertex-v59",                  type: "relates_to" },  // Hermaion ⚚ two-true-readings precedent
   { source: "gateway-lexon-pvm",          target: "con-promisetheory",           type: "relates_to" },  // legalese that executes = promises as text
+  // ── the Lexon weave (2026-07-12) · lexr5 folded to debt 22; the workshop's method, corpus, and exemplars wired into the dense hubs ──
+  { source: "gateway-lexon-pvm",          target: "concept-lexon-falsifiability", type: "introduces" },  // the load-bearing result: privacy as a checkable absence
+  { source: "gateway-lexon-pvm",          target: "artefact-lexon-constitution",  type: "introduces" },  // OT-5: the harness's own law in Lexon
+  { source: "gateway-lexon-pvm",          target: "concept-lexon-blocks",         type: "introduces" },  // 189 public structured-language blocks
+  { source: "concept-lexon-falsifiability", target: "doc-research",               type: "references" },  // the separation + reconstruction bounds made checkable
+  { source: "concept-lexon-falsifiability", target: "concept-bilateral-consent",  type: "relates_to" },  // consent expressed as a checkable structure
+  { source: "lexon-entropy",              target: "doc-research",                 type: "references" },  // H(X) from the mathematical-foundations paper
+  { source: "lexon-entropy",              target: "concept-lexon-falsifiability", type: "proves" },      // the entropy expression proves its absence claim
+  { source: "lexon-separation-bound",     target: "concept-lexon-falsifiability", type: "proves" },      // T2 as a checkable absence
+  { source: "lexon-separation-bound",     target: "skill-dual-agent-harness",     type: "references" },  // T2 is a harness trust, now in its own law
+  { source: "lexon-vrc",                  target: "concept-credential-v1",        type: "implements" },  // the VRC Lexon form over the authored credential
+  { source: "lexon-vrc",                  target: "concept-lexon-falsifiability", type: "proves" },      // bilateral formation as a checkable conjunction
+  { source: "artefact-lexon-constitution", target: "skill-dual-agent-harness",    type: "references" },  // the constitution IS the harness's trusts + seats
+  { source: "artefact-lexon-constitution", target: "con-promisetheory",           type: "relates_to" },  // the trusts derive from promise theory
+  { source: "concept-lexon-blocks",       target: "concept-credential-v1",        type: "relates_to" },  // blocks carry credential-shaped checkable claims
+  { source: "concept-lexon-blocks",       target: "concept-mana-pools",           type: "relates_to" },  // the public pole: knowledge liquidity across the membrane
   { source: "concept-mana-pools",         target: "gateway-privacy-pools-v2",    type: "requires" },    // the product deploys ON the certified circuits
   { source: "concept-mana-pools",         target: "concept-credential-v1",       type: "requires" },    // membership gated by the assayed credential
   { source: "concept-mana-pools",         target: "con-privacypools",            type: "extends" },     // the concept, made a product family
