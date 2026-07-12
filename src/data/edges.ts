@@ -2470,4 +2470,46 @@ export const EDGES: SpellwebEdge[] = [
   { source: "key-hearthold-citykey",      target: "gateway-soulbis-star",        type: "synced_with" },
   { source: "key-hearthold-citykey",      target: "concept-kappa-derivation",    type: "derives_identity_from" },
   { source: "key-hearthold-citykey",      target: "key-city-key",                type: "references" },
+
+  // ── Hearthold v0.11.0 developments (2026-07-07) — Recall · Knowledge Portal · the ladder made whole ──
+  { source: "concept-hearthold-recall",   target: "concept-hearthold-warden",    type: "requires" },
+  { source: "concept-hearthold-warden",   target: "concept-hearthold-recall",    type: "references" },
+  { source: "concept-knowledge-portal",   target: "concept-hearthold-witness",   type: "requires" },
+  { source: "concept-knowledge-portal",   target: "concept-hearthold-warden",    type: "references" },
+  { source: "concept-knowledge-portal",   target: "conj-c94",                    type: "references" },
+  { source: "concept-assurance-stepup",   target: "concept-hearthold-sovereign", type: "requires" },
+  { source: "concept-assurance-stepup",   target: "conj-c96",                    type: "references" },
+  { source: "concept-composite-evidence", target: "concept-evidence-graph",      type: "extends" },
+  { source: "concept-composite-evidence", target: "conj-c95",                    type: "references" },
+  { source: "act-tome-x-2",               target: "act-tome-x-1",                type: "follows" },
+  { source: "act-tome-x-2",               target: "concept-hearthold-recall",    type: "teaches" },
+  { source: "act-tome-x-2",               target: "concept-knowledge-portal",    type: "introduces" },
+  { source: "act-tome-x-2",               target: "concept-assurance-stepup",    type: "teaches" },
+  { source: "act-tome-x-2",               target: "concept-composite-evidence",  type: "teaches" },
+  { source: "act-tome-x-2",               target: "gateway-hearthold",           type: "references" },
+
+  // ── The Overlay Weave · overlay-run-1 (2026-07-11) — the Loomkeeper's lane ──
+  { source: "concept-loomkeeper",         target: "doc-overlay-weave",           type: "narrates" },
+  { source: "doc-overlay-weave",          target: "concept-overlay-keys",        type: "compresses_to" },
+  { source: "concept-overlay-keys",       target: "doc-zypher",                  type: "implements" },
+  { source: "doc-overlay-weave",          target: "thm-ceiling",                 type: "references" },
+  { source: "doc-overlay-weave",          target: "con-amnesia-protocol",        type: "references" },
+  { source: "doc-overlay-weave",          target: "skill-dual-agent-harness",    type: "references" },
+  { source: "chron-overlay-run-1",        target: "doc-overlay-weave",           type: "references" },
+
+  // ── The fleet campaigns (2026-07-11/12) — lexon + privacy-pools-v2 + mana pools · Tome IX Act 8 the Three Workings ──
+  { source: "gateway-lexon-pvm",          target: "skill-dual-agent-harness",    type: "implements" },  // instance #5 · the grammar workshop
+  { source: "gateway-privacy-pools-v2",   target: "skill-dual-agent-harness",    type: "implements" },  // instance #4 · first mechanically fitted
+  { source: "gateway-privacy-pools-v2",   target: "con-privacypools",            type: "extends" },     // the concept, built at home
+  { source: "gateway-privacy-pools-v2",   target: "concept-credential-v1",       type: "references" },  // the workshop authored it
+  { source: "gateway-privacy-pools-v2",   target: "vertex-v19",                  type: "relates_to" },  // forged at the Forge(t)
+  { source: "gateway-privacy-pools-v2",   target: "vertex-v35",                  type: "relates_to" },  // assayed at the touchstone (Spec 12)
+  { source: "concept-credential-v1",      target: "con-zkproofs",                type: "references" },
+  { source: "gateway-lexon-pvm",          target: "vertex-v19",                  type: "relates_to" },  // the Runecraft register, a grammar on the anvil
+  { source: "gateway-lexon-pvm",          target: "vertex-v59",                  type: "relates_to" },  // Hermaion ⚚ two-true-readings precedent
+  { source: "gateway-lexon-pvm",          target: "con-promisetheory",           type: "relates_to" },  // legalese that executes = promises as text
+  { source: "concept-mana-pools",         target: "gateway-privacy-pools-v2",    type: "requires" },    // the product deploys ON the certified circuits
+  { source: "concept-mana-pools",         target: "concept-credential-v1",       type: "requires" },    // membership gated by the assayed credential
+  { source: "concept-mana-pools",         target: "con-privacypools",            type: "extends" },     // the concept, made a product family
+  { source: "concept-mana-pools",         target: "key-city-key",                type: "relates_to" },  // mana = lit vertices → admission
 ];

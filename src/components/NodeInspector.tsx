@@ -167,6 +167,124 @@ export function NodeInspector({
           {node.desc}
         </p>
 
+        {/* Register honesty - for conjecture-bearing nodes. The fields have lived
+            on the node since 2026-06-11; this surfaces them instead of leaving
+            confidence buried in desc prose. When prose and register disagree,
+            the register wins. */}
+        {(node.conjectureId || node.conjectureStatus) && (() => {
+          const status = node.conjectureStatus;
+          const statusColor =
+            status === 'canonical' || status === 'active' ? '#7ec97e'
+            : status === 'challenged' ? '#e06c5c'
+            : status === 'convergent' ? '#00d9ff'
+            : status === 'alias' || status === 'resolved' ? '#888'
+            : '#e0a526'; // provisional · observation · occupied · reserved · resonant
+          const conf = node.conjectureConfidence;
+          return (
+            <div style={{ marginTop: 16 }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  letterSpacing: 2,
+                  color: THEME.textDim,
+                  fontFamily: "'JetBrains Mono', monospace",
+                }}
+              >
+                REGISTER
+              </span>
+              <div
+                style={{
+                  marginTop: 8,
+                  padding: 12,
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  borderRadius: 8,
+                  border: `1px solid ${statusColor}40`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  {node.conjectureId && (
+                    <span style={{
+                      fontSize: 12,
+                      color: THEME.textBright,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontWeight: 600,
+                    }}>
+                      {node.conjectureId}
+                    </span>
+                  )}
+                  {status && (
+                    <span style={{
+                      padding: '2px 8px',
+                      borderRadius: 3,
+                      fontSize: 10,
+                      letterSpacing: 1,
+                      border: `1px solid ${statusColor}`,
+                      color: statusColor,
+                      fontFamily: "'JetBrains Mono', monospace",
+                    }}>
+                      {status.toUpperCase()}
+                    </span>
+                  )}
+                  {node.conjectureRegister && (
+                    <span style={{
+                      fontSize: 10,
+                      color: THEME.textDim,
+                      fontFamily: "'JetBrains Mono', monospace",
+                    }}>
+                      {node.conjectureRegister} register
+                    </span>
+                  )}
+                </div>
+                {typeof conf === 'number' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{
+                      flex: 1,
+                      height: 4,
+                      background: '#ffffff15',
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                    }}>
+                      <div style={{
+                        width: `${conf * 100}%`,
+                        height: '100%',
+                        background: statusColor,
+                        borderRadius: 2,
+                      }} />
+                    </div>
+                    <span style={{
+                      fontSize: 11,
+                      color: THEME.text,
+                      fontFamily: "'JetBrains Mono', monospace",
+                    }}>
+                      ~{(conf * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                )}
+                {node.conjectureAliasOf && (
+                  <span style={{
+                    fontSize: 10,
+                    color: THEME.textDim,
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}>
+                    alias of {node.conjectureAliasOf} — same claim, retained for continuity
+                  </span>
+                )}
+                <span style={{
+                  fontSize: 9,
+                  color: THEME.textDim,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  opacity: 0.7,
+                }}>
+                  when prose and register disagree, the register wins
+                </span>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Proverb - for acts with grimoire data */}
         {node.proverb && (
           <div style={{ marginTop: 18 }}>
