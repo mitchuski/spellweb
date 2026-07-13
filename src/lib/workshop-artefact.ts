@@ -35,6 +35,17 @@ export type LatticeVisualKey =
   | 'covenant'      // /covenant
   | 'logos-circle'  // /circle
   | 'ceremony-hall' // /hall
+  | 'quartermaster' // /quartermaster
+  | 'chancery'      // /chancery
+  | 'rostra'        // /rostra
+  | 'wellpool'      // /wellpool
+  | 'circuit'       // /circuit
+  | 'stakes'        // /stakes
+  | 'charthouse'    // /charthouse
+  | 'horizon'       // /horizon
+  | 'solchanting'   // /solchanting
+  | 'staff'         // /staffs
+  | 'familiars'     // /familiars
   | 'rune';         // generic fallback
 
 // Per-workshop verb-noun pairs. Keys are workshop node ids (shop-<route>).
@@ -51,6 +62,17 @@ const WORKSHOP_VERBS: Record<string, { verb: string; verbPresent: string; visual
   'shop-covenant':       { verb: 'Consecrate',  verbPresent: 'Consecrating', visual: 'covenant' },
   'shop-circle':         { verb: 'Gather',      verbPresent: 'Gathering',    visual: 'logos-circle' },
   'shop-hall':           { verb: 'Pair',        verbPresent: 'Pairing',      visual: 'ceremony-hall' },
+  'shop-quartermaster':  { verb: 'Fit',         verbPresent: 'Fitting',      visual: 'quartermaster' },
+  'shop-chancery':       { verb: 'Enact',       verbPresent: 'Enacting',     visual: 'chancery' },
+  'shop-rostra':         { verb: 'Uphold',      verbPresent: 'Upholding',    visual: 'rostra' },
+  'shop-wellpool':       { verb: 'Draw',        verbPresent: 'Drawing',      visual: 'wellpool' },
+  'shop-circuit':        { verb: 'Prove',       verbPresent: 'Proving',      visual: 'circuit' },
+  'shop-stakes':         { verb: 'Stake',       verbPresent: 'Staking',      visual: 'stakes' },
+  'shop-charthouse':     { verb: 'Chart',       verbPresent: 'Charting',     visual: 'charthouse' },
+  'shop-horizon':        { verb: 'Measure',     verbPresent: 'Measuring',    visual: 'horizon' },
+  'shop-solchanting':    { verb: 'Refract',     verbPresent: 'Refracting',   visual: 'solchanting' },
+  'shop-staff':          { verb: 'Fit',         verbPresent: 'Fitting',      visual: 'staff' },
+  'shop-familiars':      { verb: 'Bind',        verbPresent: 'Binding',      visual: 'familiars' },
 };
 
 // Per-artefact emoji palettes for the forge ceremony's naming phase. The
@@ -69,6 +91,21 @@ const FRAME_PALETTE      = ['🪞', '🖼️', '🪟', '👁️', '🎴', '🃏'
 const SIGIL_PALETTE      = ['🕊️', '🤲', '🌿', '🌳', '🌸', '🌺', '🌷', '🪶', '✨', '🌟', '☀️', '🌅', '🪞', '🔔', '📿', '🕯️'];
 const PETAL_PALETTE      = ['🌿', '🌱', '🍃', '🌸', '🌺', '🌻', '🌷', '🌹', '🪷', '🍀', '🍂', '🪻', '✨', '🌅', '🌳', '🌾'];
 const KEY_PALETTE        = ['🔑', '🗝️', '⚔️', '🤝', '🔗', '🪢', '🔒', '🪪', '⚖️', '🌗', '🌓', '👥', '✨', '🕊️', '🎴', '🔔'];
+// New fleet workshops — the artefact classes are a harness kit, a law-clause, a
+// public edict, and a mana draw; none should pick from the blade palette.
+const KIT_PALETTE        = ['🎒', '🧰', '🧳', '🪢', '🧷', '🔧', '⚙️', '🧮', '📦', '🗜️', '🪛', '🧭', '🎽', '🔩', '✨', '🌟'];
+const CLAUSE_PALETTE     = ['⚖️', '📜', '📋', '🖋️', '✒️', '🔏', '📝', '🏛️', '⚙️', '🔖', '🧾', '🗂️', '✅', '📎', '✨', '🌟'];
+const EDICT_PALETTE      = ['📢', '📯', '🗣️', '📜', '⚔️', '🏛️', '🪧', '🔊', '🎺', '📣', '🛡️', '👥', '☀️', '✊', '✨', '🌟'];
+const MANA_PALETTE       = ['🌊', '💧', '🔷', '🩵', '💠', '🫧', '🌀', '🪸', '🐚', '💎', '🔵', '♒', '🌌', '🧊', '✨', '🌟'];
+// Later fleet workshops — ZK proof, open stake, sea-chart, quantum horizon,
+// solar/parallel prism, dual-aspect staff, and the familiar-bond.
+const PROOF_PALETTE      = ['🔮', '💠', '🧊', '🔷', '🫥', '🔒', '⚛️', '🪞', '🌀', '✅', '👁️', '♾️', '🧿', '🔏', '✨', '🌟'];
+const STAKE_PALETTE      = ['🔏', '⛓️', '🪙', '📊', '👁️', '🗿', '⚖️', '🔒', '🎯', '🧱', '🏛️', '💠', '🪨', '☀️', '✨', '🌟'];
+const CHART_PALETTE      = ['⚓️', '🧭', '🗺️', '⭐', '🌊', '🔭', '🧿', '🌌', '🪐', '☄️', '🧜', '🌠', '🪟', '🩵', '✨', '🌟'];
+const HORIZON_PALETTE    = ['🌅', '🌄', '⏳', '📐', '🪨', '🛤️', '☀️', '🔭', '🧭', '📏', '⛰️', '🌇', '⌛', '🟠', '✨', '🌟'];
+const SUN_PALETTE        = ['🌞', '☀️', '🔆', '🌈', '💛', '🟡', '🔶', '⚡', '🌻', '🟨', '🌤️', '🔅', '🪩', '🌅', '✨', '🌟'];
+const STAFF_PALETTE      = ['⚚', '🐍', '🪄', '🌿', '🟢', '🔴', '🕊️', '🧿', '🌗', '♻️', '🪶', '🔮', '🟩', '🟥', '✨', '🌟'];
+const BOND_PALETTE       = ['🪶', '🪿', '🐾', '🧡', '🟠', '🌾', '🔶', '🐦', '🦊', '🐈', '🕊️', '🌰', '🍯', '🟧', '✨', '🌟'];
 const DEFAULT_PALETTE    = BLADE_PALETTE;
 
 const ARTEFACT_EMOJI_PALETTE: Record<string, string[]> = {
@@ -83,6 +120,17 @@ const ARTEFACT_EMOJI_PALETTE: Record<string, string[]> = {
   'shop-covenant':      SIGIL_PALETTE,
   'shop-circle':        PETAL_PALETTE,
   'shop-hall':          KEY_PALETTE,
+  'shop-quartermaster': KIT_PALETTE,
+  'shop-chancery':      CLAUSE_PALETTE,
+  'shop-rostra':        EDICT_PALETTE,
+  'shop-wellpool':      MANA_PALETTE,
+  'shop-circuit':       PROOF_PALETTE,
+  'shop-stakes':        STAKE_PALETTE,
+  'shop-charthouse':    CHART_PALETTE,
+  'shop-horizon':       HORIZON_PALETTE,
+  'shop-solchanting':   SUN_PALETTE,
+  'shop-staff':         STAFF_PALETTE,
+  'shop-familiars':     BOND_PALETTE,
 };
 
 /** Pick the right emoji palette for the forge naming phase. */

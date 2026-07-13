@@ -458,38 +458,10 @@ export default function ItemLatticeView({
                 <span aria-hidden>▶</span> Evoke
               </button>
             )}
-            {/* v1.6.0 (2026-05-15) · Create + Craft import buttons migrated from the retired side panel */}
-            {onCreateImport && (
-              <label
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  padding: '5px 10px',
-                  borderRadius: 4,
-                  cursor: 'pointer',
-                  background: 'rgba(220, 220, 220, 0.10)',
-                  border: '1px solid rgba(220, 220, 220, 0.45)',
-                  color: '#e6e6e6',
-                  fontSize: 11,
-                  fontFamily: "'IBM Plex Sans', sans-serif",
-                  fontWeight: 600,
-                  letterSpacing: 0.4,
-                }}
-                title="Create — import a master template / canonical seed"
-              >
-                <span aria-hidden>✦</span> Create
-                <input
-                  type="file"
-                  accept=".md"
-                  style={{ display: 'none' }}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) onCreateImport(file);
-                    e.target.value = '';
-                  }}
-                />
-              </label>
-            )}
-            {onCraftImport && (
+            {/* One Import button · auto-routes: a forged artefact (tier/forge stamp) goes to
+                Craft; a template / canonical seed goes to Create. (Merged 2026-07-13 — the two
+                were the same action from the Sovereign's side; the file's own frontmatter decides.) */}
+            {(onCreateImport || onCraftImport) && (
               <label
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -504,16 +476,28 @@ export default function ItemLatticeView({
                   fontWeight: 600,
                   letterSpacing: 0.4,
                 }}
-                title="Craft — import a forged artefact (Sovereign's own work)"
+                title="Import a .md — a forged artefact or a template. The file decides which; no need to choose."
               >
-                <span aria-hidden>⚒️</span> Craft
+                <span aria-hidden>⚒️</span> Import
                 <input
                   type="file"
                   accept=".md"
                   style={{ display: 'none' }}
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
-                    if (file) onCraftImport(file);
+                    if (file) {
+                      let isForged = false;
+                      try {
+                        const text = await file.text();
+                        // A forged artefact carries a forge stamp: a tier, forge timestamp, or
+                        // constellation marks. A template / seed carries template_version.
+                        isForged = /(^|\n)\s*(tier:\s*(light|heavy|dragon)|forged_?at:|constellation_?marks:|witness_?marks:|forge_signature:)/i.test(text)
+                          && !/template_version:/i.test(text);
+                      } catch { /* fall through to Create */ }
+                      if (isForged && onCraftImport) onCraftImport(file);
+                      else if (onCreateImport) onCreateImport(file);
+                      else if (onCraftImport) onCraftImport(file);
+                    }
                     e.target.value = '';
                   }}
                 />
@@ -901,7 +885,7 @@ function EmptyHoverInfo({ totalLit, totalArtefacts, totalEmpty, mode }: { totalL
       </div>
       <div style={{ fontSize: 11, color: THEME.textDim, lineHeight: 1.6 }}>
         {mode === 'items' ? (
-          <>Each artefact-producing workshop lights its canonical vertex. Hover any vertex to see what is fitted there.</>
+          <>Each item is a <span style={{ color: THEME.textBright }}>trust task you bring back</span>: trace its constellation at the workshop, return the artefact, and it lights its canonical vertex here. Hover a vertex to see what is fitted there.</>
         ) : (
           <>Only vertices producing creatures (Familiars · V59) or held material (Chart Shop · V44) light up. Other vertices dim. v1.6.0 entity-kinds: bound · held · dispatch.</>
         )}
@@ -1198,9 +1182,37 @@ function ForgedInventory({
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// ItemsGrid · flat emoji-grid view · groups catalogue artefacts by identity slot
-// (worn · borne · bound · held) and the bearer's forged inventory · each cell has
-// equip toggle (proof-gated) + export-.md button (migrated from retired ArtefactPanel).
+// Precinct map · groups shops into their City district/precinct for the quest
+// log. Mirrors agentprivacy_master/src/lib/districts.ts. node.district (where
+// set) wins; this covers the older producer shops that carry only tradeQuarter.
+// ─────────────────────────────────────────────────────────────────────
+const PRECINCT_BY_SHOP: Record<string, string> = {
+  'shop-tailor': 'the Crypt', 'shop-shield': 'the Crypt', 'shop-circuit': 'the Crypt',
+  'shop-quartermaster': 'the Crucible', 'shop-forget': 'the Crucible', 'shop-chancery': 'the Crucible',
+  'shop-etherchanting': 'the Crucible', 'shop-solchanting': 'the Crucible',
+  'shop-stakes': 'the Agora', 'shop-jeweler': 'the Agora', 'shop-rostra': 'the Agora',
+  'shop-holon': 'the Reliquary', 'shop-vault': 'the Reliquary',
+  'shop-wellpool': 'the Waters',
+  'shop-charthouse': 'the Navigation District',
+  'shop-portal': 'the Threshold', 'shop-staff': 'the Threshold', 'shop-familiars': 'the Threshold',
+  'shop-horizon': 'the Horizon District', 'shop-assay': 'the Horizon District', 'shop-crossing': 'the Horizon District',
+  'shop-covenant': 'the Temple', 'shop-bonfires': 'the Founding Bonfire',
+  'shop-circle': 'the Gathering Quarters', 'shop-hall': 'the Gathering Quarters',
+};
+// District tour order — quest-log neighbourhoods, in the canonical walk.
+const DISTRICT_ORDER = [
+  'the Crypt', 'the Crucible', 'the Agora', 'the Reliquary', 'the Waters',
+  'the Navigation District', 'the Threshold', 'the Horizon District',
+  'the Temple', 'the Founding Bonfire', 'the Gathering Quarters', 'the Wider City',
+];
+function districtOf(node: SpellwebNode): string {
+  return PRECINCT_BY_SHOP[node.id] ?? (node.district ? `the ${node.district} District` : 'the Wider City');
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// ItemsGrid · the quest log · each item is a trust task the Sovereign traces
+// at its workshop and brings back. Grouped by identity slot (worn · borne ·
+// bound · held), sub-grouped by City district, with brought-back / open status.
 // Drops pure tomes per 2026-05-15 user direction.
 // ─────────────────────────────────────────────────────────────────────
 function ItemsGrid({
@@ -1241,56 +1253,104 @@ function ItemsGrid({
   const hasBound = boundFamiliars.length > 0;
   const hasDispatch = dispatchReceipts.length > 0;
 
+  // Quest-log stats — each catalogue item is a trust task; proven = brought back.
+  const allItems = slotOrder.flatMap(s => itemsBySlot[s]);
+  const broughtBack = allItems.filter(n => provenSet.has(n.id)).length;
+  const openTasks = allItems.length - broughtBack;
+  const pct = allItems.length ? Math.round((broughtBack / allItems.length) * 100) : 0;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      {slotOrder.map(slot => {
-        const items = itemsBySlot[slot];
-        const forged = forgedBySlot[slot];
-        if (items.length === 0 && forged.length === 0) return null;
-        const meta = SLOT_META[slot];
-        const totalInSlot = items.length + forged.length;
+      {/* Quest-log summary — the trust tasks, brought back vs open */}
+      {allItems.length > 0 && (
+        <div style={{ padding: '10px 14px', border: '1px solid rgba(212,175,55,0.25)', borderRadius: 6, background: 'rgba(212,175,55,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6, gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ color: THEME.textBright, fontSize: 12.5, fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+              🗺️ The quest log · trust tasks you bring back
+            </span>
+            <span style={{ fontSize: 10, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace" }}>
+              <span style={{ color: '#67e8f9' }}>{broughtBack}</span> brought back · <span style={{ color: '#ffd700' }}>{openTasks}</span> open · {allItems.length} in the city
+            </span>
+          </div>
+          <div style={{ height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+            <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #67e8f9, #34d399)', transition: 'width 0.3s' }} />
+          </div>
+        </div>
+      )}
+      {(() => {
+        // Equipment · one view, all catalogue items flattened across identity slots and
+        // grouped by City district (the slot is a per-card tag now, not a top-level split).
+        const allCat = slotOrder.flatMap(s => itemsBySlot[s]);
+        const allForged = slotOrder.flatMap(s => forgedBySlot[s]);
+        if (allCat.length === 0 && allForged.length === 0) return null;
+        const catByDistrict = new Map<string, SpellwebNode[]>();
+        for (const n of allCat) {
+          const d = districtOf(n);
+          if (!catByDistrict.has(d)) catByDistrict.set(d, []);
+          catByDistrict.get(d)!.push(n);
+        }
+        const forgedByDistrict = new Map<string, LatticeForgedBlade[]>();
+        for (const blade of allForged) {
+          let d = 'the Wider City';
+          for (const mark of blade.constellationMarks) {
+            const node = NODES.find(n => n.id === mark.nodeId);
+            const shop = node?.type === 'workshop' ? node
+              : (node?.shopAnchor ? NODES.find(x => x.id === `shop-${node.shopAnchor!.replace(/^\//, '')}`) : undefined);
+            if (shop) { d = districtOf(shop); break; }
+          }
+          if (!forgedByDistrict.has(d)) forgedByDistrict.set(d, []);
+          forgedByDistrict.get(d)!.push(blade);
+        }
+        const districts = DISTRICT_ORDER.filter(d => catByDistrict.has(d) || forgedByDistrict.has(d));
         return (
-          <section key={slot}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 8, paddingBottom: 4, borderBottom: `1px solid ${meta.accent}33` }}>
-              <span aria-hidden style={{ fontSize: 16 }}>{meta.emoji}</span>
-              <span style={{ color: meta.accent, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, fontFamily: "'JetBrains Mono', monospace" }}>
-                {meta.label}
-              </span>
-              <span style={{ color: THEME.textDim, fontSize: 10, fontStyle: 'italic' }}>
-                {meta.desc.split(' · ')[0]}
-              </span>
-              <span style={{ marginLeft: 'auto', color: THEME.textDim, fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>
-                {items.length > 0 && forged.length > 0
-                  ? `${items.length} template${items.length === 1 ? '' : 's'} · ${forged.length} forged`
-                  : `${totalInSlot}`}
-              </span>
+          <section>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10, paddingBottom: 4, borderBottom: '1px solid rgba(212,175,55,0.25)' }}>
+              <span aria-hidden style={{ fontSize: 16 }}>⚒️</span>
+              <span style={{ color: '#d4af37', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, fontFamily: "'JetBrains Mono', monospace" }}>Equipment</span>
+              <span style={{ color: THEME.textDim, fontSize: 10, fontStyle: 'italic' }}>every artefact you can bring back, by district</span>
+              <span style={{ marginLeft: 'auto', color: THEME.textDim, fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>{allCat.length} items</span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
-              {items.map(node => (
-                <CatalogueItemCard
-                  key={node.id}
-                  node={node}
-                  equipped={equipped.has(node.id)}
-                  proven={provenSet.has(node.id)}
-                  pinned={activeNodeId === node.id}
-                  onToggle={() => onToggle(node.id)}
-                  onPin={() => onPinNode(node)}
-                  onExport={onExportCatalogue ? () => onExportCatalogue(node.id) : undefined}
-                />
-              ))}
-              {forged.map(blade => (
-                <ForgedItemCard
-                  key={blade.id}
-                  blade={blade}
-                  equipped={equipped.has(blade.id)}
-                  onToggle={() => onToggle(blade.id)}
-                  onExport={onExportArtefact ? () => onExportArtefact(blade.id) : undefined}
-                />
-              ))}
-            </div>
+            {districts.map(d => {
+              const dItems = catByDistrict.get(d) ?? [];
+              const dForged = forgedByDistrict.get(d) ?? [];
+              const dBack = dItems.filter(n => provenSet.has(n.id)).length;
+              const done = dItems.length > 0 && dBack === dItems.length;
+              return (
+                <div key={d} style={{ marginBottom: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+                    <span style={{ color: THEME.textBright, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 0.8, fontFamily: "'JetBrains Mono', monospace" }}>{d}</span>
+                    {dItems.length > 0 && <span style={{ fontSize: 9, color: done ? '#67e8f9' : THEME.textDim, fontFamily: "'JetBrains Mono', monospace" }}>{dBack}/{dItems.length}{done ? ' ✓' : ''}</span>}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
+                    {dItems.map(node => (
+                      <CatalogueItemCard
+                        key={node.id}
+                        node={node}
+                        slotLabel={SLOT_META[slotForArtefact(node)].label}
+                        equipped={equipped.has(node.id)}
+                        proven={provenSet.has(node.id)}
+                        pinned={activeNodeId === node.id}
+                        onToggle={() => onToggle(node.id)}
+                        onPin={() => onPinNode(node)}
+                        onExport={onExportCatalogue ? () => onExportCatalogue(node.id) : undefined}
+                      />
+                    ))}
+                    {dForged.map(blade => (
+                      <ForgedItemCard
+                        key={blade.id}
+                        blade={blade}
+                        equipped={equipped.has(blade.id)}
+                        onToggle={() => onToggle(blade.id)}
+                        onExport={onExportArtefact ? () => onExportArtefact(blade.id) : undefined}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </section>
         );
-      })}
+      })()}
 
       {/* Standalone "Forged inventory" section retired — forged instances now appear
           alongside the canonical templates in their slot sections above. The right
@@ -1556,6 +1616,7 @@ function CatalogueItemCard({
   equipped,
   proven,
   pinned,
+  slotLabel,
   onToggle,
   onPin,
   onExport,
@@ -1564,10 +1625,12 @@ function CatalogueItemCard({
   equipped: boolean;
   proven: boolean;
   pinned: boolean;
+  slotLabel?: string;
   onToggle: () => void;
   onPin: () => void;
   onExport?: () => void;
 }) {
+  const [showStory, setShowStory] = useState(false);
   const gem = node.gemColor || '#d4af37';
   const ring = equipped ? '#ffd700' : proven ? '#67e8f9' : 'rgba(180,180,200,0.25)';
   return (
@@ -1593,9 +1656,10 @@ function CatalogueItemCard({
           <div style={{ color: THEME.textBright, fontSize: 12, fontFamily: "'Cormorant Garamond', serif", fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {node.artefactName ?? node.label}
           </div>
-          <div style={{ fontSize: 9.5, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace", display: 'flex', gap: 6 }}>
+          <div style={{ fontSize: 9.5, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace", display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {node.vertex !== undefined && <span>V{node.vertex}</span>}
             {node.gem && <span style={{ color: gem }}>· {node.gem}</span>}
+            {slotLabel && <span style={{ opacity: 0.65 }}>· {slotLabel.toLowerCase()}</span>}
           </div>
         </div>
       </div>
@@ -1632,9 +1696,9 @@ function CatalogueItemCard({
               fontStyle: 'italic',
               textAlign: 'center',
             }}
-            title="Awaits proof of presence — witness or forge at this workshop first"
+            title="Open trust task — trace this artefact's constellation at the workshop and bring it back"
           >
-            ⚠️ locked
+            ○ open · trace it
           </span>
         )}
         {onExport && (
@@ -1656,6 +1720,89 @@ function CatalogueItemCard({
             📥
           </button>
         )}
+        <button
+          onClick={(e) => { e.stopPropagation(); setShowStory(true); }}
+          style={{
+            padding: '4px 8px',
+            background: 'transparent',
+            border: `1px solid ${gem}66`,
+            color: gem,
+            borderRadius: 4,
+            fontSize: 10,
+            cursor: 'pointer',
+          }}
+          title={`The story & proverb of ${node.artefactName ?? node.label}`}
+          aria-label="Story & proverb"
+        >
+          📖
+        </button>
+      </div>
+      {showStory && <StoryPopup node={node} proven={proven} onClose={() => setShowStory(false)} />}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// StoryPopup · the "story proverb" mode — the next-step proverb + where to
+// learn about this item and its workshop (guide.agentprivacy.ai / agentprivacy.ai).
+// ─────────────────────────────────────────────────────────────────────
+function StoryPopup({ node, proven, onClose }: { node: SpellwebNode; proven: boolean; onClose: () => void }) {
+  const gem = node.gemColor || '#d4af37';
+  const name = node.artefactName ?? node.label;
+  const proverb = node.proverb ?? (node.ceremony ? `${node.ceremony}.` : 'Trace it, and bring it back.');
+  // The next step of the quest, in the proverb register.
+  const nextStep = proven
+    ? 'Brought back. Equip it, and it joins your loadout — lit on your City Key.'
+    : 'An open trust task. Trace its constellation at the workshop and bring the artefact back here.';
+  const storyHref = node.href ? `https://agentprivacy.ai${node.href}` : 'https://agentprivacy.ai/runecraft';
+  const guideHref = 'https://guide.agentprivacy.ai';
+  return (
+    <div
+      onClick={(e) => { e.stopPropagation(); if (e.target === e.currentTarget) onClose(); }}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(6,6,14,0.7)', backdropFilter: 'blur(3px)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+      role="dialog"
+      aria-label={`${name} — story & proverb`}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: 420, background: 'linear-gradient(180deg, rgba(14,14,26,0.98), rgba(8,8,18,0.98))', border: `1px solid ${gem}66`, borderRadius: 12, padding: 22, boxShadow: `0 8px 40px ${gem}22` }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+          <span aria-hidden style={{ fontSize: 30, lineHeight: 1 }}>{node.emoji ?? '✦'}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ color: THEME.textBright, fontSize: 18, fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>{name}</div>
+            <div style={{ fontSize: 10, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace" }}>
+              {node.label}{node.vertex !== undefined ? ` · V${node.vertex}` : ''}{node.ceremony ? ` · ${node.ceremony}` : ''}
+            </div>
+          </div>
+          <button onClick={onClose} aria-label="Close" style={{ background: 'transparent', border: '1px solid rgba(212,175,55,0.3)', color: THEME.textDim, padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 14 }}>×</button>
+        </div>
+
+        {/* the proverb */}
+        <div style={{ margin: '14px 0', padding: '12px 14px', borderLeft: `2px solid ${gem}`, background: `${gem}0c`, borderRadius: '0 6px 6px 0' }}>
+          <div style={{ fontSize: 9, color: THEME.textDim, textTransform: 'uppercase', letterSpacing: 1, fontFamily: "'JetBrains Mono', monospace", marginBottom: 4 }}>the proverb</div>
+          <div style={{ color: THEME.textBright, fontSize: 14, fontStyle: 'italic', fontFamily: "'Cormorant Garamond', serif", lineHeight: 1.5 }}>“{proverb}”</div>
+        </div>
+
+        {/* the next step */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 9, color: proven ? '#67e8f9' : '#ffd700', textTransform: 'uppercase', letterSpacing: 1, fontFamily: "'JetBrains Mono', monospace", marginBottom: 4 }}>
+            {proven ? '✓ brought back · next step' : '○ open · next step'}
+          </div>
+          <div style={{ fontSize: 12.5, color: THEME.textDim, lineHeight: 1.55 }}>{nextStep}</div>
+        </div>
+
+        {/* where to learn */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <a href={storyHref} target="_blank" rel="noopener noreferrer"
+            style={{ flex: 1, minWidth: 150, textAlign: 'center', padding: '8px 12px', borderRadius: 6, background: `${gem}18`, border: `1px solid ${gem}aa`, color: THEME.textBright, fontSize: 11.5, textDecoration: 'none', fontWeight: 600 }}>
+            📖 Read the workshop story →
+          </a>
+          <a href={guideHref} target="_blank" rel="noopener noreferrer"
+            style={{ flex: 1, minWidth: 150, textAlign: 'center', padding: '8px 12px', borderRadius: 6, background: 'rgba(103,232,249,0.08)', border: '1px solid rgba(103,232,249,0.4)', color: '#67e8f9', fontSize: 11.5, textDecoration: 'none', fontWeight: 600 }}>
+            🧭 Learn on the guide →
+          </a>
+        </div>
       </div>
     </div>
   );

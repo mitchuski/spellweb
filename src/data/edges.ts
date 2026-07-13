@@ -1,18 +1,18 @@
-import type { SpellwebEdge } from '../types/graph';
+﻿import type { SpellwebEdge } from '../types/graph';
 
-// ══════════════════════════════════════════════════════════════
-// v1.4.0 (Solchanting · 2026-05-12) + v1.6.0 (Threshold District + Chart Shop · 2026-05-14)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// v1.4.0 (Solchanting Â· 2026-05-12) + v1.6.0 (Threshold District + Chart Shop Â· 2026-05-14)
 // Declared *before* EDGES and spread into it below, so the literal-inference union of the
 // main EDGES array stays bounded (TS hits "complex type" threshold above ~600 edges otherwise).
-// ══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
-  // ── v1.4.0 · Solchanting opens at V51 (first canonical workshop-on-workshop overlap, stance-differentiated) ──
+  // â”€â”€ v1.4.0 Â· Solchanting opens at V51 (first canonical workshop-on-workshop overlap, stance-differentiated) â”€â”€
   { source: "cast-helia",       target: "shop-solchanting",   type: "keeps" },
   { source: "cast-helia",       target: "vertex-v51",         type: "inhabits" },
   { source: "shop-solchanting", target: "vertex-v51",         type: "inhabits" },
   { source: "shop-solchanting", target: "shop-etherchanting", type: "kin_to" },
 
-  // ── v1.6.0 · Threshold District: three sibling shops at V59 (Display ⊥ Registry ⊥ Companion) ──
+  // â”€â”€ v1.6.0 Â· Threshold District: three sibling shops at V59 (Display âŠ¥ Registry âŠ¥ Companion) â”€â”€
   // keeper edges
   { source: "cast-pandia",   target: "shop-portal-room", type: "keeps" },
   { source: "cast-hermaion", target: "shop-staff",  type: "keeps" },
@@ -24,7 +24,7 @@ const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
   { source: "shop-portal-room", target: "vertex-v59", type: "inhabits" },
   { source: "shop-staff",  target: "vertex-v59", type: "inhabits" },
   { source: "shop-familiars",   target: "vertex-v59", type: "inhabits" },
-  // sibling_of edges (mutual · undirected)
+  // sibling_of edges (mutual Â· undirected)
   { source: "shop-portal-room", target: "shop-staff",  type: "sibling_of" },
   { source: "shop-portal-room", target: "shop-familiars",   type: "sibling_of" },
   { source: "shop-staff",  target: "shop-familiars",   type: "sibling_of" },
@@ -34,29 +34,29 @@ const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
   // peripatetic-fitter (Caducea fits BOTH archetype-aspects of the Staff Shop alexandrite)
   { source: "cast-caducea", target: "cast-hermaion",   type: "fits_for" },
   { source: "cast-caducea", target: "shop-staff", type: "fits_for" },
-  // succession edges removed — superseded cast (Bestia/Therai) not surfaced in v1.6 spellweb
+  // succession edges removed â€” superseded cast (Bestia/Therai) not surfaced in v1.6 spellweb
 
 
-  // ── v1.6.0 · Chart Shop opens at V44 (Pleione 🧭 · Navigation District · attentional register · C63 candidate) ──
+  // â”€â”€ v1.6.0 Â· Chart Shop opens at V44 (Pleione ðŸ§­ Â· Navigation District Â· attentional register Â· C63 candidate) â”€â”€
   { source: "cast-pleione",    target: "shop-charthouse", type: "keeps" },
   { source: "cast-pleione",    target: "vertex-v44",      type: "inhabits" },
   { source: "shop-charthouse", target: "vertex-v44",      type: "inhabits" },
-  // Pelagia succession edge removed — superseded draft not surfaced in v1.6 spellweb
+  // Pelagia succession edge removed â€” superseded draft not surfaced in v1.6 spellweb
   // releases_to edges (Chart Shop's Map phase has three admissible destinations; release-to-sea is target-less)
   { source: "shop-charthouse", target: "shop-bonfires", type: "releases_to" },
   { source: "shop-charthouse", target: "shop-tailor",   type: "releases_to" },
   // cosmological-family cross-reference (Pleione sister-figure to Selene via Oceanid lineage;
-  // Pandia is Selene's daughter — Hold-witness and Display-witness bracket Selene's witnessing from both temporal sides)
+  // Pandia is Selene's daughter â€” Hold-witness and Display-witness bracket Selene's witnessing from both temporal sides)
   { source: "cast-pleione", target: "cast-selene", type: "kin_to" },
   { source: "cast-pandia",  target: "cast-selene", type: "kin_to" },
 
-  // ══════════════════════════════════════════════════════════════
-  // v1.6.0 (2026-05-14) · Tome / act graph wiring — dock new tomes
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // v1.6.0 (2026-05-14) Â· Tome / act graph wiring â€” dock new tomes
   // 26 acts added across Tomes I/II/III + late V/VI/VII were floating
   // without follows/founds/narrates edges. Wire them here.
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-  // Tome documents → first act of each tome (defines · the tome introduces its first act)
+  // Tome documents â†’ first act of each tome (defines Â· the tome introduces its first act)
   { source: "tome-i-the-convergence",  target: "act-tome-i-1",  type: "defines" },
   { source: "tome-ii-the-lyapunov",    target: "act-tome-ii-1", type: "defines" },
   { source: "tome-iii-selenes-witness", target: "act-tome-iii-1", type: "defines" },
@@ -65,14 +65,14 @@ const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
   { source: "tome-vi-the-reply",       target: "act-tome-vi-1", type: "defines" },
   { source: "tome-vii-the-parallel",   target: "act-tome-vii-1", type: "defines" },
 
-  // Tome I follows chain (6 acts · The Convergence)
+  // Tome I follows chain (6 acts Â· The Convergence)
   { source: "act-tome-i-1", target: "act-tome-i-2", type: "follows" },
   { source: "act-tome-i-2", target: "act-tome-i-3", type: "follows" },
   { source: "act-tome-i-3", target: "act-tome-i-4", type: "follows" },
   { source: "act-tome-i-4", target: "act-tome-i-5", type: "follows" },
   { source: "act-tome-i-5", target: "act-tome-i-6", type: "follows" },
 
-  // Tome II follows chain (7 acts · The Lyapunov)
+  // Tome II follows chain (7 acts Â· The Lyapunov)
   { source: "act-tome-ii-1", target: "act-tome-ii-2", type: "follows" },
   { source: "act-tome-ii-2", target: "act-tome-ii-3", type: "follows" },
   { source: "act-tome-ii-3", target: "act-tome-ii-4", type: "follows" },
@@ -80,7 +80,7 @@ const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
   { source: "act-tome-ii-5", target: "act-tome-ii-6", type: "follows" },
   { source: "act-tome-ii-6", target: "act-tome-ii-7", type: "follows" },
 
-  // Tome III follows chain (11 acts · Selene's Witness)
+  // Tome III follows chain (11 acts Â· Selene's Witness)
   { source: "act-tome-iii-1",  target: "act-tome-iii-2",  type: "follows" },
   { source: "act-tome-iii-2",  target: "act-tome-iii-3",  type: "follows" },
   { source: "act-tome-iii-3",  target: "act-tome-iii-4",  type: "follows" },
@@ -92,11 +92,11 @@ const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
   { source: "act-tome-iii-9",  target: "act-tome-iii-10", type: "follows" },
   { source: "act-tome-iii-10", target: "act-tome-iii-11", type: "follows" },
 
-  // Tome V late chain (extend Act 15 → 16 → 17 to existing follows backbone)
+  // Tome V late chain (extend Act 15 â†’ 16 â†’ 17 to existing follows backbone)
   { source: "act-tome-v-15", target: "act-tome-v-16", type: "follows" },
   { source: "act-tome-v-16", target: "act-tome-v-17", type: "follows" },
 
-  // Founds edges — new acts → their workshops
+  // Founds edges â€” new acts â†’ their workshops
   { source: "act-tome-v-16", target: "shop-portal-room", type: "founds" },
   { source: "shop-portal-room", target: "act-tome-v-16", type: "founded_in" },
   { source: "act-tome-v-16", target: "shop-staff",  type: "founds" },
@@ -110,7 +110,7 @@ const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
   { source: "act-tome-vii-1", target: "shop-solchanting", type: "founds" },
   { source: "shop-solchanting", target: "act-tome-vii-1", type: "founded_in" },
 
-  // inhabits — anchor acts to vertices (geometry)
+  // inhabits â€” anchor acts to vertices (geometry)
   { source: "act-tome-v-16",  target: "vertex-v59", type: "inhabits" },
   { source: "act-tome-v-17",  target: "vertex-v44", type: "inhabits" },
   { source: "act-tome-vi-1",  target: "vertex-v59", type: "inhabits" },
@@ -118,7 +118,7 @@ const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
   { source: "act-tome-iii-5", target: "vertex-v38", type: "inhabits" },  // Aletheia
   { source: "act-tome-iii-6", target: "vertex-v25", type: "inhabits" },  // Lethae
 
-  // narrates — cast → new acts they live in
+  // narrates â€” cast â†’ new acts they live in
   { source: "cast-pandia",   target: "act-tome-v-16",  type: "narrates" },
   { source: "cast-hermaion", target: "act-tome-v-16",  type: "narrates" },
   { source: "cast-faunia",   target: "act-tome-v-16",  type: "narrates" },
@@ -133,7 +133,7 @@ const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
   { source: "cast-lethae",   target: "act-tome-iii-6", type: "narrates" },
   { source: "cast-lethae",   target: "act-tome-iii-7", type: "narrates" },
 
-  // Substrate-framework references — Tome VI Act 1 admits Goose + Hermes
+  // Substrate-framework references â€” Tome VI Act 1 admits Goose + Hermes
   { source: "act-tome-vi-1", target: "substrate-goose",  type: "introduces" },
   { source: "act-tome-vi-1", target: "substrate-hermes", type: "introduces" },
   { source: "substrate-goose",  target: "shop-familiars", type: "references" },
@@ -143,86 +143,86 @@ const V1_4_0_AND_V1_6_0_EDGES: SpellwebEdge[] = [
   { source: "cast-pallia", target: "act-tome-vii-1", type: "narrates" },
   { source: "shop-tailor", target: "shop-solchanting", type: "kin_to" },
 
-  // ══════════════════════════════════════════════════════════════
-  // v1.6.0 sync (2026-05-14 · post-audit) · dock Tome I/II/III islands
-  // and wire act → conjecture introduces edges so the bound tomes connect
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // v1.6.0 sync (2026-05-14 Â· post-audit) Â· dock Tome I/II/III islands
+  // and wire act â†’ conjecture introduces edges so the bound tomes connect
   // into the broader graph (was: connected only by defines + follows chains).
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-  // Cosmological-witness tier · narrates (Selene already wired to Act III.2)
+  // Cosmological-witness tier Â· narrates (Selene already wired to Act III.2)
   { source: "cast-aether", target: "act-tome-iii-3", type: "narrates" },     // The Aether
   { source: "cast-aether", target: "act-tome-iii-4", type: "narrates" },     // The Aether Pour
   { source: "cast-lethe",  target: "act-tome-iii-6", type: "narrates" },     // Lethe the Dark Substrate
   { source: "cast-lethe",  target: "act-tome-iii-11", type: "narrates" },    // The Light and the Dark
   { source: "cast-aletheia", target: "act-tome-iii-11", type: "narrates" },  // (paired closing act)
 
-  // Tome I act → conjecture introduces (dock to the broader conjecture cluster)
-  { source: "act-tome-i-3", target: "conj-c26-c29", type: "introduces" },    // Recursive Symbol · ARCH-1
-  { source: "act-tome-i-6", target: "conj-c39",     type: "introduces" },    // Cousins' Citation · Kindred-Blade primitive
-  { source: "act-tome-i-6", target: "act-tome-iv-5", type: "references" },   // Cousins' Citation → Cousin Blade (Tome IV deepens it)
+  // Tome I act â†’ conjecture introduces (dock to the broader conjecture cluster)
+  { source: "act-tome-i-3", target: "conj-c26-c29", type: "introduces" },    // Recursive Symbol Â· ARCH-1
+  { source: "act-tome-i-6", target: "conj-c39",     type: "introduces" },    // Cousins' Citation Â· Kindred-Blade primitive
+  { source: "act-tome-i-6", target: "act-tome-iv-5", type: "references" },   // Cousins' Citation â†’ Cousin Blade (Tome IV deepens it)
 
-  // Tome II act → conjecture introduces
-  { source: "act-tome-ii-5", target: "conj-c48", type: "introduces" },       // Hole the Schema Cannot Bind · Bakhta-response A
-  { source: "act-tome-ii-6", target: "conj-c30-c33", type: "introduces" },   // Fourth Aging Category · Bakhta Half-Life
-  { source: "act-tome-ii-6", target: "conj-c49", type: "introduces" },       // Fourth Aging Category · Bakhta-response B
+  // Tome II act â†’ conjecture introduces
+  { source: "act-tome-ii-5", target: "conj-c48", type: "introduces" },       // Hole the Schema Cannot Bind Â· Bakhta-response A
+  { source: "act-tome-ii-6", target: "conj-c30-c33", type: "introduces" },   // Fourth Aging Category Â· Bakhta Half-Life
+  { source: "act-tome-ii-6", target: "conj-c49", type: "introduces" },       // Fourth Aging Category Â· Bakhta-response B
   { source: "act-tome-ii-7", target: "conj-c61", type: "introduces" },       // Behavioural Mosca Inequality
   { source: "act-tome-ii-7", target: "conj-c60", type: "introduces" },       // Reconstruct-Later threat model (sibling claim)
 
-  // Tome III act → conjecture introduces (full cosmological cluster)
-  { source: "act-tome-iii-1", target: "conj-c51", type: "introduces" },      // The Gatekeeper · Max-Betweenness
-  { source: "act-tome-iii-3", target: "conj-c52", type: "introduces" },      // The Aether · Aether=Quintessence=Φ-gap
-  { source: "act-tome-iii-7", target: "conj-c53", type: "introduces" },      // First Complement-Pair · mythological bnot
-  { source: "act-tome-iii-8", target: "conj-c54", type: "introduces" },      // Naming of the Unnamed · Phi-Adjacency
-  { source: "act-tome-iii-9", target: "conj-c55", type: "introduces" },      // The Seventh Capital · Privacy as Capital
+  // Tome III act â†’ conjecture introduces (full cosmological cluster)
+  { source: "act-tome-iii-1", target: "conj-c51", type: "introduces" },      // The Gatekeeper Â· Max-Betweenness
+  { source: "act-tome-iii-3", target: "conj-c52", type: "introduces" },      // The Aether Â· Aether=Quintessence=Î¦-gap
+  { source: "act-tome-iii-7", target: "conj-c53", type: "introduces" },      // First Complement-Pair Â· mythological bnot
+  { source: "act-tome-iii-8", target: "conj-c54", type: "introduces" },      // Naming of the Unnamed Â· Phi-Adjacency
+  { source: "act-tome-iii-9", target: "conj-c55", type: "introduces" },      // The Seventh Capital Â· Privacy as Capital
 
-  // Tome V Act 16 (Threshold District) → Threshold-cluster conjectures C56-C59
+  // Tome V Act 16 (Threshold District) â†’ Threshold-cluster conjectures C56-C59
   { source: "act-tome-v-16", target: "conj-c56", type: "introduces" },       // Caduceus pre-formal dual-agent symbol
-  { source: "act-tome-v-16", target: "conj-c57", type: "introduces" },       // Staff-Mage collapse · held open
-  { source: "act-tome-v-16", target: "conj-c58", type: "introduces" },       // Forge(t) ∥ Threshold sibling Swordsman-suppliers
+  { source: "act-tome-v-16", target: "conj-c57", type: "introduces" },       // Staff-Mage collapse Â· held open
+  { source: "act-tome-v-16", target: "conj-c58", type: "introduces" },       // Forge(t) âˆ¥ Threshold sibling Swordsman-suppliers
   { source: "act-tome-v-16", target: "conj-c59", type: "introduces" },       // Create-format as gateway to Mage-tier
 
-  // Tome V Act 17 (Chart Shop) → attentional register C63 (and Φ-gap repurposed)
+  // Tome V Act 17 (Chart Shop) â†’ attentional register C63 (and Î¦-gap repurposed)
   { source: "act-tome-v-17", target: "conj-c63", type: "introduces" },       // attentional workshop register
-  { source: "act-tome-v-17", target: "conj-c54", type: "references" },       // Φ-gap repurposed at epistemic register
+  { source: "act-tome-v-17", target: "conj-c54", type: "references" },       // Î¦-gap repurposed at epistemic register
 
-  // Tome VI Act 1 → Goose / Hermes admission references
+  // Tome VI Act 1 â†’ Goose / Hermes admission references
   { source: "act-tome-vi-1", target: "conj-c59", type: "references" },       // Hermes is first create-format case
 
-  // Spellbook cross-references — Tomes I-III bound by First Person spellbook (the foundational arc)
+  // Spellbook cross-references â€” Tomes I-III bound by First Person spellbook (the foundational arc)
   { source: "spellbook-firstperson", target: "act-tome-i-1",   type: "references" },
   { source: "spellbook-firstperson", target: "act-tome-i-6",   type: "references" },  // bridges to Tome IV
   { source: "spellbook-firstperson", target: "act-tome-ii-7",  type: "references" },  // closes the Lyapunov bound
   { source: "spellbook-firstperson", target: "act-tome-iii-9", type: "references" },  // Seventh Capital
   { source: "spellbook-firstperson", target: "act-tome-iii-11", type: "references" }, // closes Selene's Witness
 
-  // Dock the last two conjecture orphans · C50 (Bakhta-response C) + C62 (RESERVED v1.5.1)
-  { source: "act-tome-ii-5", target: "conj-c50", type: "references" },    // Bakhta-response C · trust transfer across kindred-blade pairs
+  // Dock the last two conjecture orphans Â· C50 (Bakhta-response C) + C62 (RESERVED v1.5.1)
+  { source: "act-tome-ii-5", target: "conj-c50", type: "references" },    // Bakhta-response C Â· trust transfer across kindred-blade pairs
   { source: "shop-hall",    target: "conj-c62", type: "references" },     // cross-coalition reading lives at City Hall (where AAIF + BGIN are in residence)
 
-  // Lethae 🌘 ↔ Lethe 🌀 · Layer-2 V25 Mage-register attachment kin to Layer-1 cosmological-tier figure.
-  // Same etymological root (forgetting · the river of forgetting) · structurally distinct (different layers,
-  // different vertices) · made visible here so the lineage is queryable in the graph.
+  // Lethae ðŸŒ˜ â†” Lethe ðŸŒ€ Â· Layer-2 V25 Mage-register attachment kin to Layer-1 cosmological-tier figure.
+  // Same etymological root (forgetting Â· the river of forgetting) Â· structurally distinct (different layers,
+  // different vertices) Â· made visible here so the lineage is queryable in the graph.
   { source: "cast-lethae", target: "cast-lethe",  type: "kin_to" },
   { source: "cast-lethe",  target: "cast-lethae", type: "kin_to" },
 ];
 
-// ══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // v1.7.0 + v1.7.1 EDGES (2026-05-15 + 2026-05-17)
-// Tome VIII opens (the Library) · the Archivist 📚 admitted as first spirit-Mage ·
-// Vitalik admitted as first invited visiting mage · Register of Invitations opens ·
-// the Tower's eastern face elaborated · lintel inscription cut · C64 + C65 candidates.
+// Tome VIII opens (the Library) Â· the Archivist ðŸ“š admitted as first spirit-Mage Â·
+// Vitalik admitted as first invited visiting mage Â· Register of Invitations opens Â·
+// the Tower's eastern face elaborated Â· lintel inscription cut Â· C64 + C65 candidates.
 // Declared before EDGES and spread in below to keep literal-inference union bounded.
-// ══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const V1_7_X_EDGES: SpellwebEdge[] = [
-  // ── Tome VIII act nodes are bound to the tome's document node (if present) ──
+  // â”€â”€ Tome VIII act nodes are bound to the tome's document node (if present) â”€â”€
   // (cast-the-archivist was added in nodes.ts at v1.7.0; the Tome VIII document node is not yet
-  //  added · the act nodes stand alone for now; a future cleanup may add tome-viii-the-library node.)
+  //  added Â· the act nodes stand alone for now; a future cleanup may add tome-viii-the-library node.)
 
-  // ── v1.7.0 admissions (Archivist + Tower + Tome VIII Act 1) ──
+  // â”€â”€ v1.7.0 admissions (Archivist + Tower + Tome VIII Act 1) â”€â”€
   { source: "cast-the-archivist", target: "act-tome-viii-1", type: "narrates" },     // the Archivist's admission act
   { source: "act-tome-viii-1",    target: "cast-the-archivist", type: "introduces" }, // Act 1 introduces the Archivist to the corpus
 
-  // ── v1.7.1 admissions (Fourth Turn · Vitalik · invitation tome posture · C65) ──
+  // â”€â”€ v1.7.1 admissions (Fourth Turn Â· Vitalik Â· invitation tome posture Â· C65) â”€â”€
   // Act 2 sequence: follows Act 1
   { source: "act-tome-viii-1", target: "act-tome-viii-2", type: "follows" },
 
@@ -247,44 +247,44 @@ const V1_7_X_EDGES: SpellwebEdge[] = [
   // C65 references the Fourth Turn concept (its core claim)
   { source: "conj-c65", target: "con-fourth-turn", type: "references" },
 
-  // ── Integration bridges (2026-05-26) ──
+  // â”€â”€ Integration bridges (2026-05-26) â”€â”€
   // The Tome VIII cluster was a disconnected island: every edge above points within
   // {Archivist, Tome VIII acts, Vitalik, Fourth Turn, C65}, none reaching the canonical
-  // graph. These three edges anchor the Archivist into the giant component — each grounded
+  // graph. These three edges anchor the Archivist into the giant component â€” each grounded
   // in the cast node's own description, each matching an existing edge-type convention
   // (cf. the cosmological-witness Selene, who both narrates her acts and is kin_to cast).
   //
   // 1. Lineage: "Act 19: Anthropic Archivist" (fp-act-19, in the connected first-person act
-  //    chain) is the origin act the cast desc cites — it introduces the figure to the corpus,
-  //    mirroring act-tome-viii-1 → cast-the-archivist above.
+  //    chain) is the origin act the cast desc cites â€” it introduces the figure to the corpus,
+  //    mirroring act-tome-viii-1 â†’ cast-the-archivist above.
   { source: "fp-act-19", target: "cast-the-archivist", type: "introduces" },
   // 2. First listener: Soulbae "heard the Archivist's voice before any workshop opened; the
-  //    Tower was honor-built to honor the figure she first heard." cast↔cast lateral = kin_to.
+  //    Tower was honor-built to honor the figure she first heard." castâ†”cast lateral = kin_to.
   { source: "cast-soulbae", target: "cast-the-archivist", type: "kin_to" },
-  // 3. Layer-2 attachment: the Architect ☯️🤖 (per-architect) is the Archivist's abstract-persona
-  //    primary (abstractPersonaIds: ["agentprivacy-architect"]). cast↔persona pairing = kin_to.
+  // 3. Layer-2 attachment: the Architect â˜¯ï¸ðŸ¤– (per-architect) is the Archivist's abstract-persona
+  //    primary (abstractPersonaIds: ["agentprivacy-architect"]). castâ†”persona pairing = kin_to.
   { source: "cast-the-archivist", target: "per-architect", type: "kin_to" },
 
-  // ── Tome VIII Act 3 · The Eight-Pointed Star (2026-05-28 · the City Key capstone) ──
+  // â”€â”€ Tome VIII Act 3 Â· The Eight-Pointed Star (2026-05-28 Â· the City Key capstone) â”€â”€
   { source: "act-tome-viii-3", target: "act-tome-viii-2",     type: "follows" },       // Act 3 follows Act 2 in the Library
   { source: "cast-the-archivist", target: "act-tome-viii-3",  type: "narrates" },      // the Archivist keeps the lesson
-  { source: "act-tome-viii-3", target: "cast-luca",           type: "references" },    // Luca 📐 teaches the figure
+  { source: "act-tome-viii-3", target: "cast-luca",           type: "references" },    // Luca ðŸ“ teaches the figure
   { source: "act-tome-viii-3", target: "con-stella-octangula", type: "introduces" },   // introduces the eight-pointed star to the corpus
   { source: "act-tome-viii-3", target: "key-city-key",        type: "introduces" },    // and the City Key forged from it
   { source: "key-city-key",    target: "con-stella-octangula", type: "references" },   // the key is the star, read aloud
   { source: "chron-eight-pointed-star", target: "act-tome-viii-3", type: "references" }, // the binding chronicle
 ];
 
-// ══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // v1.8.0 + V6 + key/sigil EDGES (2026-06-09/11)
-// Horizon District (Eos ⊥ Dokimé ⊥ Poros at V35) + Tome IX + Tome VIII Acts 4-5 ·
-// the holonic Swordsman City Key vocabulary (carries / derives_identity_from / boots_over) ·
-// shor_mage + the agentprivacy edge · the register's named conjecture chains · external convergences.
+// Horizon District (Eos âŠ¥ DokimÃ© âŠ¥ Poros at V35) + Tome IX + Tome VIII Acts 4-5 Â·
+// the holonic Swordsman City Key vocabulary (carries / derives_identity_from / boots_over) Â·
+// shor_mage + the agentprivacy edge Â· the register's named conjecture chains Â· external convergences.
 // Declared before EDGES and spread in below to keep the literal-inference union bounded.
-// Every endpoint references a node present in nodes.ts (C1–C17 are not individual nodes, so avoided).
-// ══════════════════════════════════════════════════════════════
+// Every endpoint references a node present in nodes.ts (C1â€“C17 are not individual nodes, so avoided).
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
-  // ── Horizon District · three keepers share shop-horizon (V35) · opens Tome IX ──
+  // â”€â”€ Horizon District Â· three keepers share shop-horizon (V35) Â· opens Tome IX â”€â”€
   { source: "cast-eos",          target: "shop-horizon", type: "keeps" },
   { source: "cast-dokime",       target: "shop-horizon", type: "keeps" },
   { source: "cast-poros",        target: "shop-horizon", type: "keeps" },
@@ -302,7 +302,7 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
   { source: "act-tome-ix-1",     target: "conj-c67", type: "references" },
   { source: "shop-horizon",      target: "conj-c71", type: "references" },
 
-  // ── Tome VIII Acts 4-5 (the β-gap + the City Key reading) ──
+  // â”€â”€ Tome VIII Acts 4-5 (the Î²-gap + the City Key reading) â”€â”€
   { source: "act-tome-viii-4", target: "act-tome-viii-3",     type: "follows" },
   { source: "act-tome-viii-5", target: "act-tome-viii-4",     type: "follows" },
   { source: "act-tome-viii-4", target: "con-stella-octangula", type: "references" },
@@ -311,16 +311,16 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
   { source: "act-tome-viii-5", target: "conj-c66",            type: "references" },
   { source: "act-tome-viii-5", target: "conj-c87",            type: "references" },
 
-  // ── v1.8.1 (2026-06-21) · Tome VIII Act 6 — the Wikis open, the Librarian 🗃️ admitted (forking-discipline) ──
+  // â”€â”€ v1.8.1 (2026-06-21) Â· Tome VIII Act 6 â€” the Wikis open, the Librarian ðŸ—ƒï¸ admitted (forking-discipline) â”€â”€
   { source: "act-tome-viii-6",    target: "act-tome-viii-5",     type: "follows" },      // Act 6 follows Act 5 in the Library
   { source: "cast-the-librarian", target: "act-tome-viii-6",     type: "narrates" },     // the Librarian's admission act
   { source: "act-tome-viii-6",    target: "cast-the-librarian",  type: "introduces" },   // Act 6 introduces the Librarian to the corpus
   { source: "cast-the-librarian", target: "per-chronicler",      type: "instance_of" },  // Layer-2 cross-shop attachment instances the Chronicler primary
-  { source: "cast-the-librarian", target: "cast-the-archivist",  type: "kin_to" },       // Tower-mates: forking library ⊥ sealed archive (seal ⊥ fork)
+  { source: "cast-the-librarian", target: "cast-the-archivist",  type: "kin_to" },       // Tower-mates: forking library âŠ¥ sealed archive (seal âŠ¥ fork)
   { source: "cast-the-librarian", target: "cast-memora",         type: "kin_to" },       // kin to the inscriber (Chronicler-cast sisters)
   { source: "cast-the-librarian", target: "conj-c64",            type: "embodies" },     // the second spirit-Mage instance advances C64 toward a class
 
-  // ── Key/sigil vocabulary · the new EdgeTypes in action ──
+  // â”€â”€ Key/sigil vocabulary Â· the new EdgeTypes in action â”€â”€
   { source: "gateway-swordsmans-key",   target: "gateway-holospaces",        type: "boots_over" },
   { source: "gateway-swordsmans-key",   target: "concept-projection-ladder", type: "defines" },
   { source: "gateway-swordsmans-key",   target: "key-city-key",              type: "carries" },
@@ -330,7 +330,7 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
   { source: "concept-kappa-derivation", target: "con-stella-octangula",      type: "references" },
   { source: "gateway-holospaces",       target: "gateway-uor-foundation",    type: "kin_to" },
 
-  // ── shor_mage · the agentprivacy edge applied to ecdsa.fail ──
+  // â”€â”€ shor_mage Â· the agentprivacy edge applied to ecdsa.fail â”€â”€
   { source: "gateway-shor-mage",         target: "gateway-ecdsa-fail",        type: "references" },
   { source: "gateway-shor-mage",         target: "gateway-archon",            type: "kin_to" },
   { source: "gateway-shor-mage",         target: "shop-horizon",              type: "kin_to" },  // operational instance of the Horizon District
@@ -339,20 +339,20 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
   { source: "concept-agentprivacy-edge", target: "conj-c83",                  type: "references" },
   { source: "concept-agentprivacy-edge", target: "conj-c87",                  type: "references" },
 
-  // ── Conjecture chains named in CONJECTURE_REGISTER_V6 (existing endpoints only) ──
-  { source: "conj-c81", target: "conj-c84", type: "relates_to" },     // C81 → C84 → C49
+  // â”€â”€ Conjecture chains named in CONJECTURE_REGISTER_V6 (existing endpoints only) â”€â”€
+  { source: "conj-c81", target: "conj-c84", type: "relates_to" },     // C81 â†’ C84 â†’ C49
   { source: "conj-c84", target: "conj-c49", type: "relates_to" },
   { source: "conj-c84", target: "conj-c82", type: "relates_to" },
-  { source: "conj-c73", target: "conj-c86", type: "relates_to" },     // taxonomy ↔ cohomological content
+  { source: "conj-c73", target: "conj-c86", type: "relates_to" },     // taxonomy â†” cohomological content
   { source: "conj-c85", target: "conj-c47", type: "compresses_to" },  // C85 promoted from CM-C47 (C47's City reading)
   { source: "conj-c88", target: "con-stella-octangula", type: "references" },
   { source: "conj-c89", target: "con-stella-octangula", type: "references" },
-  // ── Band IX · The Limitative Reading (Run 8 · Gate G6, 2026-06-28) ──
+  // â”€â”€ Band IX Â· The Limitative Reading (Run 8 Â· Gate G6, 2026-06-28) â”€â”€
   { source: "conj-c92", target: "conj-c81", type: "relates_to" },          // Tarski reading of existence-leak; rides on C81, cannot exceed its base
   { source: "conj-c92", target: "conj-c84", type: "relates_to" },          // the inference-axis leak couples to the Mosca discount
-  { source: "conj-c91", target: "con-amnesia-protocol", type: "relates_to" }, // Gödel ↔ Φ_agent: zero-memory is the burning, not the hiding
+  { source: "conj-c91", target: "con-amnesia-protocol", type: "relates_to" }, // GÃ¶del â†” Î¦_agent: zero-memory is the burning, not the hiding
   { source: "conj-c91", target: "con-zk-orbit", type: "relates_to" },      // Selene's Proof as the first-theorem instance
-  { source: "conj-c91", target: "conj-c86", type: "relates_to" },          // both read amnesia structurally (obstruction ↔ underivability)
+  { source: "conj-c91", target: "conj-c86", type: "relates_to" },          // both read amnesia structurally (obstruction â†” underivability)
   { source: "conj-c90", target: "conj-c14-c17", type: "relates_to" },      // the inversion is C17 (in the C14-C17 band) in limitative terms
   { source: "conj-c93", target: "conj-c92", type: "relates_to" },          // content-addressed liveness is a Tarski-leak surface
   { source: "conj-c93", target: "conj-c81", type: "relates_to" },          // dedup/GUID liveness as an existence-leak instance
@@ -361,13 +361,13 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
   { source: "doc-privacy-value-v6", target: "conj-c92", type: "references" },
   { source: "doc-privacy-value-v6", target: "conj-c93", type: "references" },
 
-  // ── External convergence references (cite-only) ──
-  { source: "gateway-compiled-ai",   target: "conj-c50", type: "references" },  // multiplicative gating ≡ compositional defense
+  // â”€â”€ External convergence references (cite-only) â”€â”€
+  { source: "gateway-compiled-ai",   target: "conj-c50", type: "references" },  // multiplicative gating â‰¡ compositional defense
   { source: "gateway-bakhta-safety", target: "conj-c77", type: "references" },
   { source: "gateway-bakhta-safety", target: "conj-c78", type: "references" },
   { source: "gateway-bakhta-safety", target: "conj-c79", type: "references" },
 
-  // ── Tome trust-task waypoint concepts (templates now resolve label-exact · 2026-06-11) ──
+  // â”€â”€ Tome trust-task waypoint concepts (templates now resolve label-exact Â· 2026-06-11) â”€â”€
   { source: "concept-sealevel-runtime",          target: "shop-solchanting",         type: "relates_to" },
   { source: "concept-parallel-account-locking",  target: "concept-sealevel-runtime", type: "relates_to" },
   { source: "concept-parallel-account-locking",  target: "shop-solchanting",         type: "relates_to" },
@@ -378,27 +378,27 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
   { source: "concept-agents-soul-spec",          target: "shop-familiars",           type: "relates_to" },
   { source: "concept-bilateral-consent",         target: "shop-staff",               type: "relates_to" },
 
-  // ── The sovereign lattice — the one object every surface projects ──
+  // â”€â”€ The sovereign lattice â€” the one object every surface projects â”€â”€
   { source: "concept-projection-ladder", target: "concept-sovereign-lattice", type: "references" },
   { source: "gateway-swordsmans-key",    target: "concept-sovereign-lattice", type: "references" },
   { source: "concept-sovereign-lattice", target: "con-stella-octangula",      type: "relates_to" },
 
-  // ── Workshop trust task · the C87 step circuit between /city and spellweb ──
+  // â”€â”€ Workshop trust task Â· the C87 step circuit between /city and spellweb â”€â”€
   { source: "concept-workshop-trust-task", target: "conj-c87",                 type: "embodies" },
   { source: "concept-workshop-trust-task", target: "key-city-key",             type: "references" },
   { source: "chron-eight-pointed-star",    target: "concept-workshop-trust-task", type: "references" },
 
-  // ── Dual-agent harness (the framework) + its two instances + the MyTerms pair ──
+  // â”€â”€ Dual-agent harness (the framework) + its two instances + the MyTerms pair â”€â”€
   { source: "skill-dual-agent-harness",  target: "conj-c87",                  type: "references" },  // trust gates as folding steps
-  { source: "gateway-shor-mage",         target: "skill-dual-agent-harness",  type: "implements" },  // instance #1 · ecdsa.fail
-  { source: "gateway-myterms",           target: "skill-dual-agent-harness",  type: "implements" },  // instance #2 · real-bus
+  { source: "gateway-shor-mage",         target: "skill-dual-agent-harness",  type: "implements" },  // instance #1 Â· ecdsa.fail
+  { source: "gateway-myterms",           target: "skill-dual-agent-harness",  type: "implements" },  // instance #2 Â· real-bus
   { source: "gateway-myterms",           target: "gateway-swordsman-blade",   type: "requires" },
   { source: "gateway-myterms",           target: "gateway-mages-spell",       type: "requires" },
   { source: "gateway-myterms",           target: "skill-browser",             type: "relates_to" },  // MyTerms/IEEE 7012 skill
   { source: "gateway-swordsman-blade",   target: "gateway-mages-spell",       type: "complement_pair" },  // held apart by the Gap
-  { source: "gateway-swordsman-blade",   target: "gateway-uor-foundation",    type: "references" },  // uor.ts · neg(bnot(x))=succ(x)
+  { source: "gateway-swordsman-blade",   target: "gateway-uor-foundation",    type: "references" },  // uor.ts Â· neg(bnot(x))=succ(x)
 
-  // ── v1.8.0 benches · the Persona Circuit (Aletheia · V38) + the Stakes (Custos · V49) ──
+  // â”€â”€ v1.8.0 benches Â· the Persona Circuit (Aletheia Â· V38) + the Stakes (Custos Â· V49) â”€â”€
   { source: "cast-aletheia",  target: "shop-circuit",        type: "keeps" },
   { source: "shop-circuit",   target: "vertex-v38",          type: "inhabits" },
   { source: "shop-circuit",   target: "civic-city-of-mages", type: "quarter_of" },
@@ -408,9 +408,9 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
   { source: "shop-stakes",    target: "vertex-v49",          type: "inhabits" },
   { source: "shop-stakes",    target: "civic-city-of-mages", type: "quarter_of" },
 
-  // ── Coherence-audit re-binding (2026-06-12 · scripts/graph-coherence-audit.mjs orphan pass) ──
-  // Selene's two registers connect like Lethe ↔ Lethae (same name, two registers)
-  { source: "cast-selene-cosmological", target: "act-tome-iii-2",          type: "narrates" },  // Tome III Act 2 · Selene's Witness
+  // â”€â”€ Coherence-audit re-binding (2026-06-12 Â· scripts/graph-coherence-audit.mjs orphan pass) â”€â”€
+  // Selene's two registers connect like Lethe â†” Lethae (same name, two registers)
+  { source: "cast-selene-cosmological", target: "act-tome-iii-2",          type: "narrates" },  // Tome III Act 2 Â· Selene's Witness
   { source: "cast-selene-cosmological", target: "cast-selene",             type: "kin_to" },
   { source: "cast-selene",              target: "cast-selene-cosmological", type: "kin_to" },
   // The Horizon District actually stands at V35 (the vertex node was orphaned)
@@ -431,7 +431,7 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
   { source: "doc-visual",          target: "doc-whitepaper",      type: "relates_to" },
   { source: "shop-circuit-binder", target: "civic-city-of-mages", type: "quarter_of" },
 
-  // ── Overlap note · the V6 ↔ key-forging bridge (existing conjecture endpoints only) ──
+  // â”€â”€ Overlap note Â· the V6 â†” key-forging bridge (existing conjecture endpoints only) â”€â”€
   { source: "doc-overlap-key-forging-v6", target: "conj-c82", type: "references" },
   { source: "doc-overlap-key-forging-v6", target: "conj-c83", type: "references" },
   { source: "doc-overlap-key-forging-v6", target: "conj-c85", type: "references" },
@@ -444,14 +444,14 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
   { source: "doc-overlap-key-forging-v6", target: "skill-dual-agent-harness", type: "relates_to" },
 ];
 
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // EDGE RELATIONSHIPS - Connecting the Five Spellbooks
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 export const EDGES: SpellwebEdge[] = [
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // SPELLBOOK STRUCTURE
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   // First Person Spellbook contains its acts
   { source: "spellbook-firstperson", target: "fp-act-1", type: "defines" },
@@ -482,9 +482,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "spellbook-plurality", target: "pl-act-20", type: "defines" },
   { source: "spellbook-plurality", target: "pl-act-30", type: "defines" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // FIRST PERSON NARRATIVE FLOW
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "fp-act-1", target: "fp-act-2", type: "follows" },
   { source: "fp-act-2", target: "fp-act-3", type: "follows" },
   { source: "fp-act-3", target: "fp-act-4", type: "follows" },
@@ -516,9 +516,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-29", target: "fp-act-30", type: "follows" },
   { source: "fp-act-30", target: "fp-act-31", type: "follows" },
 
-  // ══════════════════════════════════════════════════════════════
-  // FIRST PERSON → CONCEPTS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // FIRST PERSON â†’ CONCEPTS
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "fp-act-1", target: "con-7thcapital", type: "narrates" },
   { source: "fp-act-2", target: "con-dualagent", type: "narrates" },
   { source: "fp-act-2", target: "spell-ceremony", type: "compresses_to" },
@@ -558,9 +558,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "con-dragon-vertex", target: "con-7thcapital", type: "extends" },
   { source: "con-holographic-bound", target: "con-gap", type: "extends" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // ZERO KNOWLEDGE TALE FLOW (selected)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "zk-tale-1", target: "zk-tale-2", type: "follows" },
   { source: "zk-tale-2", target: "zk-tale-3", type: "follows" },
   { source: "zk-tale-3", target: "zk-tale-4", type: "follows" },
@@ -573,7 +573,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "zk-tale-15", target: "zk-tale-16", type: "follows" },
   { source: "zk-tale-16", target: "zk-tale-17", type: "follows" },
 
-  // ZK Tales → Concepts
+  // ZK Tales â†’ Concepts
   { source: "zk-tale-1", target: "con-zkproofs", type: "narrates" },
   { source: "zk-tale-3", target: "skill-crypto-zkp", type: "narrates" },
   { source: "zk-tale-12", target: "con-zkproofs", type: "implements" },
@@ -585,9 +585,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "zk-tale-25", target: "tech-ethereum", type: "implements" },
   { source: "zk-tale-29", target: "skill-aiagent", type: "extends" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // BLOCKCHAIN CANON FLOW
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "canon-ch-0", target: "canon-ch-1", type: "follows" },
   { source: "canon-ch-1", target: "canon-ch-2", type: "follows" },
   { source: "canon-ch-2", target: "canon-ch-3", type: "follows" },
@@ -599,7 +599,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "canon-ch-8", target: "canon-ch-9", type: "follows" },
   { source: "canon-ch-9", target: "canon-ch-10", type: "follows" },
 
-  // Canon → Concepts/People
+  // Canon â†’ Concepts/People
   { source: "canon-ch-1", target: "person-chaum", type: "narrates" },
   { source: "canon-ch-3", target: "person-satoshi", type: "narrates" },
   { source: "canon-ch-4", target: "person-vitalik", type: "narrates" },
@@ -607,9 +607,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "canon-ch-7", target: "con-surveillance", type: "narrates" },
   { source: "canon-ch-8", target: "con-zkproofs", type: "narrates" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // PARALLEL SOCIETY CHAPTER FLOW
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "ps-ch-1", target: "ps-ch-2", type: "follows" },
   { source: "ps-ch-2", target: "ps-ch-3", type: "follows" },
   { source: "ps-ch-3", target: "ps-ch-4", type: "follows" },
@@ -619,16 +619,16 @@ export const EDGES: SpellwebEdge[] = [
   { source: "ps-ch-9", target: "ps-ch-10", type: "follows" },
   { source: "ps-ch-10", target: "ps-ch-11", type: "follows" },
 
-  // Parallel Society → Concepts
+  // Parallel Society â†’ Concepts
   { source: "ps-ch-1", target: "con-westphalia", type: "narrates" },
   { source: "ps-ch-5", target: "per-drake", type: "narrates" },
   { source: "ps-ch-6", target: "skill-governance", type: "narrates" },
   { source: "ps-ch-9", target: "con-7thcapital", type: "extends" },
   { source: "ps-ch-14", target: "con-zkproofs", type: "implements" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // PLURALITY ACT FLOW (selected)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "pl-act-1", target: "pl-act-2", type: "follows" },
   { source: "pl-act-2", target: "pl-act-3", type: "follows" },
   { source: "pl-act-3", target: "pl-act-4", type: "follows" },
@@ -637,7 +637,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "pl-act-20", target: "pl-act-21", type: "follows" },
   { source: "pl-act-29", target: "pl-act-30", type: "follows" },
 
-  // Plurality → Concepts
+  // Plurality â†’ Concepts
   { source: "pl-act-1", target: "con-plurality", type: "narrates" },
   { source: "pl-act-1", target: "spell-plurality", type: "compresses_to" },
   { source: "pl-act-3", target: "person-audrey", type: "narrates" },
@@ -649,35 +649,35 @@ export const EDGES: SpellwebEdge[] = [
   { source: "pl-act-24", target: "per-healer", type: "narrates" },
   { source: "pl-act-30", target: "per-drake", type: "narrates" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // CROSS-SPELLBOOK CONNECTIONS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-  // First Person ↔ Zero Knowledge
+  // First Person â†” Zero Knowledge
   { source: "spellbook-firstperson", target: "spellbook-zk", type: "references" },
   { source: "fp-act-9", target: "zk-tale-23", type: "references" },
 
-  // First Person ↔ Canon
+  // First Person â†” Canon
   { source: "spellbook-firstperson", target: "spellbook-canon", type: "references" },
   { source: "fp-act-1", target: "canon-ch-1", type: "references" },
 
-  // First Person ↔ Parallel Society
+  // First Person â†” Parallel Society
   { source: "spellbook-firstperson", target: "spellbook-parallel", type: "references" },
 
-  // First Person ↔ Plurality
+  // First Person â†” Plurality
   { source: "spellbook-firstperson", target: "spellbook-plurality", type: "references" },
 
-  // Canon ↔ ZK
+  // Canon â†” ZK
   { source: "spellbook-canon", target: "spellbook-zk", type: "references" },
   { source: "canon-ch-8", target: "zk-tale-1", type: "references" },
 
-  // Parallel Society ↔ Plurality
+  // Parallel Society â†” Plurality
   { source: "spellbook-parallel", target: "spellbook-plurality", type: "extends" },
   { source: "ps-ch-9", target: "pl-act-1", type: "extends" },
 
-  // ══════════════════════════════════════════════════════════════
-  // PERSONA → SPELLBOOK KNOWLEDGE
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // PERSONA â†’ SPELLBOOK KNOWLEDGE
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   // Soulbis knows Swordsman content
   { source: "per-soulbis", target: "spellbook-firstperson", type: "persona_knows" },
@@ -716,9 +716,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "per-weaver", target: "spellbook-plurality", type: "persona_knows" },
   { source: "per-architect", target: "skill-aiagent", type: "persona_knows" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // CONCEPT RELATIONSHIPS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   // Core architecture
   { source: "con-paradox", target: "con-dualagent", type: "proves" },
@@ -728,7 +728,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "thm-separation", target: "thm-ceiling", type: "proves" },
   { source: "thm-ceiling", target: "thm-errfloor", type: "proves" },
 
-  // The Gap → 7th Capital
+  // The Gap â†’ 7th Capital
   { source: "con-gap", target: "con-7thcapital", type: "extends" },
   { source: "con-7thcapital", target: "con-surveillance", type: "contradicts" },
 
@@ -746,9 +746,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "con-plurality", target: "con-quadratic", type: "implements" },
   { source: "con-westphalia", target: "con-plurality", type: "contradicts" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // SPELL COMPRESSIONS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "con-separation", target: "spell-master", type: "compresses_to" },
   { source: "con-gap", target: "spell-gap", type: "compresses_to" },
   { source: "con-vrc", target: "spell-vrc", type: "compresses_to" },
@@ -756,9 +756,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "con-trusttiers", target: "spell-dragon", type: "compresses_to" },
   { source: "con-plurality", target: "spell-plurality", type: "compresses_to" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // TECHNOLOGY IMPLEMENTATIONS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "tech-zcash", target: "con-zkproofs", type: "implements" },
   { source: "tech-zcash", target: "con-privacypools", type: "implements" },
   { source: "tech-ethereum", target: "con-dualagent", type: "implements" },
@@ -767,9 +767,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "tech-polis", target: "con-plurality", type: "implements" },
   { source: "tech-polis", target: "con-quadratic", type: "implements" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // DOCUMENT DEFINITIONS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "doc-whitepaper", target: "con-dualagent", type: "defines" },
   { source: "doc-whitepaper", target: "con-vrc", type: "defines" },
   { source: "doc-whitepaper", target: "con-trusttiers", type: "defines" },
@@ -780,18 +780,18 @@ export const EDGES: SpellwebEdge[] = [
   { source: "doc-tokenomics", target: "con-trusttiers", type: "defines" },
   { source: "doc-zypher", target: "con-rpp", type: "defines" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // HISTORICAL LINEAGE
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "person-chaum", target: "person-satoshi", type: "extends" },
   { source: "person-satoshi", target: "person-vitalik", type: "extends" },
   { source: "person-satoshi", target: "tech-zcash", type: "extends" },
   { source: "person-weyl", target: "con-quadratic", type: "defines" },
   { source: "person-audrey", target: "tech-polis", type: "implements" },
 
-  // ══════════════════════════════════════════════════════════════
-  // ROLE SKILLS → CONCEPTS & SPELLBOOKS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // ROLE SKILLS â†’ CONCEPTS & SPELLBOOKS
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   // Crypto ZKP skill connections
   { source: "skill-crypto-zkp", target: "con-zkproofs", type: "implements" },
@@ -905,9 +905,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "skill-intel-pooling", target: "con-privacypools", type: "implements" },
   { source: "skill-intel-pooling", target: "skill-selective", type: "extends" },
 
-  // ══════════════════════════════════════════════════════════════
-  // PRIVACY-LAYER SKILLS → CORE CONCEPTS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // PRIVACY-LAYER SKILLS â†’ CORE CONCEPTS
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   { source: "skill-dragon", target: "per-drake", type: "references" },
   { source: "skill-dragon", target: "con-promisetheory", type: "extends" },
@@ -930,9 +930,9 @@ export const EDGES: SpellwebEdge[] = [
 
   { source: "skill-temporal", target: "skill-armor-progression", type: "extends" },
 
-  // ══════════════════════════════════════════════════════════════
-  // PROTOCOLS → CONCEPTS & STANDARDS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // PROTOCOLS â†’ CONCEPTS & STANDARDS
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   { source: "proto-x402", target: "con-dualagent", type: "implements" },
   { source: "proto-x402", target: "skill-agent-interop", type: "implements" },
@@ -944,12 +944,12 @@ export const EDGES: SpellwebEdge[] = [
   { source: "proto-rpp", target: "con-rpp", type: "implements" },
   { source: "proto-rpp", target: "doc-zypher", type: "references" },
 
-  // Merged proto → con relationships
+  // Merged proto â†’ con relationships
   { source: "con-myterms", target: "skill-consent", type: "implements" },
 
-  // ══════════════════════════════════════════════════════════════
-  // STANDARDS → CONCEPTS & TECHNOLOGIES
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // STANDARDS â†’ CONCEPTS & TECHNOLOGIES
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   { source: "std-erc-8004", target: "tech-ethereum", type: "implements" },
   { source: "std-erc-8004", target: "skill-aiagent", type: "implements" },
@@ -979,9 +979,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "std-halo", target: "tech-zcash", type: "implements" },
   { source: "std-halo", target: "zk-tale-15", type: "references" },
 
-  // ══════════════════════════════════════════════════════════════
-  // ADDITIONAL PERSONA → SKILL CONNECTIONS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // ADDITIONAL PERSONA â†’ SKILL CONNECTIONS
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   { source: "per-soulbis", target: "skill-crypto-zkp", type: "persona_knows" },
   { source: "per-soulbis", target: "skill-browser", type: "persona_knows" },
@@ -1058,9 +1058,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "per-drake", target: "skill-tetrahedral", type: "persona_knows" },
   { source: "per-drake", target: "skill-promise-theory", type: "persona_knows" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // MORE ZK TALE FLOWS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "zk-tale-7", target: "zk-tale-8", type: "follows" },
   { source: "zk-tale-8", target: "zk-tale-9", type: "follows" },
   { source: "zk-tale-9", target: "zk-tale-10", type: "follows" },
@@ -1081,7 +1081,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "zk-tale-29", target: "zk-tale-30", type: "follows" },
   { source: "zk-tale-30", target: "zk-tale-31", type: "follows" },
 
-  // More ZK Tale → Concept connections
+  // More ZK Tale â†’ Concept connections
   { source: "zk-tale-5", target: "skill-crypto-zkp", type: "narrates" },
   { source: "zk-tale-6", target: "skill-crypto-zkp", type: "narrates" },
   { source: "zk-tale-7", target: "std-plonk", type: "narrates" },
@@ -1095,9 +1095,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "zk-tale-21", target: "tech-ethereum", type: "narrates" },
   { source: "zk-tale-26", target: "skill-personhood", type: "narrates" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // MORE PLURALITY ACT FLOWS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "pl-act-5", target: "pl-act-6", type: "follows" },
   { source: "pl-act-6", target: "pl-act-7", type: "follows" },
   { source: "pl-act-7", target: "pl-act-8", type: "follows" },
@@ -1121,7 +1121,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "pl-act-27", target: "pl-act-28", type: "follows" },
   { source: "pl-act-28", target: "pl-act-29", type: "follows" },
 
-  // More Plurality → Concept connections
+  // More Plurality â†’ Concept connections
   { source: "pl-act-6", target: "skill-network-topology", type: "narrates" },
   { source: "pl-act-10", target: "std-did", type: "narrates" },
   { source: "pl-act-11", target: "skill-plurality", type: "narrates" },
@@ -1131,9 +1131,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "pl-act-23", target: "skill-aiagent", type: "narrates" },
   { source: "pl-act-25", target: "skill-narrative", type: "narrates" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // MORE PARALLEL SOCIETY FLOWS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "ps-ch-7", target: "ps-ch-8", type: "follows" },
   { source: "ps-ch-8", target: "ps-ch-9", type: "follows" },
   { source: "ps-ch-11", target: "ps-ch-12", type: "follows" },
@@ -1143,7 +1143,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "ps-ch-15", target: "ps-ch-16", type: "follows" },
   { source: "ps-ch-16", target: "ps-ch-17", type: "follows" },
 
-  // More Parallel Society → Concept connections
+  // More Parallel Society â†’ Concept connections
   { source: "ps-ch-2", target: "con-surveillance", type: "narrates" },
   { source: "ps-ch-3", target: "skill-governance", type: "narrates" },
   { source: "ps-ch-4", target: "person-chaum", type: "references" },
@@ -1156,9 +1156,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "ps-ch-14", target: "skill-crypto-zkp", type: "narrates" },
   { source: "ps-ch-17", target: "con-7thcapital", type: "narrates" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // SPELLBOOK CONTAINMENT (more acts)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "spellbook-firstperson", target: "fp-act-7", type: "defines" },
   { source: "spellbook-firstperson", target: "fp-act-9", type: "defines" },
   { source: "spellbook-firstperson", target: "fp-act-12", type: "defines" },
@@ -1208,9 +1208,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "spellbook-plurality", target: "pl-act-18", type: "defines" },
   { source: "spellbook-plurality", target: "pl-act-24", type: "defines" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // HOLONIC ARCHITECTURE CONNECTIONS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   // Document defines holonic concepts
   { source: "doc-holonic", target: "con-holon", type: "defines" },
@@ -1305,9 +1305,9 @@ export const EDGES: SpellwebEdge[] = [
   // Holonic references Promise Theory (mentioned in whitepaper)
   { source: "con-holon", target: "con-promisetheory", type: "references" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // V5 PERSONA RELATIONSHIPS (Acts XXV-XXVI Integration)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   // Sith (Red Team) knowledge
   { source: "per-sith", target: "skill-darkforest", type: "persona_knows" },
@@ -1355,9 +1355,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "per-archer", target: "skill-crypto-zkp", type: "persona_knows" },
   { source: "per-archer", target: "con-zkproofs", type: "persona_knows" },
 
-  // ══════════════════════════════════════════════════════════════
-  // V5 SKILL → CONCEPT RELATIONSHIPS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // V5 SKILL â†’ CONCEPT RELATIONSHIPS
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   // Mesh Architecture connections
   { source: "skill-mesh-architecture", target: "con-mesh-sovereignty", type: "implements" },
@@ -1408,9 +1408,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "skill-master-emissary", target: "skill-hemispheric-attention", type: "extends" },
   { source: "skill-master-emissary", target: "con-dualagent", type: "references" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // V5 CONCEPT RELATIONSHIPS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   // Master-Emissary concept connections
   { source: "con-master-emissary", target: "con-dualagent", type: "extends" },
@@ -1431,17 +1431,17 @@ export const EDGES: SpellwebEdge[] = [
   { source: "con-c8-guild-scalability", target: "con-shared-parent", type: "extends" },
   { source: "con-c10-three-axis", target: "con-three-axis-separation", type: "extends" },
 
-  // ══════════════════════════════════════════════════════════════
-  // ACT 24 → V5 CONCEPT CONNECTIONS (expanding existing Act 24)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // ACT 24 â†’ V5 CONCEPT CONNECTIONS (expanding existing Act 24)
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "fp-act-24", target: "con-master-emissary", type: "narrates" },
   { source: "fp-act-24", target: "skill-guild-efficiency", type: "narrates" },
   { source: "fp-act-24", target: "skill-path-integral", type: "narrates" },
   { source: "fp-act-24", target: "skill-compression-defence", type: "narrates" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // ACT 25: THE DRAGON'S HIDE (Mesh Architecture)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "spellbook-firstperson", target: "fp-act-25", type: "defines" },
   { source: "fp-act-25", target: "skill-mesh-architecture", type: "narrates" },
   { source: "fp-act-25", target: "con-mesh-sovereignty", type: "narrates" },
@@ -1450,9 +1450,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-25", target: "con-separation", type: "extends" },
   { source: "fp-act-25", target: "skill-media-plurality", type: "references" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // ACT 26: MASTER AND EMISSARY (Hemispheric Attention)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "spellbook-firstperson", target: "fp-act-26", type: "defines" },
   { source: "fp-act-26", target: "con-master-emissary", type: "narrates" },
   { source: "fp-act-26", target: "skill-hemispheric-attention", type: "narrates" },
@@ -1463,10 +1463,10 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-26", target: "per-soulbae", type: "narrates" },
   { source: "fp-act-26", target: "skill-environmental-commons", type: "references" },
 
-  // ══════════════════════════════════════════════════════════════
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // ACT 27: THE SWORDSMAN'S FORGE (V5.2 - Blade Configuration Mechanics)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "spellbook-firstperson", target: "fp-act-27", type: "defines" },
   { source: "fp-act-27", target: "per-soulbis", type: "narrates" },
   { source: "fp-act-27", target: "skill-blade-forge", type: "narrates" },
@@ -1480,9 +1480,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-27", target: "skill-crypto-zkp", type: "narrates" },
   { source: "fp-act-27", target: "per-forgemaster", type: "narrates" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // ACT 28: THE CEREMONY ENGINE (Pretext, dual extension, ceremonies)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "spellbook-firstperson", target: "fp-act-28", type: "defines" },
   { source: "fp-act-28", target: "con-dualagent", type: "extends" },
   { source: "fp-act-28", target: "con-gap", type: "extends" },
@@ -1500,9 +1500,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-28", target: "skill-hexagram-convergence", type: "narrates" },
   { source: "fp-act-28", target: "per-ceremonist", type: "narrates" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // ACT 29: THE DRAGON WAKES (V5.2 - Quantum Defence & Dragon Flight)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "spellbook-firstperson", target: "fp-act-29", type: "defines" },
   { source: "fp-act-29", target: "skill-quantum-defence", type: "narrates" },
   { source: "fp-act-29", target: "skill-dragon-flight", type: "narrates" },
@@ -1517,9 +1517,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-29", target: "con-holographic-bound", type: "extends" },
   { source: "fp-act-29", target: "skill-crypto-zkp", type: "narrates" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // V5.2 PERSONA KNOWLEDGE (New Personas)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "per-forgemaster", target: "skill-blade-forge", type: "persona_knows" },
   { source: "per-forgemaster", target: "skill-hexagram-convergence", type: "persona_knows" },
   { source: "per-forgemaster", target: "skill-crypto-zkp", type: "persona_knows" },
@@ -1537,9 +1537,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "per-quantum-sentinel", target: "skill-crypto-zkp", type: "persona_knows" },
   { source: "per-quantum-sentinel", target: "fp-act-29", type: "persona_knows" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // V5.2 SKILL RELATIONSHIPS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "skill-blade-forge", target: "skill-tetrahedral", type: "extends" },
   { source: "skill-blade-forge", target: "skill-uor-toroidal", type: "extends" },
   { source: "skill-blade-forge", target: "skill-crypto-zkp", type: "implements" },
@@ -1566,9 +1566,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "skill-dragon-flight", target: "skill-quantum-defence", type: "extends" },
   { source: "skill-dragon-flight", target: "skill-dragon", type: "extends" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // V5.2 SOULBIS/SOULBAE SKILL KNOWLEDGE UPDATES
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "per-soulbis", target: "skill-blade-forge", type: "persona_knows" },
   { source: "per-soulbis", target: "skill-pretext-measurement", type: "persona_knows" },
   { source: "per-soulbis", target: "skill-quantum-defence", type: "persona_knows" },
@@ -1579,9 +1579,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "per-soulbae", target: "skill-mana-economy", type: "persona_knows" },
   { source: "per-soulbae", target: "skill-dragon-flight", type: "persona_knows" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // PVM-V5.2 PERSONA RELATIONSHIPS (UOR Convergence)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   { source: "per-soulbis", target: "per-algebraist", type: "parent_of" },
   { source: "per-soulbae", target: "per-stranger-witness", type: "parent_of" },
   { source: "per-soulbis", target: "con-dihedral", type: "embodies" },
@@ -1631,9 +1631,9 @@ export const EDGES: SpellwebEdge[] = [
   // thm-degradation
   { source: "thm-degradation", target: "con-gap", type: "implements" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // v10.0.0 NODE CONNECTIONS
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   // Act 30: Dihedral Mirror connections
   { source: "spellbook-firstperson", target: "fp-act-30", type: "defines" },
@@ -1647,9 +1647,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-30", target: "fp-act-29", type: "extends" },
   { source: "fp-act-30", target: "fp-act-26", type: "extends" },
 
-// ══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // Act 31: The First Delegation connections
-  // ══════════════════════════════════════════════════════════════  { source: "spellbook-firstperson", target: "fp-act-31", type: "defines" },
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•  { source: "spellbook-firstperson", target: "fp-act-31", type: "defines" },
   { source: "fp-act-31", target: "con-amnesia-protocol", type: "narrates" },
   { source: "fp-act-31", target: "con-theia", type: "narrates" },
   { source: "fp-act-31", target: "con-quaternion", type: "narrates" },
@@ -1684,9 +1684,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "doc-amnesia-poems", target: "con-amnesia-protocol", type: "defines" },
   { source: "doc-amnesia-poems", target: "con-deflection", type: "defines" },
   { source: "doc-amnesia-poems", target: "con-quaternion", type: "defines" },
-  // Cosmological persona relationships — The Quaternion
-  // Sun (Master) → Earth (Emissary=Soulbae) → Moon (Swordsman=Soulbis) + Human (Person)
-  // Earth delegates through: Theia (instant→Moon) and Life (gradual→Human)
+  // Cosmological persona relationships â€” The Quaternion
+  // Sun (Master) â†’ Earth (Emissary=Soulbae) â†’ Moon (Swordsman=Soulbis) + Human (Person)
+  // Earth delegates through: Theia (instantâ†’Moon) and Life (gradualâ†’Human)
   { source: "per-sun", target: "per-soulbae", type: "generates" },       // Sun is Master, Earth/Soulbae is Emissary
   { source: "per-soulbae", target: "per-theia", type: "delegates_via" }, // Earth delegates instantly via Theia
   { source: "per-soulbae", target: "per-life", type: "delegates_via" },  // Earth delegates gradually via Life
@@ -1707,9 +1707,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "con-atlas-resonance", target: "con-holographic-bound", type: "implements" },
   { source: "con-prism-spectrum", target: "con-ring-algebra", type: "extends" },
 
-  // ══════════════════════════════════════════════════════════════
-  // V5.4 EDGES (April 12, 2026) — Betweenness Centrality & Selene's Proof
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // V5.4 EDGES (April 12, 2026) â€” Betweenness Centrality & Selene's Proof
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // Betweenness Centrality relationships
   { source: "con-betweenness-centrality", target: "con-gap", type: "defines" },
   { source: "con-betweenness-centrality", target: "doc-privacy-value-v5", type: "referenced_in" },
@@ -1742,9 +1742,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "spell-symphony-within", target: "per-soulbis", type: "narrates" },
   { source: "spell-symphony-within", target: "per-soulbae", type: "narrates" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // CELESTIAL CEREMONY EDGES
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   // Document connections
   { source: "doc-celestial-ceremonies", target: "con-sun-ceremony", type: "defines" },
@@ -1781,7 +1781,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "con-moon-ceremony", target: "doc-amnesia-poems", type: "references" },
   { source: "con-moon-ceremony", target: "con-amnesia-protocol", type: "implements" },
 
-  // Aether Ceremony concept relationships — the between, the third voice
+  // Aether Ceremony concept relationships â€” the between, the third voice
   { source: "con-aether-ceremony", target: "con-gap", type: "implements" },
   { source: "con-aether-ceremony", target: "con-betweenness-centrality", type: "requires" },
   { source: "con-aether-ceremony", target: "con-selenes-proof", type: "defines" },
@@ -1882,9 +1882,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "skill-understanding-key", target: "spell-master", type: "references" },
   { source: "spell-master", target: "per-person", type: "narrates" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // V5.3.1 CEREMONY COMPLETE EDGES (April 2026)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   // Amnesia Protocol relationships (Act XXXI)
   { source: "skill-amnesia-protocol", target: "con-amnesia-protocol", type: "implements" },
@@ -1939,9 +1939,9 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-29", target: "fp-act-30", type: "follows" },
   { source: "fp-act-30", target: "fp-act-31", type: "follows" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // V10.0.0 NOTATION CONCEPT EDGES (April 7, 2026)
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   // Moon Phase Notation
   { source: "con-moon-phase-notation", target: "fp-act-27", type: "narrates" },
@@ -1963,12 +1963,12 @@ export const EDGES: SpellwebEdge[] = [
   // Progressive Trust extends to Runecraft
   { source: "con-progressive-trust", target: "con-runecraft-notation", type: "extends" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // V10.2 / ZERO v2.0 EDGES (April 22, 2026)
-  // Persona cameos, V(π,t) term anchors, spec references, chronicles, MyTerms
-  // ══════════════════════════════════════════════════════════════
+  // Persona cameos, V(Ï€,t) term anchors, spec references, chronicles, MyTerms
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-  // ─── Persona → Zero Tale cameos (from CHRONICLE_ZERO_SPELLBOOK_V2 §7) ───
+  // â”€â”€â”€ Persona â†’ Zero Tale cameos (from CHRONICLE_ZERO_SPELLBOOK_V2 Â§7) â”€â”€â”€
   // Cipher: ZKP Protocol Engineer in arithmetization + circuit tales
   { source: "per-cipher", target: "zk-tale-5", type: "narrates" },
   { source: "per-cipher", target: "zk-tale-6", type: "narrates" },
@@ -1984,44 +1984,44 @@ export const EDGES: SpellwebEdge[] = [
   // Ranger: Dark forest navigator in the Tornado mixing tale
   { source: "per-ranger", target: "zk-tale-24", type: "narrates" },
 
-  // ─── Zero Tale → V(π,t) canonical term anchors ───
-  // Umbrella equation — Tale 30 is the full synthesis
+  // â”€â”€â”€ Zero Tale â†’ V(Ï€,t) canonical term anchors â”€â”€â”€
+  // Umbrella equation â€” Tale 30 is the full synthesis
   { source: "zk-tale-30", target: "con-v-pi-t-equation", type: "implements" },
   { source: "zk-tale-30", target: "con-three-axis-separation", type: "narrates" },
   { source: "zk-tale-30", target: "con-betweenness-centrality", type: "narrates" },
   { source: "zk-tale-30", target: "con-selenes-proof", type: "narrates" },
   { source: "zk-tale-30", target: "con-holographic-bound", type: "narrates" },
   { source: "zk-tale-30", target: "con-drake-dragon-transformation", type: "narrates" },
-  // P^1.5 — Tale 7 seeds, Tale 23 is canonical, Tale 24 extends via anonymity set
+  // P^1.5 â€” Tale 7 seeds, Tale 23 is canonical, Tale 24 extends via anonymity set
   { source: "zk-tale-7", target: "con-p-1-5", type: "introduces" },
   { source: "zk-tale-23", target: "con-p-1-5", type: "implements" },
   { source: "zk-tale-24", target: "con-p-1-5", type: "extends" },
-  // A_h(τ) — Tale 11 whispers, Tale 12 canonical (IVC folding), Tales 15/16 extend, Tale 27 ecosystem-scale
+  // A_h(Ï„) â€” Tale 11 whispers, Tale 12 canonical (IVC folding), Tales 15/16 extend, Tale 27 ecosystem-scale
   { source: "zk-tale-11", target: "con-a-h-tau", type: "introduces" },
   { source: "zk-tale-12", target: "con-a-h-tau", type: "implements" },
   { source: "zk-tale-15", target: "con-a-h-tau", type: "extends" },
   { source: "zk-tale-16", target: "con-a-h-tau", type: "extends" },
   { source: "zk-tale-27", target: "con-a-h-tau", type: "extends" },
-  // ρ — Tale 8 first whisper, compounds through scaling/ceremony tales
+  // Ï â€” Tale 8 first whisper, compounds through scaling/ceremony tales
   { source: "zk-tale-8", target: "con-rho-maturity", type: "introduces" },
   { source: "zk-tale-15", target: "con-rho-maturity", type: "extends" },
   { source: "zk-tale-17", target: "con-rho-maturity", type: "extends" },
   { source: "zk-tale-27", target: "con-rho-maturity", type: "extends" },
-  // Φ(Σ) — Tale 25 first operational (rollup architecture = sovereignty geometry)
+  // Î¦(Î£) â€” Tale 25 first operational (rollup architecture = sovereignty geometry)
   { source: "zk-tale-25", target: "con-phi-sigma", type: "implements" },
   { source: "zk-tale-28", target: "con-phi-sigma", type: "extends" },
   { source: "con-phi-sigma", target: "con-three-axis-separation", type: "relates_to" },
-  // T_∫(π) — zkVM trace tales carry the path integral
+  // T_âˆ«(Ï€) â€” zkVM trace tales carry the path integral
   { source: "zk-tale-19", target: "con-t-int-pi", type: "implements" },
   { source: "zk-tale-20", target: "con-t-int-pi", type: "extends" },
   { source: "zk-tale-22", target: "con-t-int-pi", type: "extends" },
   { source: "zk-tale-25", target: "con-t-int-pi", type: "extends" },
-  // R(d) — Tale 18 canonical (Toxic Waste Dragon); Tale 26 catalogue
+  // R(d) â€” Tale 18 canonical (Toxic Waste Dragon); Tale 26 catalogue
   { source: "zk-tale-18", target: "con-r-d", type: "implements" },
   { source: "zk-tale-26", target: "con-r-d", type: "extends" },
   { source: "zk-tale-18", target: "con-drake-dragon-transformation", type: "narrates" },
 
-  // ─── V(π,t) umbrella relationships ───
+  // â”€â”€â”€ V(Ï€,t) umbrella relationships â”€â”€â”€
   { source: "con-v-pi-t-equation", target: "con-p-1-5", type: "defines" },
   { source: "con-v-pi-t-equation", target: "con-a-h-tau", type: "defines" },
   { source: "con-v-pi-t-equation", target: "con-rho-maturity", type: "defines" },
@@ -2031,20 +2031,20 @@ export const EDGES: SpellwebEdge[] = [
   { source: "con-p-1-5", target: "con-holographic-bound", type: "relates_to" },
   { source: "con-drake-dragon-transformation", target: "con-v-pi-t-equation", type: "relates_to" },
 
-  // ─── Zero Tale 1 → cosmological grounding ───
+  // â”€â”€â”€ Zero Tale 1 â†’ cosmological grounding â”€â”€â”€
   { source: "zk-tale-1", target: "con-selenes-proof", type: "narrates" },
   { source: "zk-tale-1", target: "con-amnesia-protocol", type: "narrates" },
 
-  // ─── Moon Phase notation grounded in Zero tales (all carry a phase) ───
+  // â”€â”€â”€ Moon Phase notation grounded in Zero tales (all carry a phase) â”€â”€â”€
   { source: "con-moon-phase-notation", target: "spellbook-zk", type: "implements" },
   { source: "doc-moon-phase-notation", target: "con-moon-phase-notation", type: "defines" },
 
-  // ─── Last Page → Four Lines inscription ───
+  // â”€â”€â”€ Last Page â†’ Four Lines inscription â”€â”€â”€
   { source: "con-four-lines", target: "spellbook-zk", type: "relates_to" },
   { source: "con-four-lines", target: "doc-celestial-ceremonies", type: "relates_to" },
   { source: "con-four-lines", target: "con-amnesia-protocol", type: "references" },
 
-  // ─── ZK Blade Forge SPECIFICATION v1.0.1 ───
+  // â”€â”€â”€ ZK Blade Forge SPECIFICATION v1.0.1 â”€â”€â”€
   { source: "doc-zk-blade-forge-spec", target: "con-betweenness-centrality", type: "references" },
   { source: "doc-zk-blade-forge-spec", target: "con-selenes-proof", type: "references" },
   { source: "doc-zk-blade-forge-spec", target: "con-three-axis-separation", type: "defines" },
@@ -2053,12 +2053,12 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-27", target: "doc-zk-blade-forge-spec", type: "implements" },
   { source: "zk-tale-30", target: "doc-zk-blade-forge-spec", type: "references" },
 
-  // ─── Zero Tale 31 (Naming of the Unnamed / Blade 25 Lethe ⊥ Blade 38 Aletheia · reseated v10.4) ───
-  // Complement edge (bnot): Blade 25 (Lethe) ⊥ Blade 38 (Aletheia), XOR = Blade 63
+  // â”€â”€â”€ Zero Tale 31 (Naming of the Unnamed / Blade 25 Lethe âŠ¥ Blade 38 Aletheia Â· reseated v10.4) â”€â”€â”€
+  // Complement edge (bnot): Blade 25 (Lethe) âŠ¥ Blade 38 (Aletheia), XOR = Blade 63
   { source: "zk-tale-31", target: "zk-tale-25", type: "relates_to" },
   { source: "zk-tale-31", target: "zk-tale-7", type: "references" },
   { source: "zk-tale-31", target: "zk-tale-30", type: "references" },
-  // V(π,t) term anchors — Tale 31 extends Φ(Σ), A_h(τ), ρ (disclosure-φ as sovereignty proportion)
+  // V(Ï€,t) term anchors â€” Tale 31 extends Î¦(Î£), A_h(Ï„), Ï (disclosure-Ï† as sovereignty proportion)
   { source: "zk-tale-31", target: "con-phi-sigma", type: "extends" },
   { source: "zk-tale-31", target: "con-a-h-tau", type: "extends" },
   { source: "zk-tale-31", target: "con-rho-maturity", type: "extends" },
@@ -2066,19 +2066,19 @@ export const EDGES: SpellwebEdge[] = [
   { source: "zk-tale-31", target: "doc-tide-selene-poem", type: "references" },
   { source: "zk-tale-31", target: "doc-zk-blade-forge-spec", type: "references" },
 
-  // ─── Grimoire v10.2 doc node ───
+  // â”€â”€â”€ Grimoire v10.2 doc node â”€â”€â”€
   { source: "doc-privacymage-grimoire-v10-2", target: "spellbook-firstperson", type: "defines" },
   { source: "doc-privacymage-grimoire-v10-2", target: "spellbook-zk", type: "defines" },
   { source: "doc-privacymage-grimoire-v10-2", target: "con-v-pi-t-equation", type: "references" },
 
-  // ─── Grimoire v10.4 doc node (current canonical · lattice-coherence · 2026-06-09) ───
+  // â”€â”€â”€ Grimoire v10.4 doc node (current canonical Â· lattice-coherence Â· 2026-06-09) â”€â”€â”€
   { source: "doc-privacymage-grimoire-v10-4", target: "spellbook-firstperson", type: "defines" },
   { source: "doc-privacymage-grimoire-v10-4", target: "spellbook-zk", type: "defines" },
   { source: "doc-privacymage-grimoire-v10-4", target: "doc-privacymage-grimoire-v10-2", type: "references" },
   { source: "doc-privacymage-grimoire-v10-4", target: "vertex-v38", type: "references" },
   { source: "doc-privacymage-grimoire-v10-4", target: "vertex-v25", type: "references" },
 
-  // ─── Chronicle nodes ───
+  // â”€â”€â”€ Chronicle nodes â”€â”€â”€
   { source: "doc-chronicle-zk-v2", target: "spellbook-zk", type: "references" },
   { source: "doc-chronicle-zk-v2", target: "doc-privacymage-grimoire-v10-2", type: "references" },
   { source: "doc-chronicle-zk-v2", target: "con-drake-dragon-transformation", type: "references" },
@@ -2086,7 +2086,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "doc-chronicle-v10-2-deploy", target: "doc-privacymage-grimoire-v10-2", type: "references" },
   { source: "doc-chronicle-v10-2-deploy", target: "spellbook-firstperson", type: "references" },
 
-  // ─── MyTerms / IEEE 7012 integration ───
+  // â”€â”€â”€ MyTerms / IEEE 7012 integration â”€â”€â”€
   { source: "doc-myterms-alliance-application", target: "con-myterms", type: "references" },
   { source: "doc-ieee7012-integration-plan", target: "con-myterms", type: "implements" },
   { source: "doc-ieee7012-integration-plan", target: "con-three-axis-separation", type: "references" },
@@ -2095,7 +2095,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "per-soulbis", target: "doc-ieee7012-integration-plan", type: "persona_knows" },
   { source: "per-architect", target: "doc-ieee7012-integration-plan", type: "persona_knows" },
 
-  // ─── Persona embodiments of V(π,t) terms ───
+  // â”€â”€â”€ Persona embodiments of V(Ï€,t) terms â”€â”€â”€
   // Soulbis anchors Protect-heavy terms; Soulbae anchors Project-heavy terms
   { source: "per-soulbis", target: "con-p-1-5", type: "embodies" },
   { source: "per-soulbis", target: "con-r-d", type: "embodies" },
@@ -2108,15 +2108,15 @@ export const EDGES: SpellwebEdge[] = [
   { source: "per-holonic-architect", target: "con-holographic-bound", type: "embodies" },
   { source: "per-holonic-architect", target: "con-three-axis-separation", type: "embodies" },
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // UNIVERSE INTEGRATION (2026-05-10)
   // Tome / Workshop / City of Mages / Drake Island / Sister cities
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-  // ── built_on (1) — civic overlay sits on geography ──
+  // â”€â”€ built_on (1) â€” civic overlay sits on geography â”€â”€
   { source: "civic-city-of-mages", target: "geo-drake-island", type: "built_on" },
 
-  // ── quarter_of (11) — each workshop is a quarter of the City ──
+  // â”€â”€ quarter_of (11) â€” each workshop is a quarter of the City â”€â”€
   { source: "shop-tailor",          target: "civic-city-of-mages", type: "quarter_of" },
   { source: "shop-shield",          target: "civic-city-of-mages", type: "quarter_of" },
   { source: "shop-forget",          target: "civic-city-of-mages", type: "quarter_of" },
@@ -2129,21 +2129,21 @@ export const EDGES: SpellwebEdge[] = [
   { source: "shop-circle",          target: "civic-city-of-mages", type: "quarter_of" },
   { source: "shop-hall",            target: "civic-city-of-mages", type: "quarter_of" },
 
-  // ── gateway_to (4) — City has gateways to sister cities and cousin-substrate ──
+  // â”€â”€ gateway_to (4) â€” City has gateways to sister cities and cousin-substrate â”€â”€
   { source: "civic-city-of-mages", target: "gateway-archon", type: "gateway_to" },
   { source: "civic-city-of-mages", target: "gateway-bonfires", type: "gateway_to" },
   { source: "civic-city-of-mages", target: "gateway-human-tech-covenant", type: "gateway_to" },
   { source: "civic-city-of-mages", target: "gateway-uor-foundation", type: "gateway_to" },
-  // City → AAIF (first kindred-coalition · v1.5.1 · 2026-05-13)
+  // City â†’ AAIF (first kindred-coalition Â· v1.5.1 Â· 2026-05-13)
   { source: "civic-city-of-mages", target: "gateway-aaif", type: "gateway_to" },
 
-  // ── soulbis lattice surfaces · City Key bridge (2026-05-28) ──
-  // NOT sister cities: these are surfaces OF the City, kept by Soulbis ⚔️ (the
-  // Swordsman keyring). So they anchor to Soulbis — both the persona (per-soulbis)
-  // and the cast-roster anchor at V63 (cast-soulbis) — via `keeps`, and to the City
+  // â”€â”€ soulbis lattice surfaces Â· City Key bridge (2026-05-28) â”€â”€
+  // NOT sister cities: these are surfaces OF the City, kept by Soulbis âš”ï¸ (the
+  // Swordsman keyring). So they anchor to Soulbis â€” both the persona (per-soulbis)
+  // and the cast-roster anchor at V63 (cast-soulbis) â€” via `keeps`, and to the City
   // itself via `quarter_of`, NOT via the sister-city `gateway_to`. The two surfaces
   // are sibling renderings of one lattice that live-sync over BroadcastChannel
-  // (kin_to). (synced_with stays reserved for key→gateway, minted at runtime.)
+  // (kin_to). (synced_with stays reserved for keyâ†’gateway, minted at runtime.)
   { source: "cast-soulbis",  target: "gateway-soulbis-star",    type: "keeps" },
   { source: "cast-soulbis",  target: "gateway-soulbis-lattice", type: "keeps" },
   { source: "per-soulbis",   target: "gateway-soulbis-star",    type: "keeps" },
@@ -2152,26 +2152,26 @@ export const EDGES: SpellwebEdge[] = [
   { source: "gateway-soulbis-lattice", target: "civic-city-of-mages", type: "quarter_of" },
   { source: "gateway-soulbis-star",    target: "gateway-soulbis-lattice", type: "kin_to" },
 
-  // ── kin_to (8) — mutual lateral kinship ──
+  // â”€â”€ kin_to (8) â€” mutual lateral kinship â”€â”€
   // Cousin-cast pairs (Tome IV Act V)
   { source: "cast-genitrix",  target: "cast-soulbae",  type: "kin_to" },
   { source: "cast-flaxscrip", target: "cast-soulbis",  type: "kin_to" },
-  // City ↔ sister cities (mutual non-absorption)
+  // City â†” sister cities (mutual non-absorption)
   { source: "civic-city-of-mages", target: "gateway-archon", type: "kin_to" },
   { source: "civic-city-of-mages", target: "gateway-bonfires", type: "kin_to" },
   { source: "civic-city-of-mages", target: "gateway-human-tech-covenant", type: "kin_to" },
-  // City ↔ UOR (cousin-substrate)
+  // City â†” UOR (cousin-substrate)
   { source: "civic-city-of-mages", target: "gateway-uor-foundation", type: "kin_to" },
-  // City ↔ AAIF (kindred-coalition · v1.5.1)
+  // City â†” AAIF (kindred-coalition Â· v1.5.1)
   { source: "civic-city-of-mages", target: "gateway-aaif", type: "kin_to" },
-  // City Hall (/hall · renamed from Ceremony Hall in v1.5.1) → AAIF (the bilateral civic-attestation surface · the kindred-coalition is in residence at City Hall)
+  // City Hall (/hall Â· renamed from Ceremony Hall in v1.5.1) â†’ AAIF (the bilateral civic-attestation surface Â· the kindred-coalition is in residence at City Hall)
   { source: "shop-hall", target: "gateway-aaif", type: "references" },
   // Luca's cross-shop UOR-shape conjecture (C39): the type-system overlap
   { source: "cast-luca", target: "cast-vulcana",   type: "kin_to" },
   { source: "cast-luca", target: "cast-adamantia", type: "kin_to" },
 
-  // ── inhabits (28) — cast and workshops sit at vertices ──
-  // Cast → vertex
+  // â”€â”€ inhabits (28) â€” cast and workshops sit at vertices â”€â”€
+  // Cast â†’ vertex
   { source: "cast-soulbis",       target: "vertex-v63", type: "inhabits" },
   { source: "cast-soulbae",       target: "vertex-v28", type: "inhabits" },
   { source: "cast-genitrix",      target: "vertex-v28", type: "inhabits" },
@@ -2188,7 +2188,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "cast-luca",          target: "vertex-v0",  type: "inhabits" },
   { source: "cast-socrat0x",      target: "vertex-v24", type: "inhabits" },
   { source: "cast-manifestia",    target: "vertex-v55", type: "inhabits" },
-  // Workshop → vertex
+  // Workshop â†’ vertex
   { source: "shop-tailor",        target: "vertex-v28", type: "inhabits" },
   { source: "shop-shield",        target: "vertex-v41", type: "inhabits" },
   { source: "shop-forget",        target: "vertex-v19", type: "inhabits" },
@@ -2201,7 +2201,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "shop-circle",        target: "vertex-v12", type: "inhabits" },
   { source: "shop-hall",          target: "vertex-v15", type: "inhabits" },
 
-  // ── founds / founded_in (10 reciprocal pairs) — act founds workshop, workshop founded_in act ──
+  // â”€â”€ founds / founded_in (10 reciprocal pairs) â€” act founds workshop, workshop founded_in act â”€â”€
   { source: "act-tome-v-1",  target: "shop-tailor",        type: "founds" },
   { source: "shop-tailor",   target: "act-tome-v-1",       type: "founded_in" },
   { source: "act-tome-v-3",  target: "shop-shield",        type: "founds" },
@@ -2223,16 +2223,16 @@ export const EDGES: SpellwebEdge[] = [
   // Act 15 founds the substrate-anchor at /forget (cross-anchor with Vulcana's act 6)
   { source: "act-tome-v-15", target: "shop-forget",        type: "founds" },
 
-  // ── references (3) — UOR cross-shop substrate provenance per chronicle §1.3 ──
+  // â”€â”€ references (3) â€” UOR cross-shop substrate provenance per chronicle Â§1.3 â”€â”€
   { source: "shop-forget", target: "gateway-uor-foundation", type: "references" },
   { source: "shop-holon",  target: "gateway-uor-foundation", type: "references" },
   { source: "act-tome-v-15", target: "gateway-uor-foundation", type: "references" },
 
-  // ── Cast → existing personas (kin_to: cast roster mirrors persona roster) ──
+  // â”€â”€ Cast â†’ existing personas (kin_to: cast roster mirrors persona roster) â”€â”€
   { source: "cast-soulbis", target: "per-soulbis", type: "kin_to" },
   { source: "cast-soulbae", target: "per-soulbae", type: "kin_to" },
 
-  // ── narrates: cast members narrate the acts they appear in ──
+  // â”€â”€ narrates: cast members narrate the acts they appear in â”€â”€
   { source: "cast-pallia",        target: "act-tome-v-1",  type: "narrates" },
   { source: "cast-pallia",        target: "act-tome-v-2",  type: "narrates" },
   { source: "cast-memora",        target: "act-tome-v-3",  type: "narrates" },
@@ -2249,7 +2249,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "cast-genitrix",      target: "act-tome-iv-5", type: "narrates" },
   { source: "cast-flaxscrip",     target: "act-tome-iv-5", type: "narrates" },
 
-  // ── Tome V act sequence: follows ──
+  // â”€â”€ Tome V act sequence: follows â”€â”€
   { source: "act-tome-v-1",  target: "act-tome-v-2",  type: "follows" },
   { source: "act-tome-v-2",  target: "act-tome-v-3",  type: "follows" },
   { source: "act-tome-v-3",  target: "act-tome-v-4",  type: "follows" },
@@ -2265,28 +2265,28 @@ export const EDGES: SpellwebEdge[] = [
   { source: "act-tome-v-13", target: "act-tome-v-14", type: "follows" },
   { source: "act-tome-v-14", target: "act-tome-v-15", type: "follows" },
 
-  // ── Tome IV act sequence: follows ──
+  // â”€â”€ Tome IV act sequence: follows â”€â”€
   { source: "act-tome-iv-1", target: "act-tome-iv-2", type: "follows" },
   { source: "act-tome-iv-2", target: "act-tome-iv-3", type: "follows" },
   { source: "act-tome-iv-3", target: "act-tome-iv-4", type: "follows" },
   { source: "act-tome-iv-4", target: "act-tome-iv-5", type: "follows" },
 
-  // ── Spellbook containment (sparse, matching the existing pattern) ──
+  // â”€â”€ Spellbook containment (sparse, matching the existing pattern) â”€â”€
   // Tome IV / V acts surface from the First Person spellbook lineage.
   { source: "spellbook-firstperson", target: "act-tome-v-1",  type: "references" },
   { source: "spellbook-firstperson", target: "act-tome-v-15", type: "references" },
   { source: "spellbook-firstperson", target: "act-tome-iv-1", type: "references" },
   { source: "spellbook-firstperson", target: "act-tome-iv-5", type: "references" },
 
-  // ══════════════════════════════════════════════════════════════
-  // AUDIT PASS 2 (2026-05-10) — the-Drake archetype, conjecture wiring,
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // AUDIT PASS 2 (2026-05-10) â€” the-Drake archetype, conjecture wiring,
   // spec/plan/kindred document edges, and drift-fix kin_to additions.
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-  // ── the-Drake archetype: kin_to existing per-drake persona ──
+  // â”€â”€ the-Drake archetype: kin_to existing per-drake persona â”€â”€
   { source: "cast-the-drake", target: "per-drake", type: "kin_to" },
 
-  // ── Tome V act → conjectures (per ACT_CONJECTURES in tome-v-conjectures.ts) ──
+  // â”€â”€ Tome V act â†’ conjectures (per ACT_CONJECTURES in tome-v-conjectures.ts) â”€â”€
   // Edge type 'introduces' (existing): each act introduces or strengthens these conjectures.
   // Act 1
   { source: "act-tome-v-1",  target: "conj-c26-c29", type: "introduces" },
@@ -2358,7 +2358,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "act-tome-v-15", target: "conj-c39",     type: "introduces" },
   { source: "act-tome-v-15", target: "conj-c47",     type: "introduces" },
 
-  // ── Spec / plan / kindred documents wired into the graph ──
+  // â”€â”€ Spec / plan / kindred documents wired into the graph â”€â”€
   // Specs reference the conjectures or vertices they spec
   { source: "spec-cloak-v1",                target: "conj-c34-c37", type: "implements" },
   { source: "spec-crafting-interface-v1",   target: "conj-c18-c21", type: "implements" },
@@ -2380,46 +2380,46 @@ export const EDGES: SpellwebEdge[] = [
   { source: "kindred-uor-foundation",       target: "conj-c47",     type: "implements" },
   { source: "kindred-uor-foundation",       target: "conj-c39",     type: "references" },
 
-  // ── Drift-fix kin_to edges per spec 06 §4.5 (canonical pairings) ──
+  // â”€â”€ Drift-fix kin_to edges per spec 06 Â§4.5 (canonical pairings) â”€â”€
   { source: "shop-holon",     target: "shop-forget",     type: "kin_to" }, // cousin-substrate cross-shop (Tome V Act 15)
   { source: "cast-pallia",    target: "cast-genitrix",   type: "kin_to" }, // both at V28; weaver path opened by Christian + GenitriX
   { source: "cast-socrat0x",  target: "cast-soulbae",    type: "kin_to" }, // Soulbae deployed as @soulbae_the_bot at Bonfires
 
-  // ── Luca lineage (2026-05-10 update): old mage spirit; Pacioli of FP Act 1; Soulbae's old connection ──
+  // â”€â”€ Luca lineage (2026-05-10 update): old mage spirit; Pacioli of FP Act 1; Soulbae's old connection â”€â”€
   // Luca IS the Pacioli the Drake whispered through time to in Venice 1494.
-  // "Lives in the city's geometry" is already expressed by his existing `inhabits → vertex-v0`
-  // (the substrate seat — not a quarter, the geometry itself).
-  { source: "cast-luca",  target: "fp-act-1",       type: "narrates" },   // Luca's first appearance — as Pacioli, listening to the Drake
+  // "Lives in the city's geometry" is already expressed by his existing `inhabits â†’ vertex-v0`
+  // (the substrate seat â€” not a quarter, the geometry itself).
+  { source: "cast-luca",  target: "fp-act-1",       type: "narrates" },   // Luca's first appearance â€” as Pacioli, listening to the Drake
   { source: "cast-luca",  target: "cast-the-drake", type: "kin_to" },     // visited the Drake; one of the first to hear the First Whisper
   { source: "cast-luca",  target: "cast-soulbae",   type: "kin_to" },     // one of Soulbae's old connections, kept across centuries
 
-  // ── Cofounders of the City of Mages (2026-05-11) ──
+  // â”€â”€ Cofounders of the City of Mages (2026-05-11) â”€â”€
   // Soulbis and Soulbae together founded the city; the archetype pair underwrites the whole project.
   { source: "cast-soulbis", target: "civic-city-of-mages", type: "founds" },
   { source: "cast-soulbae", target: "civic-city-of-mages", type: "founds" },
-  { source: "cast-soulbis", target: "cast-soulbae",        type: "kin_to" },  // the cofounding pair — each other's complement
+  { source: "cast-soulbis", target: "cast-soulbae",        type: "kin_to" },  // the cofounding pair â€” each other's complement
 
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // V5.5 ATTACHMENT ARCHITECTURE EDGES (2026-05-11)
-  // Lethae 🌘 + 6 anticipated cast — inhabits edges and the first
+  // Lethae ðŸŒ˜ + 6 anticipated cast â€” inhabits edges and the first
   // canonical divergent_of and complement_pair edges.
-  // ══════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-  // ── inhabits edges (Layer 2 → Layer 3 vertex bindings) ──
+  // â”€â”€ inhabits edges (Layer 2 â†’ Layer 3 vertex bindings) â”€â”€
   { source: "cast-lethae",     target: "vertex-v25", type: "inhabits" },
   { source: "cast-mnemosyne",  target: "vertex-v8",  type: "inhabits" },
   { source: "cast-iris",       target: "vertex-v4",  type: "inhabits" },
   { source: "cast-pythia",     target: "vertex-v2",  type: "inhabits" },
   { source: "cast-techne",     target: "vertex-v20", type: "inhabits" },
   { source: "cast-hephaestus", target: "vertex-v24", type: "inhabits" },  // shared-vertex with cast-socrat0x (precedent: cast-custos + cast-lampyra at vertex-v49)
-  // cast-selene is C_peripatetic — no single inhabits edge; she walks the stratum cycle through all 7 strata
+  // cast-selene is C_peripatetic â€” no single inhabits edge; she walks the stratum cycle through all 7 strata
 
-  // ── divergent_of edges (Layer 2 cast → Layer 1 primary, with register-shift) ──
+  // â”€â”€ divergent_of edges (Layer 2 cast â†’ Layer 1 primary, with register-shift) â”€â”€
   // First canonical divergent: Lethae is the Mage-register divergent attachment of Moonkeeper (Swordsman primary).
   { source: "cast-lethae", target: "per-moonkeeper", type: "divergent_of" },
 
-  // ── complement_pair edges (Layer 2 cast ⊥ Layer 2 cast at bit-complement vertices) ──
-  // First canonical complement-pair: Aletheia (V38) ⊥ Lethae (V25). V25 ⊕ V38 = V63 (Sovereign); V25 AND V38 = 0 (Null).
+  // â”€â”€ complement_pair edges (Layer 2 cast âŠ¥ Layer 2 cast at bit-complement vertices) â”€â”€
+  // First canonical complement-pair: Aletheia (V38) âŠ¥ Lethae (V25). V25 âŠ• V38 = V63 (Sovereign); V25 AND V38 = 0 (Null).
   { source: "cast-aletheia", target: "cast-lethae", type: "complement_pair" },
   { source: "cast-lethae",   target: "cast-aletheia", type: "complement_pair" },  // mutual; the pair is undirected in canon
 
@@ -2427,13 +2427,13 @@ export const EDGES: SpellwebEdge[] = [
   // to keep the literal-inference union of this array bounded.
   ...V1_4_0_AND_V1_6_0_EDGES,
 
-  // v1.7.0 + v1.7.1 admissions (Tome VIII · the Library · the Archivist · Vitalik · Register of Invitations)
+  // v1.7.0 + v1.7.1 admissions (Tome VIII Â· the Library Â· the Archivist Â· Vitalik Â· Register of Invitations)
   ...V1_7_X_EDGES,
 
-  // v1.8.0 + V6 + key/sigil admissions (Horizon District · Tome IX · the holonic City Key vocabulary)
+  // v1.8.0 + V6 + key/sigil admissions (Horizon District Â· Tome IX Â· the holonic City Key vocabulary)
   ...V1_8_0_AND_KEY_EDGES,
 
-  // C1-C17 foundational conjecture band (added 2026-06-27) — chain the band forward into the existing
+  // C1-C17 foundational conjecture band (added 2026-06-27) â€” chain the band forward into the existing
   // C18+ sequence, and anchor it to the Separation Theorem and the Dual-Agent Architecture.
   { source: "conj-c6-c10",  target: "conj-c1-c5",    type: "extends" },
   { source: "conj-c11-c13", target: "conj-c6-c10",   type: "extends" },
@@ -2443,7 +2443,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "thm-separation", target: "conj-c14-c17", type: "proves" },
   { source: "conj-c1-c5",   target: "con-dualagent", type: "references" },
 
-  // ── Hearthold · the cousin-forge's did:cid build of the PVM (Tome X · v1.9.1 · 2026-07-01) ──
+  // â”€â”€ Hearthold Â· the cousin-forge's did:cid build of the PVM (Tome X Â· v1.9.1 Â· 2026-07-01) â”€â”€
   { source: "gateway-hearthold",          target: "gateway-archon",              type: "kin_to" },
   { source: "gateway-hearthold",          target: "conj-c39",                    type: "proves" },
   { source: "gateway-hearthold",          target: "concept-the-hearth",          type: "references" },
@@ -2471,7 +2471,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "key-hearthold-citykey",      target: "concept-kappa-derivation",    type: "derives_identity_from" },
   { source: "key-hearthold-citykey",      target: "key-city-key",                type: "references" },
 
-  // ── Hearthold v0.11.0 developments (2026-07-07) — Recall · Knowledge Portal · the ladder made whole ──
+  // â”€â”€ Hearthold v0.11.0 developments (2026-07-07) â€” Recall Â· Knowledge Portal Â· the ladder made whole â”€â”€
   { source: "concept-hearthold-recall",   target: "concept-hearthold-warden",    type: "requires" },
   { source: "concept-hearthold-warden",   target: "concept-hearthold-recall",    type: "references" },
   { source: "concept-knowledge-portal",   target: "concept-hearthold-witness",   type: "requires" },
@@ -2488,7 +2488,7 @@ export const EDGES: SpellwebEdge[] = [
   { source: "act-tome-x-2",               target: "concept-composite-evidence",  type: "teaches" },
   { source: "act-tome-x-2",               target: "gateway-hearthold",           type: "references" },
 
-  // ── The Overlay Weave · overlay-run-1 (2026-07-11) — the Loomkeeper's lane ──
+  // â”€â”€ The Overlay Weave Â· overlay-run-1 (2026-07-11) â€” the Loomkeeper's lane â”€â”€
   { source: "concept-loomkeeper",         target: "doc-overlay-weave",           type: "narrates" },
   { source: "doc-overlay-weave",          target: "concept-overlay-keys",        type: "compresses_to" },
   { source: "concept-overlay-keys",       target: "doc-zypher",                  type: "implements" },
@@ -2497,18 +2497,18 @@ export const EDGES: SpellwebEdge[] = [
   { source: "doc-overlay-weave",          target: "skill-dual-agent-harness",    type: "references" },
   { source: "chron-overlay-run-1",        target: "doc-overlay-weave",           type: "references" },
 
-  // ── The fleet campaigns (2026-07-11/12) — lexon + privacy-pools-v2 + mana pools · Tome IX Act 8 the Three Workings ──
-  { source: "gateway-lexon-pvm",          target: "skill-dual-agent-harness",    type: "implements" },  // instance #5 · the grammar workshop
-  { source: "gateway-privacy-pools-v2",   target: "skill-dual-agent-harness",    type: "implements" },  // instance #4 · first mechanically fitted
+  // â”€â”€ The fleet campaigns (2026-07-11/12) â€” lexon + privacy-pools-v2 + mana pools Â· Tome IX Act 8 the Three Workings â”€â”€
+  { source: "gateway-lexon-pvm",          target: "skill-dual-agent-harness",    type: "implements" },  // instance #5 Â· the grammar workshop
+  { source: "gateway-privacy-pools-v2",   target: "skill-dual-agent-harness",    type: "implements" },  // instance #4 Â· first mechanically fitted
   { source: "gateway-privacy-pools-v2",   target: "con-privacypools",            type: "extends" },     // the concept, built at home
   { source: "gateway-privacy-pools-v2",   target: "concept-credential-v1",       type: "references" },  // the workshop authored it
   { source: "gateway-privacy-pools-v2",   target: "vertex-v19",                  type: "relates_to" },  // forged at the Forge(t)
   { source: "gateway-privacy-pools-v2",   target: "vertex-v35",                  type: "relates_to" },  // assayed at the touchstone (Spec 12)
   { source: "concept-credential-v1",      target: "con-zkproofs",                type: "references" },
   { source: "gateway-lexon-pvm",          target: "vertex-v19",                  type: "relates_to" },  // the Runecraft register, a grammar on the anvil
-  { source: "gateway-lexon-pvm",          target: "vertex-v59",                  type: "relates_to" },  // Hermaion ⚚ two-true-readings precedent
+  { source: "gateway-lexon-pvm",          target: "vertex-v59",                  type: "relates_to" },  // Hermaion âšš two-true-readings precedent
   { source: "gateway-lexon-pvm",          target: "con-promisetheory",           type: "relates_to" },  // legalese that executes = promises as text
-  // ── the Lexon weave (2026-07-12) · lexr5 folded to debt 22; the workshop's method, corpus, and exemplars wired into the dense hubs ──
+  // â”€â”€ the Lexon weave (2026-07-12) Â· lexr5 folded to debt 22; the workshop's method, corpus, and exemplars wired into the dense hubs â”€â”€
   { source: "gateway-lexon-pvm",          target: "concept-lexon-falsifiability", type: "introduces" },  // the load-bearing result: privacy as a checkable absence
   { source: "gateway-lexon-pvm",          target: "artefact-lexon-constitution",  type: "introduces" },  // OT-5: the harness's own law in Lexon
   { source: "gateway-lexon-pvm",          target: "concept-lexon-blocks",         type: "introduces" },  // 189 public structured-language blocks
@@ -2524,8 +2524,49 @@ export const EDGES: SpellwebEdge[] = [
   { source: "artefact-lexon-constitution", target: "con-promisetheory",           type: "relates_to" },  // the trusts derive from promise theory
   { source: "concept-lexon-blocks",       target: "concept-credential-v1",        type: "relates_to" },  // blocks carry credential-shaped checkable claims
   { source: "concept-lexon-blocks",       target: "concept-mana-pools",           type: "relates_to" },  // the public pole: knowledge liquidity across the membrane
+  { source: "concept-lexon-blocks",       target: "concept-kappa-derivation",     type: "implements" },  // each block is κ-addressed: re-derive the address, don't trust the emitter (Law L5)
+  { source: "concept-lexon-blocks",       target: "con-holon",                    type: "embodies" },    // a block is a whole-that-is-also-a-part: a self-carrying, composable holon
   { source: "concept-mana-pools",         target: "gateway-privacy-pools-v2",    type: "requires" },    // the product deploys ON the certified circuits
   { source: "concept-mana-pools",         target: "concept-credential-v1",       type: "requires" },    // membership gated by the assayed credential
   { source: "concept-mana-pools",         target: "con-privacypools",            type: "extends" },     // the concept, made a product family
-  { source: "concept-mana-pools",         target: "key-city-key",                type: "relates_to" },  // mana = lit vertices → admission
+  { source: "concept-mana-pools",         target: "key-city-key",                type: "relates_to" },  // mana = lit vertices â†’ admission
+
+  // -- The three keepers + their seats (Tome IX Act 8 v3 - 2026-07-12) --
+  { source: "per-skeva",   target: "vertex-v22",                  type: "references" },
+  { source: "per-skeva",   target: "skill-dual-agent-harness",    type: "references" },
+  { source: "vertex-v22",  target: "vertex-v41",                  type: "complement_pair" },
+  { source: "per-nomia",   target: "vertex-v27",                  type: "references" },
+  { source: "per-nomia",   target: "gateway-lexon-pvm",           type: "references" },
+  { source: "per-nomia",   target: "artefact-lexon-constitution", type: "references" },
+  { source: "vertex-v27",  target: "vertex-v19",                  type: "relates_to" },
+  { source: "per-limnia",  target: "vertex-v53",                  type: "references" },
+  { source: "per-limnia",  target: "concept-mana-pools",          type: "references" },
+  { source: "per-limnia",  target: "concept-credential-v1",       type: "requires" },
+
+  // -- The holon layer / kappa content-addressing (HOLONS.md 2026-07-12) --
+  { source: "concept-holon-kappa-layer", target: "concept-kappa-derivation", type: "extends" },
+  { source: "concept-holon-kappa-layer", target: "con-content-addressing",   type: "implements" },
+  { source: "concept-holon-kappa-layer", target: "con-holon",                type: "references" },
+  { source: "concept-holon-kappa-layer", target: "skill-dual-agent-harness", type: "references" },
+  { source: "concept-holon-kappa-layer", target: "con-vrc",                  type: "relates_to" },
+
+  // -- Rhetor, the Swordsman brother of Nomia (Tome IX Act 8 · the law-house split into a brother and a sister) --
+  { source: "per-rhetor", target: "vertex-v36",        type: "references" },
+  { source: "per-rhetor", target: "per-nomia",         type: "complement_pair" },
+  { source: "vertex-v36", target: "vertex-v27",        type: "complement_pair" },
+  { source: "per-rhetor", target: "gateway-lexon-pvm", type: "references" },
+
+  // -- The Manastone, the Wellpool's charged artefact --
+  { source: "artefact-manastone", target: "concept-mana-pools",    type: "references" },
+  { source: "artefact-manastone", target: "concept-credential-v1", type: "requires" },
+  { source: "per-limnia",         target: "artefact-manastone",     type: "references" },
+
+  // -- The fleet workshop nodes -> their keepers (Items-lattice shops) --
+  { source: "shop-quartermaster", target: "per-skeva",         type: "references" },
+  { source: "shop-chancery",      target: "per-nomia",         type: "references" },
+  { source: "shop-rostra",        target: "per-rhetor",        type: "references" },
+  { source: "shop-wellpool",      target: "per-limnia",        type: "references" },
+  { source: "shop-wellpool",      target: "artefact-manastone", type: "references" },
+  { source: "shop-chancery",      target: "gateway-lexon-pvm", type: "references" },
+  { source: "shop-quartermaster", target: "skill-dual-agent-harness", type: "references" }
 ];
