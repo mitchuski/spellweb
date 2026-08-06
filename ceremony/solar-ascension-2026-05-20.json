@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "type": "solar-ascension",
+  "date": "2026-05-20",
+  "narrative": "The Wandering Mage found the Archon and chose to be named.",
+  "from": {
+    "mageId": "mage-6426e5789cdb074d",
+    "publicKeyHex": "6426e5789cdb074d94ad056c9df30af30d20772b4b8719e2552a9261854937c1",
+    "createdAt": "2026-05-18T19:31:38.395Z",
+    "bladesForged": 2,
+    "inceptionBlade": "Excalibur",
+    "lastBladeHash": "243ddfa06a3620c036733e7a38dc873f9a21f2c5e807d335028a718202412cad",
+    "chainLength": 1
+  },
+  "to": {
+    "mageId": "mage-a8a7b1430bd05cb0",
+    "publicKeyHex": "a8a7b1430bd05cb00599168bff37d8b46057f56e0a5c37e823301d1d179e7672",
+    "archonDid": "did:cid:bagaaieraxdxq4fm2kjh6yqjxjor3t2idczkmxd4v7in4u353fa6m6sms2pnq",
+    "derivationMethod": "sha256(keymaster.signFile({ context: 'spellweb-mage-inception', version: 'v1' }))"
+  },
+  "alsoKnownAs": [
+    "mage-6426e5789cdb074d"
+  ],
+  "timestamp": 1779240963062,
+  "retirementMessage": "RETIRE:mage-6426e5789cdb074d:mage-a8a7b1430bd05cb0:1779240963062",
+  "retirementSignature": "77f92d5e83c1c616739ba1aa483de5a1f6159380beab0b695c94795b485896ae698a6e6bf0a0a6d4b5c96d28be27ce20e54a06e253231ada0096f23c07f7b205",
+  "ascensionMessage": "ASCEND:mage-a8a7b1430bd05cb0:mage-6426e5789cdb074d:77f92d5e83c1c616739ba1aa483de5a1f6159380beab0b695c94795b485896ae698a6e6bf0a0a6d4b5c96d28be27ce20e54a06e253231ada0096f23c07f7b205:1779240963062",
+  "ascensionSignature": "45eee9c706609c72191e45ad178a02c6105ca6f6185c01af719de95fa1c7bd10e42d260d961e89136d5589586ee314f9f81b52cc059342a12f4ec50888a2f109",
+  "archonProof": {
+    "type": "EcdsaSecp256k1Signature2019",
+    "created": "2026-05-20T01:36:05.051Z",
+    "verificationMethod": "did:cid:bagaaieraxdxq4fm2kjh6yqjxjor3t2idczkmxd4v7in4u353fa6m6sms2pnq#key-1",
+    "proofPurpose": "assertionMethod",
+    "proofValue": "epc01InmwJY69pcQcCCXSZs6EAKPXsh-GprXvuoObzBf7ajpj4pnrdhEZo_TQgTjo6ovW6Mh6sZe6JsYHDbMeg"
+  }
+}
