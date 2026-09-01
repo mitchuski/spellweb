@@ -33,6 +33,39 @@ import {
   type SwordsmanLink,
 } from '../lib/mageIdentity';
 import { loadKey as loadCityKey, serializeKeyMarkdown, exportKeyJSON } from '../lib/cityKey';
+// Known node ids — the only endpoints d3.forceLink can resolve.
+// Persisted state (localStorage `spellweb-user-edges`) and imported deviation
+// bundles outlive the node set: ids retired by a consolidation (e.g. the v5.4
+// `proto-*` merges) survive in a browser long after they leave data/nodes.ts.
+// forceLink throws `node not found: <id>` on the first dangling endpoint and
+// takes the whole render down, so every edge list handed to the simulation is
+// filtered through `liveEdges` first. MobileSpell already does this inline.
+const KNOWN_NODE_IDS = new Set(NODES.map((n) => n.id));
+
+const endpointId = (end: string | { id: string }): string =>
+  typeof end === "string" ? end : end.id;
+
+function liveEdges<T extends { source: string | { id: string }; target: string | { id: string } }>(
+  edges: T[],
+  context: string,
+): T[] {
+  const kept = edges.filter(
+    (e) => KNOWN_NODE_IDS.has(endpointId(e.source)) && KNOWN_NODE_IDS.has(endpointId(e.target)),
+  );
+  if (kept.length !== edges.length) {
+    const missing = new Set<string>();
+    edges.forEach((e) => {
+      [endpointId(e.source), endpointId(e.target)].forEach((id) => {
+        if (!KNOWN_NODE_IDS.has(id)) missing.add(id);
+      });
+    });
+    console.warn(
+      `[spellweb] ${context}: dropped ${edges.length - kept.length} edge(s) referencing unknown node(s): ${[...missing].join(", ")}`,
+    );
+  }
+  return kept;
+}
+
 // D3 simulation node type
 interface SimulationNode extends SpellwebNode {
   x: number;
@@ -147,7 +180,10 @@ export default function SpellWeb() {
   const [userEdges, setUserEdges] = useState<SpellwebEdge[]>(() => {
     try {
       const saved = localStorage.getItem(SPELLWEB_STORAGE_KEYS.userEdges);
-      return saved ? JSON.parse(saved) : [];
+      // Prune endpoints that no longer exist before they ever reach the
+      // simulation — the persist effect writes the pruned list straight back,
+      // so a stale id self-heals on first load instead of crashing every load.
+      return saved ? liveEdges(JSON.parse(saved) as SpellwebEdge[], "stored user edges") : [];
     } catch { return []; }
   });
   // Canonical edge keys — order-independent "src::tgt::type" strings of edges
@@ -802,7 +838,7 @@ export default function SpellWeb() {
     // Clone all data for D3 mutation (use ALL nodes initially)
     nodeDataRef.current = NODES.map((n) => ({ ...n, x: graphW / 2 + (Math.random() - 0.5) * 200, y: h / 2 + (Math.random() - 0.5) * 200 }));
     // Include both static EDGES and userEdges
-    const allEdges = [...EDGES, ...userEdges];
+    const allEdges = liveEdges([...EDGES, ...userEdges], "graph init");
     edgeDataRef.current = allEdges.map((e) => ({
       ...e,
       source: typeof e.source === "string" ? e.source : e.source.id,
@@ -1239,7 +1275,7 @@ export default function SpellWeb() {
     const linksG = g.select<SVGGElement>(".links");
 
     // Rebuild edge data with both static and user edges
-    const allEdges = [...EDGES, ...userEdges];
+    const allEdges = liveEdges([...EDGES, ...userEdges], "userEdges sync");
     edgeDataRef.current = allEdges.map((e) => ({
       ...e,
       source: typeof e.source === "string" ? e.source : e.source.id,
