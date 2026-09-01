@@ -153,7 +153,8 @@ scripts/
 ├── audit-orphans.mjs          # Standing graph audit gate
 └── v160-roundtrip-check.mts   # v1.6.0 .md import round-trip (15 served templates · 0 errors / 0 warnings at v1.6.0)
 docs/
-└── chronicles/                # Development chronicles · v1.6.0 lattice arc = 13 chronicles dated 2026-05-12 → 2026-05-15
+└── chronicles/                # Every chronicle · note · mapping · dream (single home — nothing at repo root)
+                               # v1.6.0 lattice arc = 13 chronicles dated 2026-05-12 → 2026-05-15
 ```
 
 ---
