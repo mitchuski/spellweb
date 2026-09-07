@@ -85,17 +85,29 @@ export function emptyKey(identity: KeyIdentity = {}): SwordsmanCityKey {
 }
 
 /**
- * Star-surface fields that RIDE WITH THE KEY through every fold/reseal (2026-06-12).
+ * Star-surface fields RIDE WITH THE KEY through every fold/reseal (2026-06-12).
  * `geometry` is the bearer's chosen stance — written at /star, passed through by
  * /lattice, worn by /sigil's ring. Until measured figures make the shape automatic
- * (FIG-2.0, future /city work), the chosen stance must survive the spellweb round-trip,
- * so these fields are carried verbatim from the previous payload. They are content —
- * they stay inside the κ preimage, exactly as star semantics demand. The reading
- * fields (name/version/kind/identity/lattice/weight/charges/prior) stay owned here.
+ * (FIG-2.0, future /city work), the chosen stance must survive the spellweb round-trip.
+ * They are content — they stay inside the κ preimage, exactly as star semantics demand.
+ *
+ * 2026-09-07: the carry policy is INVERTED. It was a closed allowlist
+ * (palette/descriptions/geometry/lit/trace/focus/witness/figures/packets/did), which
+ * silently dropped everything not enumerated — `walks`, `charts`, and any newer or
+ * namespaced extension — on the FIRST fold or reseal after an otherwise faithful import.
+ * That loss re-derives a new κ, and a signer whose chain rule is `prior === head` cannot
+ * distinguish it from an earned evolution. So the default is now: carry everything the
+ * previous payload held, except the reading fields this module owns and recomputes.
+ *
+ * Carrying a field is NOT validating it. An imported `packets` root, `did` or unknown
+ * extension rides through unread; whether any of it is true is a separate question asked
+ * by a verifier, and answered somewhere else.
  */
-const CARRIED_STAR_FIELDS = [
-  'palette', 'descriptions', 'geometry', 'lit', 'trace', 'focus', 'witness',
-  'figures', 'packets', 'did',
+const OWNED_PAYLOAD_FIELDS = [
+  // recomputed from the charge tape on every build — never carried from `prev`
+  'name', 'version', 'kind', 'identity', 'lattice', 'weight', 'charges',
+  // chain state, held on the key itself (kappa / priorKappa), never inside the preimage
+  'kappa', 'prior',
 ] as const;
 
 /**
@@ -115,9 +127,10 @@ export function buildPayload(key: SwordsmanCityKey): Record<string, unknown> {
   if (key.swordsmanId) identity.swordsman = key.swordsmanId;
   if (key.mageId) identity.mage = key.mageId;
   const prev = (key.payload ?? {}) as Record<string, unknown>;
+  const owned = new Set<string>(OWNED_PAYLOAD_FIELDS);
   const out: Record<string, unknown> = {};
-  for (const f of CARRIED_STAR_FIELDS) {
-    if (prev[f] !== undefined) out[f] = prev[f];
+  for (const [f, v] of Object.entries(prev)) {
+    if (!owned.has(f) && v !== undefined) out[f] = v;   // carry, don't enumerate
   }
   out.name = key.bearerName || "the swordsman's city key";
   out.version = 1;
@@ -221,7 +234,7 @@ export async function stamp(
 // (/star · /lattice · /sigil · /skye · agentprivacy /city). κ-lineage is what
 // rotates: the imported reading folds into the tape, and the star dress
 // (palette · geometry · lit · trace …) RIDES WITH THE KEY — carried verbatim
-// through every fold via CARRIED_STAR_FIELDS, so the stance chosen at /star
+// through every fold — everything but OWNED_PAYLOAD_FIELDS — so the stance at /star
 // survives the spellweb round-trip (changed 2026-06-12; it used to stay with
 // its surface). The prior-chain carries through per the star rotation rule —
 // content unchanged at adoption ⇒ `prior` carries; the first local fold

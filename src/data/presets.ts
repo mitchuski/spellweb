@@ -228,7 +228,7 @@ export const TAILOR_BLADE_PRESET: PresetConstellation = {
   nodeCount: 7,
   marks: [
     { nodeId: 'con-myterms', emoji: '📋', note: 'MyTerms / IEEE 7012 — the agreement before the proposal. Pallia weaves only what the Swordsman has signed.', emojiSpell: '📋⊥📜' },
-    { nodeId: 'con-7thcapital', emoji: '💎', note: 'The 7th Capital — what Pallia\'s cloak protects. Privacy as the residue of being alive in a watched world.', emojiSpell: '💎(behavioural sovereignty)' },
+    { nodeId: 'con-7thcapital', emoji: '💎', note: 'The 7th Capital — what Pallia\'s cloak protects. Privacy as the residue of being alive in a watched world. Soil, not treasure: held ground pays rent.', emojiSpell: '💎(behavioural sovereignty)' },
     { nodeId: 'zk-tale-3', emoji: '🔇', note: 'Aletheia · Silent Messenger · Blade 25. The medium Pallia\'s proof travels through.', emojiSpell: '🎭(interactive) → 🔮 → 🔇(non-interactive)' },
     { nodeId: 'per-weaver', emoji: '🧙⿻', note: 'The Weaver — the abstract role. Pallia 🪡 is the City-of-Mages instance who tends /tailor.', emojiSpell: '🧙⿻ → 🪡' },
     { nodeId: 'con-vrc', emoji: '🤝', note: 'VRC — the trust edge each cloak commission generates. Bilateral; recallable; auditable on demand.', emojiSpell: '🤝(role-published, name-concealed)' },
@@ -409,7 +409,7 @@ export const VAULT_BLADE_PRESET: PresetConstellation = {
   tier: 'dragon',
   nodeCount: 7,
   marks: [
-    { nodeId: 'con-7thcapital', emoji: '💎', note: 'The 7th Capital — what curated IP protects and re-presents to its source.', emojiSpell: '💎(creative residue)' },
+    { nodeId: 'con-7thcapital', emoji: '💎', note: 'The 7th Capital — what curated IP protects and re-presents to its source. Leased as a season\'s harvest, never conveyed as the land.', emojiSpell: '💎(creative residue)' },
     { nodeId: 'zk-tale-12', emoji: '🔄', note: 'The Folding Path — curated work folds across time without losing its source.', emojiSpell: '📜₁+📜₂ → 🔄📜₃' },
     { nodeId: 'doc-tide-selene-poem', emoji: '🌊', note: 'The Tide Proves Orbit Keeps Selene — the third poem; Aria\'s register is its narrative ground.', emojiSpell: '🌊(tide proves) · 🌑(orbit keeps)' },
     { nodeId: 'per-mirrorkeeper', emoji: '🪞✨', note: 'The Mirrorkeeper — abstract role; Aria Silverhue 🪞🖼️ is the City-of-Mages instance who tends /vault.', emojiSpell: '🪞✨ → 🪞🖼️' },

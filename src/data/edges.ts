@@ -2066,6 +2066,19 @@ export const EDGES: SpellwebEdge[] = [
   { source: "zk-tale-31", target: "doc-tide-selene-poem", type: "references" },
   { source: "zk-tale-31", target: "doc-zk-blade-forge-spec", type: "references" },
 
+  // ─── Zero Tale 32 (The Flock · Blade 61 / V47 · vertex ⟨1,0,1,1,1,1⟩ · 2026-09-05) ───
+  { source: "zk-tale-31", target: "zk-tale-32", type: "follows" },
+  { source: "spellbook-zk", target: "zk-tale-32", type: "defines" },
+  // The counting triple: Folding Path (23) + Lethe (38) = Flock (61); 61/38 ≈ φ
+  { source: "zk-tale-32", target: "zk-tale-12", type: "references" },
+  { source: "zk-tale-32", target: "zk-tale-31", type: "references" },
+  // The shape it inherits and the dragon it has no need of
+  { source: "zk-tale-32", target: "zk-tale-24", type: "references" },
+  { source: "zk-tale-32", target: "zk-tale-18", type: "references" },
+  // V(π,t) anchor — the horizon that survives the quantum break
+  { source: "zk-tale-32", target: "con-a-h-tau", type: "extends" },
+  { source: "zk-tale-32", target: "doc-zk-blade-forge-spec", type: "references" },
+
   // â”€â”€â”€ Grimoire v10.2 doc node â”€â”€â”€
   { source: "doc-privacymage-grimoire-v10-2", target: "spellbook-firstperson", type: "defines" },
   { source: "doc-privacymage-grimoire-v10-2", target: "spellbook-zk", type: "defines" },
@@ -2467,6 +2480,8 @@ export const EDGES: SpellwebEdge[] = [
   { source: "conj-c94",                   target: "conj-c39",                    type: "extends" },
   { source: "conj-c95",                   target: "concept-evidence-graph",      type: "references" },
   { source: "conj-c96",                   target: "conj-c94",                    type: "extends" },
+  { source: "conj-c97",                   target: "conj-c55",                    type: "extends" },   // Band XI · the bridge grounds the soil character
+  { source: "conj-c97",                   target: "conj-c82",                    type: "references" },// ownability durable for the term the erosion clock permits
   { source: "key-hearthold-citykey",      target: "gateway-soulbis-star",        type: "synced_with" },
   { source: "key-hearthold-citykey",      target: "concept-kappa-derivation",    type: "derives_identity_from" },
   { source: "key-hearthold-citykey",      target: "key-city-key",                type: "references" },
@@ -2568,5 +2583,23 @@ export const EDGES: SpellwebEdge[] = [
   { source: "shop-wellpool",      target: "per-limnia",        type: "references" },
   { source: "shop-wellpool",      target: "artefact-manastone", type: "references" },
   { source: "shop-chancery",      target: "gateway-lexon-pvm", type: "references" },
-  { source: "shop-quartermaster", target: "skill-dual-agent-harness", type: "references" }
+  { source: "shop-quartermaster", target: "skill-dual-agent-harness", type: "references" },
+
+  // -- The Field Guide weave (2026-08-17 convergence merge) --
+  { source: "gateway-field-guide",           target: "tech-oasis",                     type: "requires" },
+  { source: "gateway-field-guide",           target: "concept-dtg-credentials",        type: "implements" },
+  { source: "skill-hitchhiker",              target: "gateway-field-guide",            type: "relates_to" },
+  { source: "doc-field-guide-counter-spec",  target: "gateway-field-guide",            type: "references" },
+  { source: "doc-field-guide-counter-spec",  target: "concept-dtg-credentials",        type: "extends" },
+  { source: "doc-field-guide-counter-spec",  target: "concept-meet-rite",              type: "defines" },
+  { source: "doc-field-guide-counter-spec",  target: "concept-audience-granted",       type: "defines" },
+  { source: "doc-field-guide-counter-spec",  target: "concept-pairwise-peer-reference", type: "defines" },
+  { source: "doc-field-guide-counter-spec",  target: "concept-publication-consent",    type: "defines" },
+  { source: "doc-field-guide-counter-spec",  target: "concept-erosion-rate",           type: "defines" },
+  { source: "doc-field-guide-counter-spec",  target: "concept-rounding-rule",          type: "defines" },
+  { source: "concept-meet-rite",             target: "concept-dtg-credentials",        type: "implements" },
+  { source: "concept-pairwise-peer-reference", target: "concept-dtg-credentials",      type: "implements" },
+  { source: "concept-audience-granted",      target: "concept-evidence-graph",         type: "relates_to" },
+  { source: "chron-field-guide-convergence", target: "doc-field-guide-counter-spec",   type: "narrates" },
+  { source: "chron-field-guide-convergence", target: "gateway-field-guide",            type: "narrates" }
 ];

@@ -278,6 +278,12 @@ export interface SpellwebNode {
   ceremony?: string;            // e.g. "Run · Evoke · Craft" · "Hold · Compare · Map" · "Display · Choose · Dispatch"
   workshopRegister?: 'producer' | 'gathering' | 'spawn_and_bind' | 'attentional';  // C63 fourth-class candidate at v1.6.0
   href?: string;                // Workshop / external route or URL
+  // Guide bridge (2026-09-05 · PLAN_KNOWLEDGE_GRAPH_TO_VTA Phase 1A): the guide page this
+  // node IS, by slug. Identity is the slug, never the host — `site` only says where the
+  // bake found it. Populated from src/data/guide-bridge.ts (scripts/build-guide-bridge.mjs);
+  // a constellation of bridged nodes projects onto the star chart and evolves the same
+  // City Key as walking those stars there (key.evolve in agentprivacy-mcp).
+  guide?: { site: string; slug: string; vertex?: number | null; postured?: boolean };
   tradeQuarter?: TradeQuarter;  // Workshop's quarter in the City of Mages
   operatorStatus?: OperatorStatus;
   attribution?: Attribution;    // Vertex attribution per the Vertex Naming Audit

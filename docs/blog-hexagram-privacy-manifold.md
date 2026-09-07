@@ -64,7 +64,7 @@ We didn't stop at theory. In the AgentPrivacy browser extensions, users "forge b
 
 Cast enough spells, and you forge a blade at that state. The blade becomes yours. A record of the assertion you made, on that domain, at that moment.
 
-The progression follows VRC (Verifiable Reputation Credential) levels:
+The progression follows VRC (Verifiable Relationship Credential) levels:
 
 - **1 forging** → Layer 1 unlocked
 - **3 forgings** → Layer 2 unlocked
