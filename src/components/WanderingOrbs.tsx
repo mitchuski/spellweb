@@ -7,6 +7,8 @@
  */
 
 import { useEffect, useRef } from 'react';
+import { useEquippedStar } from '../lib/starLoadout';
+import { useStarAppearance } from '../lib/starAppearance';
 
 interface WanderingOrbsProps {
   width: number;
@@ -48,6 +50,12 @@ export function WanderingOrbs({
   swordsmanOrbitEmojis = [],
   mageOrbitEmojis = [],
 }: WanderingOrbsProps) {
+  const equipped = useEquippedStar();
+  const equippedRef = useRef(equipped); equippedRef.current = equipped;
+  const starButtonRef = useRef<HTMLButtonElement>(null);
+  const appearance = useStarAppearance();
+  const paletteRef = useRef(appearance?.palette);
+  paletteRef.current = appearance?.palette;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
 
@@ -293,9 +301,22 @@ export function WanderingOrbs({
       ctx.fillStyle = centerGlow;
       ctx.fill();
 
+      if (equippedRef.current) {
+        // The paired star binds the two orbs visually; their ceremony path stays intact.
+        for (let half = 0; half < 2; half++) {
+          ctx.beginPath();
+          for (let i = 0; i < 3; i++) {
+            const a = i * Math.PI * 2 / 3 - Math.PI / 2 + half * Math.PI;
+            const x = center.x + Math.cos(a) * 27, y = center.y + Math.sin(a) * 27;
+            if(i === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+          }
+          ctx.closePath(); ctx.strokeStyle = (half ? paletteRef.current?.mage : paletteRef.current?.sword) ?? '#9fc0ff'; ctx.lineWidth = 1; ctx.stroke();
+        }
+        if(starButtonRef.current) starButtonRef.current.style.transform = `translate(${Math.max(4, Math.min(width - 130, center.x - 60))}px, ${Math.max(4, Math.min(height - 48, center.y - 78))}px)`;
+      }
       // Draw orbs
-      drawOrb(ctx, swordsmanX, swordsmanY, '⚔️', SWORDSMAN_COLOR, '#ff6b6b', 14);
-      drawOrb(ctx, mageX, mageY, '✦', MAGE_COLOR, '#a78bfa', 14);
+      drawOrb(ctx, swordsmanX, swordsmanY, '⚔️', paletteRef.current?.sword ?? SWORDSMAN_COLOR, paletteRef.current?.sword ?? '#ff6b6b', 14);
+      drawOrb(ctx, mageX, mageY, '✦', paletteRef.current?.mage ?? MAGE_COLOR, paletteRef.current?.mage ?? '#a78bfa', 14);
 
       // Update emoji orbit angle (slightly faster than main orbit)
       emojiOrbitAngleRef.current += 0.0012 * 16;
@@ -308,7 +329,7 @@ export function WanderingOrbs({
           const angle = emojiOrbitAngleRef.current + (i * (2 * Math.PI) / emojiCount);
           const ex = swordsmanX + Math.cos(angle) * EMOJI_ORBIT_RADIUS;
           const ey = swordsmanY + Math.sin(angle) * EMOJI_ORBIT_RADIUS * 0.7;
-          drawOrbiterEmoji(ctx, ex, ey, emoji, SWORDSMAN_COLOR);
+          drawOrbiterEmoji(ctx, ex, ey, emoji, paletteRef.current?.sword ?? SWORDSMAN_COLOR);
         });
       }
 
@@ -320,7 +341,7 @@ export function WanderingOrbs({
           const angle = -emojiOrbitAngleRef.current + (i * (2 * Math.PI) / emojiCount); // Opposite direction
           const ex = mageX + Math.cos(angle) * EMOJI_ORBIT_RADIUS;
           const ey = mageY + Math.sin(angle) * EMOJI_ORBIT_RADIUS * 0.7;
-          drawOrbiterEmoji(ctx, ex, ey, emoji, MAGE_COLOR);
+          drawOrbiterEmoji(ctx, ex, ey, emoji, paletteRef.current?.mage ?? MAGE_COLOR);
         });
       }
 
@@ -342,6 +363,8 @@ export function WanderingOrbs({
   }
 
   return (
+    <>
+    {equipped && !isEvoking && <button ref={starButtonRef} className="star-orb-control" onClick={() => window.dispatchEvent(new Event('spellweb:open-star'))}>✦ Equipped Star</button>}
     <canvas
       ref={canvasRef}
       width={width}
@@ -357,6 +380,7 @@ export function WanderingOrbs({
         zIndex: 50,
       }}
     />
+    </>
   );
 }
 

@@ -1,0 +1,1072 @@
+{
+  "version": 1,
+  "id": "2026-09-08-ecosystem-foundations",
+  "observedAt": "2026-09-08",
+  "scope": "First source-backed ecosystem graph batch; no live-service or canonical-binding claim",
+  "sources": {
+    "mcp": {
+      "path": "agentprivacy-mcp/README.md",
+      "sha256": "6a347b6c1e4b1b14bb963833d043cf8d83822ab2fe9247de81057fc978c17a92",
+      "anchor": "The Swordsman"
+    },
+    "journey": {
+      "path": "agentprivacy-mcp/lib/journey.mjs",
+      "sha256": "1288d6a6711efa0494357d466d67ab5cbc5a04254e561b7d3f784778d6f2aaff",
+      "anchor": "agentprivacy.journey-bundle/1"
+    },
+    "bridge": {
+      "path": "spellweb/scripts/build-guide-bridge.mjs",
+      "sha256": "4edc7ae9199993bd3093162c92b47dde4e2366d2f85ce1e037783166e05b08b2",
+      "anchor": "constellationToWalk"
+    },
+    "posture": {
+      "path": "agentprivacy.guide/flow/builders/vta-lane.mjs",
+      "sha256": "b2c70e2e6644a038160d00a5d29f460797677fe5469cccb531f9cc0414bb8597",
+      "anchor": "Page Posture"
+    },
+    "spaces": {
+      "path": "cityofmages/mages-city/KNOWLEDGE_SPACES.md",
+      "sha256": "332a5e0319bdc2bcd6faf01eb1a6720e9a90c933566e1143efd9dd0959ca505e",
+      "anchor": "The encounter loop"
+    },
+    "vti": {
+      "path": "openvtc/verifiable-trust-infrastructure/AGENTS.md",
+      "sha256": "9d74b8aff737059f70e01a8c76458f2087474acbecb03f48fbdb5ac595d6cd64",
+      "anchor": "VTA foundations"
+    },
+    "vtamcp": {
+      "path": "openvtc/verifiable-trust-infrastructure/vta-mcp/README.md",
+      "sha256": "86377687bff7d91cfa0d552a8ac2275e85cd34b707c5c1f82dad5815d27c61c3",
+      "anchor": "context-scoped agent"
+    },
+    "extension": {
+      "path": "Documents/Codex/vta_star/README.md",
+      "sha256": "e173c29a540ba544bdd22126a6b5edfac1a33f29b9d45fbab2dbc5c6e1481c3a",
+      "anchor": "appearance only"
+    },
+    "star": {
+      "path": "codex_mage/STAR_AS_MODEL.md",
+      "sha256": "ba75266e95028e858180cea3b058953f652127bf348630501442abfae554ddcd",
+      "anchor": "Core artefact and temporal view"
+    },
+    "observer": {
+      "path": "codex_mage/PURPOSE.md",
+      "sha256": "57646f9d5fc5030045b999fa3f1f149aeefb7fefb02da46bc6efbaaaaf468619",
+      "anchor": "Survey is an entry into research"
+    },
+    "labs": {
+      "path": "agentprivacy_labs/README.md",
+      "sha256": "c483d5c98e23b1b8e06834d4a954f4d41a89952e8840933658c2428a05014f8c",
+      "anchor": "agentprivacy.org"
+    },
+    "adoption": {
+      "path": "codex_mage/outputs/HARNESS_SKILL_ADOPTION.md",
+      "sha256": "cced62af917d9e1e8a20607a8637f0af0c44357b31cba8484176f7130506a3d8",
+      "anchor": "observer proposal"
+    },
+    "zkbook": {
+      "path": "dtgwg-cred-spec-main_mage/zkbook/README.md",
+      "sha256": "47b8015962709c2ecdabea4b7a99fea3f312c6f69f147558c343c81431b02e76",
+      "anchor": "Spec-Up-T"
+    },
+    "dtg": {
+      "path": "dtgwg-cred-spec-main_mage/AGENTS.md",
+      "sha256": "4d08d18e0df7db37573345068f55dda245830915f9c8701befd6de658f930dde",
+      "anchor": "It is **not the specification**"
+    },
+    "starDiscovery": {
+      "path": "agentprivacy_master/docs/chronicles/2026-09-07_the-star-becomes-the-shared-reading.md",
+      "sha256": "9a4827e7ae660b637d9d29b9eab3aa6ee5c08de0e47b244572406262a9e1a29b",
+      "anchor": "proposed proof-carrying presentation"
+    }
+  },
+  "nodes": [
+    {
+      "id": "concept-agentprivacy-mcp",
+      "type": "concept",
+      "label": "AgentPrivacy MCP",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "Local stdio tools for guide discovery, named lattice moves, deterministic City Key evolution and journey evidence. Mage-side tools compose over a baked graph; signing belongs to the separate Swordsman process. Browser action preparation does not dispatch or authorize an effect.",
+      "evidence": {
+        "status": "local implementation",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "agentprivacy-mcp/README.md",
+          "agentprivacy-mcp/lib/journey.mjs"
+        ],
+        "note": "Inspected local code and README; this is distinct from OpenVTC VTA MCP."
+      }
+    },
+    {
+      "id": "concept-swordsman-process",
+      "type": "concept",
+      "label": "The Swordsman Process",
+      "domain": "swordsman",
+      "layer": "knowledge",
+      "desc": "Separate deterministic signing service described by AgentPrivacy MCP. It checks key content, holder identity, lineage and policy before emitting a signed VTA record. No live signer was provisioned or exercised by this graph update.",
+      "evidence": {
+        "status": "local implementation",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "agentprivacy-mcp/README.md"
+        ],
+        "note": "Policy implementation is represented; no new claim of production isolation, PSI or credential issuance."
+      }
+    },
+    {
+      "id": "concept-vta-record",
+      "type": "concept",
+      "label": "The VTA Record",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "The agentprivacy.vta/1 signed projection travels beside a City Key: public identity, content commitment, prior, signing time, walk count and relationship commitments. A record is distinct from its private key payload and from City membership or authority.",
+      "evidence": {
+        "status": "local implementation",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "agentprivacy-mcp/README.md"
+        ],
+        "note": "Record verification and application authorization remain separate."
+      }
+    },
+    {
+      "id": "concept-page-posture",
+      "type": "concept",
+      "label": "Page Posture",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "A guide page can declare a six-bit sovereignty posture: Protection 32, Delegation 16, Memory 8, Connection 4, Computation 2, Value 1. Builder and suggested assignments retain their provenance. This is a separate coordinate convention from legacy Spellweb hexagram scoring.",
+      "evidence": {
+        "status": "local implementation",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "agentprivacy.guide/flow/builders/vta-lane.mjs",
+          "agentprivacy-mcp/README.md"
+        ],
+        "note": "Page-to-node correspondence does not by itself establish an authoritative lattice assignment."
+      }
+    },
+    {
+      "id": "concept-guide-bridge",
+      "type": "concept",
+      "label": "Spellweb Guide Bridge",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "Maps stable Spellweb node references to guide page slugs so a constellation can become a guide walk. The generator reports unmatched nodes and posture drift. Equivalent key evolution requires the same baked content and an actual consumer of the mapping.",
+      "evidence": {
+        "status": "local implementation",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "spellweb/scripts/build-guide-bridge.mjs",
+          "agentprivacy-mcp/README.md"
+        ],
+        "note": "Generator inspected; full tracing UI integration remains open."
+      }
+    },
+    {
+      "id": "concept-private-journey-bundle",
+      "type": "concept",
+      "label": "Private Journey Bundle",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "agentprivacy.journey-bundle/1 retains original artefact packets and task documents while the City Key accumulates their commitments and prior lineage. Validation rejects altered or missing evidence; recording a task is not verifying or authorizing it.",
+      "evidence": {
+        "status": "local implementation",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "agentprivacy-mcp/lib/journey.mjs"
+        ],
+        "note": "Shared Node/browser journey checks pass; local browser persistence is not VTA vault retention."
+      }
+    },
+    {
+      "id": "concept-agent-knowledge-space",
+      "type": "concept",
+      "label": "VTA + Star Knowledge Space",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "September 8 integration design: FedWiki records, a carried Star, MCP Trust Tasks, VTA permission enforcement and an earned City name form one continuing journey. Receiving services enforce grants; a proposed graph relation is not an accepted trust edge.",
+      "evidence": {
+        "status": "design",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "cityofmages/mages-city/KNOWLEDGE_SPACES.md"
+        ],
+        "note": "Live permission, provisioning and cross-origin carry adapters remain staged or partial."
+      }
+    },
+    {
+      "id": "concept-openvtc-vti",
+      "type": "concept",
+      "label": "OpenVTC Verifiable Trust Infrastructure",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "Upstream VTA/VTC infrastructure provides distinct service, key, vault, policy and SDK components. AgentPrivacy integration must name the supported interface and configured service rather than infer authority from a Star or imported City Key.",
+      "evidence": {
+        "status": "upstream implementation",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "openvtc/verifiable-trust-infrastructure/AGENTS.md",
+          "openvtc/verifiable-trust-infrastructure/vta-mcp/README.md",
+          "cityofmages/mages-city/KNOWLEDGE_SPACES.md"
+        ],
+        "note": "Upstream implementation is credited to OpenVTC; no deployment or authenticated connection checked here."
+      }
+    },
+    {
+      "id": "concept-openvtc-vta-mcp",
+      "type": "concept",
+      "label": "OpenVTC VTA MCP",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "Upstream stdio bridge exposes VTA capabilities to MCP hosts using a dedicated context-scoped agent. This management and capability interface is separate from AgentPrivacy MCP guide walking and City Key composition.",
+      "evidence": {
+        "status": "upstream implementation",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "openvtc/verifiable-trust-infrastructure/vta-mcp/README.md"
+        ],
+        "note": "Scope and authentication are provider requirements, not established by graph visibility."
+      }
+    },
+    {
+      "id": "concept-vta-star-prototype",
+      "type": "concept",
+      "label": "VTA Star Browser Prototype",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "Unpacked browser prototype imports an appearance projection from City Key or journey JSON and retains only its validated palette in session storage. Its inspected README states that it cannot contact VTAs, exchange credentials or authenticate a City session.",
+      "evidence": {
+        "status": "prototype",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "Documents/Codex/vta_star/README.md"
+        ],
+        "note": "Located prototype; do not equate it with the separate Star Key experiment or a working sign-on provider."
+      }
+    },
+    {
+      "id": "concept-star-presentation",
+      "type": "concept",
+      "label": "Star Key Selected Presentation",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "September 7 design for an inspectable selection of VTA identity, relationships, knowledge pathways, agreements and artefacts. A presentation must bind its audience, purpose and verified claims; geometry and compression do not confer authority.",
+      "evidence": {
+        "status": "design",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "agentprivacy_master/docs/chronicles/2026-09-07_the-star-becomes-the-shared-reading.md",
+          "cityofmages/mages-city/KNOWLEDGE_SPACES.md"
+        ],
+        "note": "Discovery source is unsigned; standalone Star Key implementation provenance still needs reconciliation."
+      }
+    },
+    {
+      "id": "concept-star-core-artefact",
+      "type": "concept",
+      "label": "Star Core Artefact and Temporal View",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "September 8 direction places a selected core artefact or image inside the Star. Intrinsic SHAPE(key) remains distinct from a context- and time-dependent view. The moving-ceiling source and assumptions govern the surrounding temporal reading.",
+      "evidence": {
+        "status": "design",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "codex_mage/STAR_AS_MODEL.md"
+        ],
+        "note": "No new decay equation, measured activity, or credential authority is asserted."
+      }
+    },
+    {
+      "id": "concept-mages-city-runtime",
+      "type": "concept",
+      "label": "Mages City Agent Knowledge Runtime",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "The City knowledge-space design connects a scoped working space, contributions, task receipts and a later earned address. Wiki rights, membership, DNS entitlement and key custody remain distinct grants enforced by their receiving services.",
+      "evidence": {
+        "status": "design",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "cityofmages/mages-city/KNOWLEDGE_SPACES.md"
+        ],
+        "note": "This node describes the integration contract; individual live services require separate evidence."
+      }
+    },
+    {
+      "id": "concept-agentprivacy-labs",
+      "type": "concept",
+      "label": "AgentPrivacy Labs / agentprivacy.org",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "Human-facing AI cybersecurity research and services surface connecting the open-source stack, research programme, deployable work and experiments. Each contribution and funding feature carries its own status; a local site is not evidence of a deployed backend.",
+      "evidence": {
+        "status": "local implementation",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "agentprivacy_labs/README.md"
+        ],
+        "note": "Local source inspected. Funding copy has successive revisions; no current rail or payment result is inferred."
+      }
+    },
+    {
+      "id": "concept-codex-mage",
+      "type": "concept",
+      "label": "Codex Mage Research Continuity",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "Source-linked observations, questions, journeys, corrections and bounded experiments connect the AgentPrivacy universe across sessions. Contributions remain proposals until their relevant review and acceptance occurs; continuity must be demonstrated through retrieval and correction.",
+      "evidence": {
+        "status": "source record",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "codex_mage/PURPOSE.md",
+          "codex_mage/STAR_AS_MODEL.md"
+        ],
+        "note": "Research role and retained evidence, not a canonical cast admission or independent verifier."
+      }
+    },
+    {
+      "id": "concept-harness-contribution-path",
+      "type": "concept",
+      "label": "Harness Skills and Adoption Evidence",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "Observer proposal connects a versioned harness method and skill package to a task, retained result, limitations and adoption receipt. Replay, adaptation, independent checking and unresolved failures remain distinguishable; counts do not automatically grant reputation or permission.",
+      "evidence": {
+        "status": "design",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "codex_mage/outputs/HARNESS_SKILL_ADOPTION.md"
+        ],
+        "note": "An adoption path is proposed; this batch claims no fresh benchmark result or accepted contribution."
+      }
+    },
+    {
+      "id": "doc-dtg-zk-book",
+      "type": "document",
+      "label": "DTG ZK Book Evidence Bench",
+      "domain": "shared",
+      "layer": "knowledge",
+      "desc": "The local ZK Book is a Spec-Up-T publication source in the DTG evidence workbench. It connects protocol questions to records and construction evidence. The workbench supplies task-force input; it is not itself the upstream specification or ratification authority.",
+      "evidence": {
+        "status": "source record",
+        "observedAt": "2026-09-08",
+        "sources": [
+          "dtgwg-cred-spec-main_mage/zkbook/README.md",
+          "dtgwg-cred-spec-main_mage/AGENTS.md"
+        ],
+        "note": "Exact upstream revisions and this week's individual contributions remain a separate reconciliation pass."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "concept-agentprivacy-mcp",
+      "target": "key-city-key",
+      "type": "references"
+    },
+    {
+      "source": "concept-agentprivacy-mcp",
+      "target": "concept-swordsman-process",
+      "type": "references"
+    },
+    {
+      "source": "concept-swordsman-process",
+      "target": "concept-vta-record",
+      "type": "generates"
+    },
+    {
+      "source": "concept-vta-record",
+      "target": "key-city-key",
+      "type": "references"
+    },
+    {
+      "source": "concept-guide-bridge",
+      "target": "concept-page-posture",
+      "type": "references"
+    },
+    {
+      "source": "concept-agentprivacy-mcp",
+      "target": "concept-guide-bridge",
+      "type": "references"
+    },
+    {
+      "source": "concept-agentprivacy-mcp",
+      "target": "concept-private-journey-bundle",
+      "type": "references"
+    },
+    {
+      "source": "concept-private-journey-bundle",
+      "target": "key-city-key",
+      "type": "carries"
+    },
+    {
+      "source": "concept-agent-knowledge-space",
+      "target": "concept-private-journey-bundle",
+      "type": "requires"
+    },
+    {
+      "source": "concept-agent-knowledge-space",
+      "target": "concept-agentprivacy-mcp",
+      "type": "references"
+    },
+    {
+      "source": "concept-agent-knowledge-space",
+      "target": "concept-mages-city-runtime",
+      "type": "references"
+    },
+    {
+      "source": "concept-openvtc-vta-mcp",
+      "target": "concept-openvtc-vti",
+      "type": "references"
+    },
+    {
+      "source": "concept-mages-city-runtime",
+      "target": "concept-openvtc-vti",
+      "type": "references"
+    },
+    {
+      "source": "concept-vta-star-prototype",
+      "target": "key-city-key",
+      "type": "references"
+    },
+    {
+      "source": "concept-vta-star-prototype",
+      "target": "concept-private-journey-bundle",
+      "type": "references"
+    },
+    {
+      "source": "concept-vta-star-prototype",
+      "target": "gateway-soulbis-star",
+      "type": "references"
+    },
+    {
+      "source": "concept-star-presentation",
+      "target": "concept-agent-knowledge-space",
+      "type": "references"
+    },
+    {
+      "source": "concept-star-presentation",
+      "target": "concept-vta-star-prototype",
+      "type": "relates_to"
+    },
+    {
+      "source": "concept-star-core-artefact",
+      "target": "gateway-soulbis-star",
+      "type": "references"
+    },
+    {
+      "source": "concept-codex-mage",
+      "target": "concept-star-core-artefact",
+      "type": "references"
+    },
+    {
+      "source": "concept-codex-mage",
+      "target": "concept-star-presentation",
+      "type": "references"
+    },
+    {
+      "source": "concept-codex-mage",
+      "target": "concept-harness-contribution-path",
+      "type": "references"
+    },
+    {
+      "source": "concept-harness-contribution-path",
+      "target": "skill-dual-agent-harness",
+      "type": "references"
+    },
+    {
+      "source": "concept-harness-contribution-path",
+      "target": "concept-agentprivacy-labs",
+      "type": "references"
+    },
+    {
+      "source": "concept-agentprivacy-labs",
+      "target": "concept-mages-city-runtime",
+      "type": "references"
+    },
+    {
+      "source": "concept-mages-city-runtime",
+      "target": "civic-city-of-mages",
+      "type": "references"
+    },
+    {
+      "source": "doc-dtg-zk-book",
+      "target": "concept-dtg-credentials",
+      "type": "references"
+    },
+    {
+      "source": "concept-openvtc-vti",
+      "target": "concept-dtg-credentials",
+      "type": "references"
+    }
+  ],
+  "assertions": [
+    {
+      "node": "concept-agentprivacy-mcp",
+      "sources": [
+        "mcp",
+        "journey"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-swordsman-process",
+      "sources": [
+        "mcp"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-vta-record",
+      "sources": [
+        "mcp"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-page-posture",
+      "sources": [
+        "posture",
+        "mcp"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-guide-bridge",
+      "sources": [
+        "bridge",
+        "mcp"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-private-journey-bundle",
+      "sources": [
+        "journey"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-agent-knowledge-space",
+      "sources": [
+        "spaces"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-openvtc-vti",
+      "sources": [
+        "vti",
+        "vtamcp",
+        "spaces"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-openvtc-vta-mcp",
+      "sources": [
+        "vtamcp"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-vta-star-prototype",
+      "sources": [
+        "extension"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-star-presentation",
+      "sources": [
+        "starDiscovery",
+        "spaces"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-star-core-artefact",
+      "sources": [
+        "star"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-mages-city-runtime",
+      "sources": [
+        "spaces"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-agentprivacy-labs",
+      "sources": [
+        "labs"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-codex-mage",
+      "sources": [
+        "observer",
+        "star"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "concept-harness-contribution-path",
+      "sources": [
+        "adoption"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "node": "doc-dtg-zk-book",
+      "sources": [
+        "zkbook",
+        "dtg"
+      ],
+      "verdict": "NEW",
+      "coordinate": {
+        "namespace": "sovereignty-lattice",
+        "version": null,
+        "vertex": null,
+        "status": "unassigned",
+        "reason": "No canonical entity seat asserted by this batch."
+      }
+    },
+    {
+      "edge": {
+        "source": "concept-agentprivacy-mcp",
+        "target": "key-city-key",
+        "type": "references"
+      },
+      "sources": [
+        "mcp"
+      ],
+      "rationale": "Tools derive and evolve the existing carrier."
+    },
+    {
+      "edge": {
+        "source": "concept-agentprivacy-mcp",
+        "target": "concept-swordsman-process",
+        "type": "references"
+      },
+      "sources": [
+        "mcp"
+      ],
+      "rationale": "README explicitly separates the signing service from the Mage tools."
+    },
+    {
+      "edge": {
+        "source": "concept-swordsman-process",
+        "target": "concept-vta-record",
+        "type": "generates"
+      },
+      "sources": [
+        "mcp"
+      ],
+      "rationale": "Signing output is the record described by the source."
+    },
+    {
+      "edge": {
+        "source": "concept-vta-record",
+        "target": "key-city-key",
+        "type": "references"
+      },
+      "sources": [
+        "mcp"
+      ],
+      "rationale": "Record commits to key content; it does not carry the full private key."
+    },
+    {
+      "edge": {
+        "source": "concept-guide-bridge",
+        "target": "concept-page-posture",
+        "type": "references"
+      },
+      "sources": [
+        "bridge"
+      ],
+      "rationale": "Bridge audits posture where present."
+    },
+    {
+      "edge": {
+        "source": "concept-agentprivacy-mcp",
+        "target": "concept-guide-bridge",
+        "type": "references"
+      },
+      "sources": [
+        "mcp",
+        "bridge"
+      ],
+      "rationale": "Constellation and guide walks share the intended evolution contract."
+    },
+    {
+      "edge": {
+        "source": "concept-agentprivacy-mcp",
+        "target": "concept-private-journey-bundle",
+        "type": "references"
+      },
+      "sources": [
+        "journey",
+        "mcp"
+      ],
+      "rationale": "Local MCP project owns the journey wire rules."
+    },
+    {
+      "edge": {
+        "source": "concept-private-journey-bundle",
+        "target": "key-city-key",
+        "type": "carries"
+      },
+      "sources": [
+        "journey"
+      ],
+      "rationale": "The bundle retains its key alongside original evidence."
+    },
+    {
+      "edge": {
+        "source": "concept-agent-knowledge-space",
+        "target": "concept-private-journey-bundle",
+        "type": "requires"
+      },
+      "sources": [
+        "spaces"
+      ],
+      "rationale": "Design requires retained original evidence and lineage."
+    },
+    {
+      "edge": {
+        "source": "concept-agent-knowledge-space",
+        "target": "concept-agentprivacy-mcp",
+        "type": "references"
+      },
+      "sources": [
+        "spaces"
+      ],
+      "rationale": "MCP coordinates tasks in the shared design."
+    },
+    {
+      "edge": {
+        "source": "concept-agent-knowledge-space",
+        "target": "concept-mages-city-runtime",
+        "type": "references"
+      },
+      "sources": [
+        "spaces"
+      ],
+      "rationale": "The City grants naming and services enforce permissions."
+    },
+    {
+      "edge": {
+        "source": "concept-openvtc-vta-mcp",
+        "target": "concept-openvtc-vti",
+        "type": "references"
+      },
+      "sources": [
+        "vtamcp"
+      ],
+      "rationale": "Upstream bridge exposes VTA capabilities."
+    },
+    {
+      "edge": {
+        "source": "concept-mages-city-runtime",
+        "target": "concept-openvtc-vti",
+        "type": "references"
+      },
+      "sources": [
+        "spaces",
+        "vtamcp"
+      ],
+      "rationale": "Design targets supported VTA interfaces without asserting a connected deployment."
+    },
+    {
+      "edge": {
+        "source": "concept-vta-star-prototype",
+        "target": "key-city-key",
+        "type": "references"
+      },
+      "sources": [
+        "extension"
+      ],
+      "rationale": "Appearance import uses a selected projection of the carrier."
+    },
+    {
+      "edge": {
+        "source": "concept-vta-star-prototype",
+        "target": "concept-private-journey-bundle",
+        "type": "references"
+      },
+      "sources": [
+        "extension"
+      ],
+      "rationale": "Prototype accepts journey JSON for appearance, without retaining the bundle."
+    },
+    {
+      "edge": {
+        "source": "concept-vta-star-prototype",
+        "target": "gateway-soulbis-star",
+        "type": "references"
+      },
+      "sources": [
+        "extension"
+      ],
+      "rationale": "Customise action opens the existing Star instrument without attaching key data."
+    },
+    {
+      "edge": {
+        "source": "concept-star-presentation",
+        "target": "concept-agent-knowledge-space",
+        "type": "references"
+      },
+      "sources": [
+        "spaces",
+        "starDiscovery"
+      ],
+      "rationale": "Selected presentation is part of the knowledge-space encounter design."
+    },
+    {
+      "edge": {
+        "source": "concept-star-presentation",
+        "target": "concept-vta-star-prototype",
+        "type": "relates_to"
+      },
+      "sources": [
+        "extension",
+        "starDiscovery"
+      ],
+      "rationale": "Related design and prototype; no identity or successor claim."
+    },
+    {
+      "edge": {
+        "source": "concept-star-core-artefact",
+        "target": "gateway-soulbis-star",
+        "type": "references"
+      },
+      "sources": [
+        "star"
+      ],
+      "rationale": "Proposal extends the existing Star reading."
+    },
+    {
+      "edge": {
+        "source": "concept-codex-mage",
+        "target": "concept-star-core-artefact",
+        "type": "references"
+      },
+      "sources": [
+        "star"
+      ],
+      "rationale": "Observer retains the September 8 proposal and source reconciliation."
+    },
+    {
+      "edge": {
+        "source": "concept-codex-mage",
+        "target": "concept-star-presentation",
+        "type": "references"
+      },
+      "sources": [
+        "observer",
+        "star"
+      ],
+      "rationale": "Role connects permitted perspective with evidence."
+    },
+    {
+      "edge": {
+        "source": "concept-codex-mage",
+        "target": "concept-harness-contribution-path",
+        "type": "references"
+      },
+      "sources": [
+        "adoption"
+      ],
+      "rationale": "Observer proposal records method-to-adoption route."
+    },
+    {
+      "edge": {
+        "source": "concept-harness-contribution-path",
+        "target": "skill-dual-agent-harness",
+        "type": "references"
+      },
+      "sources": [
+        "adoption"
+      ],
+      "rationale": "Proposal builds on existing harness methods."
+    },
+    {
+      "edge": {
+        "source": "concept-harness-contribution-path",
+        "target": "concept-agentprivacy-labs",
+        "type": "references"
+      },
+      "sources": [
+        "adoption"
+      ],
+      "rationale": "Source describes the method-packages presentation on Labs."
+    },
+    {
+      "edge": {
+        "source": "concept-agentprivacy-labs",
+        "target": "concept-mages-city-runtime",
+        "type": "references"
+      },
+      "sources": [
+        "labs",
+        "spaces"
+      ],
+      "rationale": "Human and agent entrances remain distinct parts of the same programme."
+    },
+    {
+      "edge": {
+        "source": "concept-mages-city-runtime",
+        "target": "civic-city-of-mages",
+        "type": "references"
+      },
+      "sources": [
+        "spaces"
+      ],
+      "rationale": "Operational knowledge-space design retains canonical City naming."
+    },
+    {
+      "edge": {
+        "source": "doc-dtg-zk-book",
+        "target": "concept-dtg-credentials",
+        "type": "references"
+      },
+      "sources": [
+        "dtg",
+        "zkbook"
+      ],
+      "rationale": "Evidence bench informs credential work without replacing the specification."
+    },
+    {
+      "edge": {
+        "source": "concept-openvtc-vti",
+        "target": "concept-dtg-credentials",
+        "type": "references"
+      },
+      "sources": [
+        "dtg",
+        "spaces"
+      ],
+      "rationale": "Separate infrastructure and credential authority; this edge grants no conformance certification."
+    }
+  ]
+}

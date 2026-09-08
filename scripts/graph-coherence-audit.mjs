@@ -5,10 +5,9 @@
 // shopAnchor → workshop href resolution.
 // Run: node scripts/graph-coherence-audit.mjs
 import { readFileSync } from 'node:fs';
+import { readGraph } from './read-graph.mjs';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
-const nodesSrc = read('../src/data/nodes.ts');
-const edgesSrc = read('../src/data/edges.ts');
 const graphSrc = read('../src/types/graph.ts');
 
 // ── Parse type unions ──
@@ -28,24 +27,14 @@ function parseUnion(name) {
 const NODE_TYPES = parseUnion('NodeType');
 const EDGE_TYPES = parseUnion('EdgeType');
 
-// ── Parse nodes (one object per line in this codebase) ──
-const nodes = new Map(); // id → { type, label, vertex, href, shopAnchor, line }
+// Read actual exports, including multiline literals and spread arrays.
+const { nodes: exportedNodes, edges } = await readGraph();
+const nodes = new Map();
 const dupIds = [];
-nodesSrc.split('\n').forEach((line, i) => {
-  const id = line.match(/\{ id: "([^"]+)"/)?.[1];
-  if (!id) return;
-  const get = (k) => line.match(new RegExp(`${k}: "([^"]*)"`))?.[1];
-  const vertex = line.match(/vertex: (\d+)/)?.[1];
-  if (nodes.has(id)) dupIds.push(`${id} (lines ${nodes.get(id).line} + ${i + 1})`);
-  nodes.set(id, { type: get('type'), label: get('label'), vertex: vertex !== undefined ? Number(vertex) : undefined, href: get('href'), shopAnchor: get('shopAnchor'), line: i + 1 });
-});
-
-// ── Parse edges ──
-const edges = [];
-for (const m of edgesSrc.matchAll(/\{ source: "([^"]+)",\s*target: "([^"]+)",\s*type: "([^"]+)"/g)) {
-  edges.push({ source: m[1], target: m[2], type: m[3] });
+for (const node of exportedNodes) {
+  if (nodes.has(node.id)) dupIds.push(node.id);
+  nodes.set(node.id, node);
 }
-
 const issues = { error: [], warn: [] };
 const log = (sev, msg) => issues[sev].push(msg);
 

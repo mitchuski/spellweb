@@ -2,6 +2,108 @@
  "rule": "identity is the slug, never the host",
  "origin": "https://guide.agentprivacy.ai/",
  "bridge": {
+  "concept-agentprivacy-mcp": {
+   "site": "harness",
+   "slug": "agentprivacy-mcp",
+   "vertex": 2,
+   "postured": false
+  },
+  "concept-swordsman-process": {
+   "site": "harness",
+   "slug": "the-swordsman-process",
+   "vertex": 34,
+   "postured": true
+  },
+  "concept-vta-record": {
+   "site": "harness",
+   "slug": "the-vta-record",
+   "vertex": 41,
+   "postured": true
+  },
+  "concept-page-posture": {
+   "site": "guide",
+   "slug": "page-posture",
+   "vertex": 12,
+   "postured": true
+  },
+  "concept-guide-bridge": {
+   "site": "guide",
+   "slug": "spellweb-guide-bridge",
+   "vertex": 4,
+   "postured": false
+  },
+  "concept-private-journey-bundle": {
+   "site": "harness",
+   "slug": "private-journey-bundle",
+   "vertex": 2,
+   "postured": false
+  },
+  "concept-agent-knowledge-space": {
+   "site": "guide",
+   "slug": "vta-star-knowledge-space",
+   "vertex": 4,
+   "postured": false
+  },
+  "concept-openvtc-vti": {
+   "site": "harness",
+   "slug": "openvtc-verifiable-trust-infrastructure",
+   "vertex": 2,
+   "postured": false
+  },
+  "concept-openvtc-vta-mcp": {
+   "site": "harness",
+   "slug": "openvtc-vta-mcp",
+   "vertex": 2,
+   "postured": false
+  },
+  "concept-vta-star-prototype": {
+   "site": "guide",
+   "slug": "vta-star-browser-prototype",
+   "vertex": 4,
+   "postured": false
+  },
+  "concept-star-presentation": {
+   "site": "guide",
+   "slug": "star-key-selected-presentation",
+   "vertex": 4,
+   "postured": false
+  },
+  "concept-star-core-artefact": {
+   "site": "guide",
+   "slug": "star-core-artefact-and-temporal-view",
+   "vertex": 4,
+   "postured": false
+  },
+  "concept-mages-city-runtime": {
+   "site": "city",
+   "slug": "mages-city-agent-knowledge-runtime",
+   "vertex": 1,
+   "postured": false
+  },
+  "concept-agentprivacy-labs": {
+   "site": "research",
+   "slug": "agentprivacy-labs",
+   "vertex": 32,
+   "postured": false
+  },
+  "concept-codex-mage": {
+   "site": "codexmage",
+   "slug": "codex-mage-research-continuity",
+   "vertex": 4,
+   "postured": false
+  },
+  "concept-harness-contribution-path": {
+   "site": "harness",
+   "slug": "harness-skills-and-adoption-evidence",
+   "vertex": 2,
+   "postured": false
+  },
+  "doc-dtg-zk-book": {
+   "site": "dtg",
+   "slug": "dtg-zk-book-evidence-bench",
+   "vertex": 32,
+   "postured": false
+  },
   "doc-whitepaper": {
    "site": "atlas",
    "slug": "whitepaper-v47",
@@ -542,6 +644,12 @@
    "vertex": 8,
    "postured": false
   },
+  "zk-tale-32": {
+   "site": "atlas",
+   "slug": "zk-tale-32-the-flock",
+   "vertex": 8,
+   "postured": false
+  },
   "spellbook-canon": {
    "site": "atlas",
    "slug": "blockchain-canon",
@@ -897,15 +1005,15 @@
    "postured": false
   },
   "per-soulbis": {
-   "site": "atlas",
+   "site": "skill",
    "slug": "soulbis",
-   "vertex": 8,
+   "vertex": 16,
    "postured": false
   },
   "per-soulbae": {
-   "site": "atlas",
+   "site": "skill",
    "slug": "soulbae",
-   "vertex": 8,
+   "vertex": 16,
    "postured": false
   },
   "per-cipher": {
@@ -939,9 +1047,9 @@
    "postured": false
   },
   "per-assessor": {
-   "site": "atlas",
+   "site": "skill",
    "slug": "assessor",
-   "vertex": 8,
+   "vertex": 16,
    "postured": false
   },
   "per-ambassador": {
@@ -951,15 +1059,15 @@
    "postured": false
   },
   "per-chronicler": {
-   "site": "atlas",
+   "site": "skill",
    "slug": "chronicler",
-   "vertex": 8,
+   "vertex": 16,
    "postured": false
   },
   "per-shipwright": {
-   "site": "atlas",
+   "site": "skill",
    "slug": "shipwright",
-   "vertex": 8,
+   "vertex": 16,
    "postured": false
   },
   "per-weaver": {
@@ -1127,8 +1235,8 @@
   "con-understanding-as-key": {
    "site": "guide",
    "slug": "understanding-as-key",
-   "vertex": 33,
-   "postured": true
+   "vertex": 4,
+   "postured": false
   },
   "con-emissary-recursion": {
    "site": "atlas",
@@ -1505,8 +1613,8 @@
   "skill-understanding-key": {
    "site": "guide",
    "slug": "understanding-as-key",
-   "vertex": 33,
-   "postured": true
+   "vertex": 4,
+   "postured": false
   },
   "skill-governance-agents": {
    "site": "atlas",
@@ -1911,9 +2019,9 @@
    "postured": false
   },
   "per-herald": {
-   "site": "atlas",
+   "site": "skill",
    "slug": "herald",
-   "vertex": 8,
+   "vertex": 16,
    "postured": false
   },
   "per-forgemaster": {
@@ -2363,6 +2471,528 @@
   "skill-reflect-connect": {
    "site": "atlas",
    "slug": "reflectconnect-recursion",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-swordsman-and-mage-meet": {
+   "site": "atlas",
+   "slug": "swordsman-and-mage-meet",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-lattice-measurement": {
+   "site": "atlas",
+   "slug": "lattice-measurement",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-domfree": {
+   "site": "atlas",
+   "slug": "dom-free",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-hexagram": {
+   "site": "atlas",
+   "slug": "hexagram",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-constellation-nodes": {
+   "site": "atlas",
+   "slug": "constellation-nodes",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-spell-casting-onto-page": {
+   "site": "atlas",
+   "slug": "spell-casting-onto-page",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-inscription-flows-to-spellweb": {
+   "site": "atlas",
+   "slug": "inscription-flows-to-spellweb",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-lattice-vertex": {
+   "site": "atlas",
+   "slug": "lattice-vertex",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-the-strike-identity": {
+   "site": "atlas",
+   "slug": "the-strike-identity",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-derivation-chain": {
+   "site": "atlas",
+   "slug": "derivation-chain",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-same-blade-infinite-forgings": {
+   "site": "atlas",
+   "slug": "same-blade-infinite-forgings",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-holographic-boundary": {
+   "site": "atlas",
+   "slug": "holographic-boundary",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-path-integral-computed-on-boundary": {
+   "site": "atlas",
+   "slug": "path-integral-computed-on-boundary",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-2d-lock-shatters": {
+   "site": "atlas",
+   "slug": "2d-lock-shatters",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-quantum-threshold": {
+   "site": "atlas",
+   "slug": "quantum-threshold",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-6d-manifold-cannot-be-2dattacked": {
+   "site": "atlas",
+   "slug": "6d-manifold-cannot-be-2d-attacked",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-understandingaskey": {
+   "site": "guide",
+   "slug": "understanding-as-key",
+   "vertex": 4,
+   "postured": false
+  },
+  "term-dragon-flight": {
+   "site": "atlas",
+   "slug": "dragon-flight",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-emissary-dispersion": {
+   "site": "atlas",
+   "slug": "emissary-dispersion",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-swordsman": {
+   "site": "atlas",
+   "slug": "swordsman",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-mage": {
+   "site": "atlas",
+   "slug": "mage",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-blade-action": {
+   "site": "atlas",
+   "slug": "blade-action",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-spell-casting": {
+   "site": "atlas",
+   "slug": "spell-casting",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-shield": {
+   "site": "atlas",
+   "slug": "shield",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-verified-personhood": {
+   "site": "atlas",
+   "slug": "verified-personhood",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-the-dragon": {
+   "site": "atlas",
+   "slug": "the-dragon",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-the-mathematician-platox": {
+   "site": "atlas",
+   "slug": "the-mathematician-platox",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-the-keeper": {
+   "site": "atlas",
+   "slug": "the-keeper",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-the-drake": {
+   "site": "atlas",
+   "slug": "the-drake",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-manifold": {
+   "site": "atlas",
+   "slug": "manifold",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-drake": {
+   "site": "atlas",
+   "slug": "drake",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-dragon": {
+   "site": "atlas",
+   "slug": "dragon",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-path": {
+   "site": "atlas",
+   "slug": "path",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-tetrahedral-separation-matrix": {
+   "site": "atlas",
+   "slug": "tetrahedral-separation-matrix",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-edge": {
+   "site": "atlas",
+   "slug": "edge",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-edge-primacy": {
+   "site": "atlas",
+   "slug": "edge-primacy",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-secret-language": {
+   "site": "atlas",
+   "slug": "secret-language",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-manifoldtetrahedronship": {
+   "site": "atlas",
+   "slug": "manifold-tetrahedron-ship",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-the-tailnet": {
+   "site": "atlas",
+   "slug": "the-tailnet",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-control-plane-data-plane-separation": {
+   "site": "atlas",
+   "slug": "control-plane-data-plane-separation",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-coordination-content": {
+   "site": "atlas",
+   "slug": "coordination-content",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-nat-traversal": {
+   "site": "atlas",
+   "slug": "nat-traversal",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-magicdns": {
+   "site": "atlas",
+   "slug": "magicdns",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-aperture": {
+   "site": "atlas",
+   "slug": "aperture",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-the-dragons-hide": {
+   "site": "atlas",
+   "slug": "the-dragons-hide",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-drakes-teaching-manifest-in-the-mes": {
+   "site": "atlas",
+   "slug": "drakes-teaching-manifest-in-the-mesh",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-control-plane": {
+   "site": "atlas",
+   "slug": "control-plane",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-data-plane": {
+   "site": "atlas",
+   "slug": "data-plane",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-encrypted-tunnels": {
+   "site": "atlas",
+   "slug": "encrypted-tunnels",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-the-mesh-itself": {
+   "site": "atlas",
+   "slug": "the-mesh-itself",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-hemispheric-separation": {
+   "site": "atlas",
+   "slug": "hemispheric-separation",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-two-modes-of-attention": {
+   "site": "atlas",
+   "slug": "two-modes-of-attention",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-swordsman-as-right-hemisphere": {
+   "site": "atlas",
+   "slug": "swordsman-as-right-hemisphere",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-mage-as-left-hemisphere": {
+   "site": "atlas",
+   "slug": "mage-as-left-hemisphere",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-corpus-callosum": {
+   "site": "atlas",
+   "slug": "corpus-callosum",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-connection-is-not-separation": {
+   "site": "atlas",
+   "slug": "connection-is-not-separation",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-hemispheric-balance": {
+   "site": "atlas",
+   "slug": "hemispheric-balance",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-master": {
+   "site": "atlas",
+   "slug": "master",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-emissary": {
+   "site": "atlas",
+   "slug": "emissary",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-rightleftright": {
+   "site": "atlas",
+   "slug": "rightleftright",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-triune-graph-spell": {
+   "site": "atlas",
+   "slug": "triune-graph-spell",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-triune-activation": {
+   "site": "atlas",
+   "slug": "triune-activation",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-mirror-share-bind": {
+   "site": "atlas",
+   "slug": "mirror-share-bind",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-pascal-distribution": {
+   "site": "atlas",
+   "slug": "pascal-triangle-distribution",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-universe-blade": {
+   "site": "atlas",
+   "slug": "universe-blade",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-blade-tiers": {
+   "site": "atlas",
+   "slug": "blade-tiers",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-pretext": {
+   "site": "atlas",
+   "slug": "pretext",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-five-crossings": {
+   "site": "atlas",
+   "slug": "five-crossings",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-dual-convergence": {
+   "site": "atlas",
+   "slug": "dual-convergence",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-hexagram-cast": {
+   "site": "atlas",
+   "slug": "hexagram-cast",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-emoji-cast": {
+   "site": "atlas",
+   "slug": "emoji-cast",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-constellation-wave": {
+   "site": "atlas",
+   "slug": "constellation-wave",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-bilateral-exchange": {
+   "site": "atlas",
+   "slug": "bilateral-exchange",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-mana-economy": {
+   "site": "atlas",
+   "slug": "mana-economy",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-path-gate": {
+   "site": "atlas",
+   "slug": "path-gate",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-measurement-dark": {
+   "site": "atlas",
+   "slug": "measurement-dark",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-2d-fortress": {
+   "site": "atlas",
+   "slug": "2d-fortress",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-6d-manifold": {
+   "site": "atlas",
+   "slug": "6d-manifold",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-understanding-as-key": {
+   "site": "guide",
+   "slug": "understanding-as-key",
+   "vertex": 4,
+   "postured": false
+  },
+  "term-on-spend-attack": {
+   "site": "atlas",
+   "slug": "on-spend-attack",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-at-rest-attack": {
+   "site": "atlas",
+   "slug": "at-rest-attack",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-on-setup-attack": {
+   "site": "atlas",
+   "slug": "on-setup-attack",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-behavioral-density": {
+   "site": "atlas",
+   "slug": "behavioral-density",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-v5-1": {
+   "site": "atlas",
+   "slug": "v51",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-62-lap-theorem": {
+   "site": "atlas",
+   "slug": "62-lap-theorem",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-dragon-anatomy": {
+   "site": "atlas",
+   "slug": "dragon-anatomy",
+   "vertex": 8,
+   "postured": false
+  },
+  "term-seventh-capital-reclaimed": {
+   "site": "atlas",
+   "slug": "seventh-capital-reclaimed",
    "vertex": 8,
    "postured": false
   },
@@ -4092,6 +4722,60 @@
    "site": "atlas",
    "slug": "rounding-is-not-a-detail",
    "vertex": 8,
+   "postured": false
+  },
+  "skill-city-mcp-entry": {
+   "site": "skill",
+   "slug": "city-mcp-entry",
+   "vertex": 16,
+   "postured": false
+  },
+  "skill-key-journey": {
+   "site": "skill",
+   "slug": "key-journey",
+   "vertex": 16,
+   "postured": false
+  },
+  "skill-city-mage-runtime": {
+   "site": "skill",
+   "slug": "city-mage-runtime",
+   "vertex": 16,
+   "postured": false
+  },
+  "skill-mcp-browser-actions": {
+   "site": "skill",
+   "slug": "mcp-browser-actions",
+   "vertex": 16,
+   "postured": false
+  },
+  "skill-star-companion": {
+   "site": "skill",
+   "slug": "star-companion",
+   "vertex": 16,
+   "postured": false
+  },
+  "skill-entry-kit-coherence": {
+   "site": "skill",
+   "slug": "entry-kit-coherence",
+   "vertex": 16,
+   "postured": false
+  },
+  "skill-review-receipts": {
+   "site": "skill",
+   "slug": "review-receipts",
+   "vertex": 16,
+   "postured": false
+  },
+  "skill-namekeeper-write-contract": {
+   "site": "skill",
+   "slug": "namekeeper-write-contract",
+   "vertex": 16,
+   "postured": false
+  },
+  "per-registry-keeper": {
+   "site": "skill",
+   "slug": "registry-keeper",
+   "vertex": 16,
    "postured": false
   }
  }

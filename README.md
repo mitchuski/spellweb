@@ -10,7 +10,7 @@ Interactive knowledge graph explorer and **ZK Blade Forge** for the agentprivacy
 
 Spellweb is a D3.js-powered knowledge graph visualization that maps the entire agentprivacy conceptual framework, featuring a ceremonial proof-of-presence system where users forge cryptographic entities by tracing constellations through knowledge.
 
-- **585 nodes / 580 connected** (v1.6.0 · 5 intentional orphans · zero broken edges) covering documents, concepts, theorems, spells, acts, personas, terms, skills, workshops, vertices, substrate frameworks, gateways, cosmological-witness cast, and C1–C63 conjectures
+- **834 nodes / 742 connected / 1,788 edges** (local census, 2026-09-08 · zero broken endpoints). The export-based audit reveals 92 existing isolates, including 90 glossary terms missed by the old text scanner; these require semantic reconciliation. The September ecosystem batch adds 17 connected nodes with source evidence and implementation status.
 - **Domain coloring**: Swordsman (red), Mage (violet), First Person (gold), Shared (cyan)
 - **Hexagram System**: 64-Tetrahedra Lattice mapped to I Ching six-line structure
 - **ZK Blade Forge**: Transform attention into cryptographic proof
@@ -289,3 +289,7 @@ MIT
 *one that proves for the forged.*
 
 *⚔️ ⊥ 🧙 | 😊 — Privacy is Value*
+
+## VTA + Star: agent knowledge spaces (2026-09-08)
+
+[Graph contribution and evidence](docs/VTA_STAR_KNOWLEDGE_SPACES.md) records this surface's responsibilities and acceptance gates. The shared design places FedWiki records, browser-carried Star state, first-contact intent, MCP Trust Tasks, VTA permission enforcement and earned Mages City names in one continuing journey. Status is explicitly partial; follow the note's source and deployment distinctions.

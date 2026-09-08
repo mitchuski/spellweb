@@ -166,6 +166,17 @@ export function NodeInspector({
         >
           {node.desc}
         </p>
+        {node.evidence && (
+          <details style={{ marginTop: 12, color: THEME.textDim, fontSize: 12, lineHeight: 1.6 }}>
+            <summary style={{ cursor: 'pointer', color: THEME.text }}>
+              Source evidence · {node.evidence.status}
+            </summary>
+            <p>Source inspected {node.evidence.observedAt}. {node.evidence.note}</p>
+            <ul style={{ paddingLeft: 18, overflowWrap: 'anywhere' }}>
+              {node.evidence.sources.map(source => <li key={source}>{source}</li>)}
+            </ul>
+          </details>
+        )}
 
         {/* Register honesty - for conjecture-bearing nodes. The fields have lived
             on the node since 2026-06-11; this surfaces them instead of leaving

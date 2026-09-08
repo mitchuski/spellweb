@@ -59,13 +59,23 @@ export function ingestPacketsPayload(json: unknown): { added: number; total: num
   const next = getImportedPackets();
   const seen = new Set(next.map((p) => p.proof));
   let added = 0;
+  let restored = false;
 
   for (const raw of obj.packets as Record<string, unknown>[]) {
     if (!raw || typeof raw.proof !== 'string' || typeof raw.shopHref !== 'string') continue;
-    if (seen.has(raw.proof)) continue;
+    if (seen.has(raw.proof)) {
+      // Restore originals missing from older projection-only storage on re-import.
+      const existing = next.find((p) => p.proof === raw.proof);
+      if (existing && !existing.originalPacket) {
+        existing.originalPacket = JSON.parse(JSON.stringify(raw));
+        restored = true;
+      }
+      continue;
+    }
     seen.add(raw.proof);
     const mode = MODES.includes(raw.payloadMode as PayloadMode) ? (raw.payloadMode as PayloadMode) : 'sealed';
     next.push({
+      originalPacket: JSON.parse(JSON.stringify(raw)),
       proof: raw.proof,
       shopHref: raw.shopHref,
       vertex: typeof raw.vertex === 'number' ? raw.vertex : null,
@@ -89,8 +99,18 @@ export function ingestPacketsPayload(json: unknown): { added: number; total: num
     added += 1;
   }
 
-  if (added > 0) persist(next);
+  if (added > 0 || restored) persist(next);
   return { added, total: next.length };
+}
+
+/** Export original evidence, never reconstruct a packet from graph fields. */
+export function exportOriginalPackets(): { kind: 'spellweb.bearer.packets'; packets: Record<string, unknown>[]; unavailable: string[] } {
+  const stored = getImportedPackets();
+  return {
+    kind: 'spellweb.bearer.packets',
+    packets: stored.filter((p) => p.originalPacket).map((p) => JSON.parse(JSON.stringify(p.originalPacket))),
+    unavailable: stored.filter((p) => !p.originalPacket).map((p) => p.proof),
+  };
 }
 
 /** Stable graph-node id for a packet (content-addressed). */

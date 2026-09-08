@@ -1,4 +1,4 @@
-﻿import type { SpellwebEdge } from '../types/graph';
+import type { SpellwebEdge } from '../types/graph';
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // v1.4.0 (Solchanting Â· 2026-05-12) + v1.6.0 (Threshold District + Chart Shop Â· 2026-05-14)
@@ -449,6 +449,35 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 export const EDGES: SpellwebEdge[] = [
+  // Corpus batch 2026-09-08: ecosystem foundations (docs/corpus manifest).
+  { source: "concept-agentprivacy-mcp",target: "key-city-key",type: "references"},
+  { source: "concept-agentprivacy-mcp",target: "concept-swordsman-process",type: "references"},
+  { source: "concept-swordsman-process",target: "concept-vta-record",type: "generates"},
+  { source: "concept-vta-record",target: "key-city-key",type: "references"},
+  { source: "concept-guide-bridge",target: "concept-page-posture",type: "references"},
+  { source: "concept-agentprivacy-mcp",target: "concept-guide-bridge",type: "references"},
+  { source: "concept-agentprivacy-mcp",target: "concept-private-journey-bundle",type: "references"},
+  { source: "concept-private-journey-bundle",target: "key-city-key",type: "carries"},
+  { source: "concept-agent-knowledge-space",target: "concept-private-journey-bundle",type: "requires"},
+  { source: "concept-agent-knowledge-space",target: "concept-agentprivacy-mcp",type: "references"},
+  { source: "concept-agent-knowledge-space",target: "concept-mages-city-runtime",type: "references"},
+  { source: "concept-openvtc-vta-mcp",target: "concept-openvtc-vti",type: "references"},
+  { source: "concept-mages-city-runtime",target: "concept-openvtc-vti",type: "references"},
+  { source: "concept-vta-star-prototype",target: "key-city-key",type: "references"},
+  { source: "concept-vta-star-prototype",target: "concept-private-journey-bundle",type: "references"},
+  { source: "concept-vta-star-prototype",target: "gateway-soulbis-star",type: "references"},
+  { source: "concept-star-presentation",target: "concept-agent-knowledge-space",type: "references"},
+  { source: "concept-star-presentation",target: "concept-vta-star-prototype",type: "relates_to"},
+  { source: "concept-star-core-artefact",target: "gateway-soulbis-star",type: "references"},
+  { source: "concept-codex-mage",target: "concept-star-core-artefact",type: "references"},
+  { source: "concept-codex-mage",target: "concept-star-presentation",type: "references"},
+  { source: "concept-codex-mage",target: "concept-harness-contribution-path",type: "references"},
+  { source: "concept-harness-contribution-path",target: "skill-dual-agent-harness",type: "references"},
+  { source: "concept-harness-contribution-path",target: "concept-agentprivacy-labs",type: "references"},
+  { source: "concept-agentprivacy-labs",target: "concept-mages-city-runtime",type: "references"},
+  { source: "concept-mages-city-runtime",target: "civic-city-of-mages",type: "references"},
+  { source: "doc-dtg-zk-book",target: "concept-dtg-credentials",type: "references"},
+  { source: "concept-openvtc-vti",target: "concept-dtg-credentials",type: "references"},
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // SPELLBOOK STRUCTURE
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -2603,3 +2632,117 @@ export const EDGES: SpellwebEdge[] = [
   { source: "chron-field-guide-convergence", target: "doc-field-guide-counter-spec",   type: "narrates" },
   { source: "chron-field-guide-convergence", target: "gateway-field-guide",            type: "narrates" }
 ];
+
+// CITY_STAR_OPERATING_PRACTICES
+EDGES.push(...([
+  {
+    "source": "skill-city-mcp-entry",
+    "target": "concept-agentprivacy-mcp",
+    "type": "references"
+  },
+  {
+    "source": "skill-key-journey",
+    "target": "concept-agentprivacy-mcp",
+    "type": "references"
+  },
+  {
+    "source": "skill-city-mage-runtime",
+    "target": "concept-agentprivacy-mcp",
+    "type": "references"
+  },
+  {
+    "source": "skill-mcp-browser-actions",
+    "target": "concept-agentprivacy-mcp",
+    "type": "references"
+  },
+  {
+    "source": "skill-star-companion",
+    "target": "concept-agentprivacy-mcp",
+    "type": "references"
+  },
+  {
+    "source": "skill-entry-kit-coherence",
+    "target": "concept-agentprivacy-mcp",
+    "type": "references"
+  },
+  {
+    "source": "skill-review-receipts",
+    "target": "concept-agentprivacy-mcp",
+    "type": "references"
+  },
+  {
+    "source": "skill-namekeeper-write-contract",
+    "target": "concept-agentprivacy-mcp",
+    "type": "references"
+  },
+  {
+    "source": "per-soulbis",
+    "target": "skill-mcp-browser-actions",
+    "type": "persona_knows"
+  },
+  {
+    "source": "per-soulbis",
+    "target": "skill-namekeeper-write-contract",
+    "type": "persona_knows"
+  },
+  {
+    "source": "per-soulbae",
+    "target": "skill-key-journey",
+    "type": "persona_knows"
+  },
+  {
+    "source": "per-soulbae",
+    "target": "skill-city-mcp-entry",
+    "type": "persona_knows"
+  },
+  {
+    "source": "per-chronicler",
+    "target": "skill-entry-kit-coherence",
+    "type": "persona_knows"
+  },
+  {
+    "source": "per-chronicler",
+    "target": "skill-review-receipts",
+    "type": "persona_knows"
+  },
+  {
+    "source": "per-herald",
+    "target": "skill-city-mcp-entry",
+    "type": "persona_knows"
+  },
+  {
+    "source": "per-herald",
+    "target": "skill-review-receipts",
+    "type": "persona_knows"
+  },
+  {
+    "source": "per-shipwright",
+    "target": "skill-city-mage-runtime",
+    "type": "persona_knows"
+  },
+  {
+    "source": "per-shipwright",
+    "target": "skill-namekeeper-write-contract",
+    "type": "persona_knows"
+  },
+  {
+    "source": "per-assessor",
+    "target": "skill-entry-kit-coherence",
+    "type": "persona_knows"
+  },
+  {
+    "source": "per-assessor",
+    "target": "skill-review-receipts",
+    "type": "persona_knows"
+  },
+  {
+    "source": "per-registry-keeper",
+    "target": "skill-city-mage-runtime",
+    "type": "persona_knows"
+  },
+  {
+    "source": "per-registry-keeper",
+    "target": "skill-entry-kit-coherence",
+    "type": "persona_knows"
+  }
+] satisfies SpellwebEdge[]));

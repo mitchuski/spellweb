@@ -278,6 +278,13 @@ export interface SpellwebNode {
   ceremony?: string;            // e.g. "Run · Evoke · Craft" · "Hold · Compare · Map" · "Display · Choose · Dispatch"
   workshopRegister?: 'producer' | 'gathering' | 'spawn_and_bind' | 'attentional';  // C63 fourth-class candidate at v1.6.0
   href?: string;                // Workshop / external route or URL
+  // Source-backed corpus projections. Status describes inspected source, not deployment.
+  evidence?: {
+    status: 'local implementation' | 'prototype' | 'design' | 'source record' | 'upstream implementation';
+    observedAt: string;
+    sources: string[];           // Project-relative references; never private absolute paths.
+    note: string;
+  };
   // Guide bridge (2026-09-05 · PLAN_KNOWLEDGE_GRAPH_TO_VTA Phase 1A): the guide page this
   // node IS, by slug. Identity is the slug, never the host — `site` only says where the
   // bake found it. Populated from src/data/guide-bridge.ts (scripts/build-guide-bridge.mjs);
@@ -542,6 +549,8 @@ export interface HeldConstellation {
 // present here (the seal holds across the bridge). Each becomes an `artefact` deviation node
 // anchored to its class proof + the district_root.
 export interface ImportedProofPacket {
+  /** Untouched input for later verification; graph projection is not evidence. */
+  originalPacket?: Record<string, unknown>;
   proof: string;                      // sha256:… content-addressed identity (de-dup key)
   shopHref: string;                   // '/circuit'
   vertex: number | null;

@@ -6,12 +6,12 @@
  *   2. Ceremony     — orbs trace the chosen constellation, user casts spells
  *   3. Forge        — blade portrait, name + glyph, download .md artefacts
  *
- * No graph, no overlays, no node-clicking. The desktop SpellWeb is bypassed
- * entirely; we share only the forge primitives (src/lib/forge.ts), the orbs
- * component, and the preset data.
+ * Mobile graph search, source inspection and relationship navigation share
+ * the desktop corpus; ceremony and forge retain their mobile interaction model.
  */
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import ItemLatticeView, { type LatticeMode, type LatticeForgedBlade } from './ItemLatticeView';
 import * as d3 from 'd3';
 import {
   CONSTELLATION_PRESETS,
@@ -62,7 +62,7 @@ import {
 // Types & constants
 // ─────────────────────────────────────────────────────────────────
 
-type Mode = 'picker' | 'ceremony' | 'forge' | 'web' | 'archive' | 'mage' | 'sword';
+type Mode = 'picker' | 'ceremony' | 'forge' | 'web' | 'archive' | 'mage' | 'sword' | 'items' | 'lattice';
 
 // Gravity field captured from the immersive Web screen. Maps node id → normalized
 // position in [-1, 1] from canvas center. Only contains entries for nodes the user
@@ -258,6 +258,8 @@ export default function MobileSpell() {
           onOpenArchive={() => setMode('archive')}
           onOpenMage={() => setMode('mage')}
           onOpenSword={() => setMode('sword')}
+          onOpenItems={() => setMode('items')}
+          onOpenLattice={() => setMode('lattice')}
           gravityActive={gravityField !== null && gravityField.size > 0}
           playingCeremony={playingCeremony}
           onToggleAudio={toggleAudioFor}
@@ -289,6 +291,7 @@ export default function MobileSpell() {
       )}
       {mode === 'archive' && <ArchiveScreen onBack={goPicker} />}
       {mode === 'mage' && <MageScreen onBack={goPicker} />}
+      {(mode === 'items' || mode === 'lattice') && <MobileInventory mode={mode} onSwitchMode={setMode} onBack={goPicker} />}
       {mode === 'sword' && <SwordScreen onBack={goPicker} />}
     </div>
   );
@@ -305,6 +308,8 @@ function PickerScreen({
   onOpenArchive,
   onOpenMage,
   onOpenSword,
+  onOpenItems,
+  onOpenLattice,
   gravityActive,
   playingCeremony,
   onToggleAudio,
@@ -315,6 +320,8 @@ function PickerScreen({
   onOpenArchive: () => void;
   onOpenMage: () => void;
   onOpenSword: () => void;
+  onOpenItems: () => void;
+  onOpenLattice: () => void;
   gravityActive: boolean;
   playingCeremony: PresetConstellation['ceremony'] | null;
   onToggleAudio: (ceremony: PresetConstellation['ceremony']) => void;
@@ -360,7 +367,7 @@ function PickerScreen({
         style={{
           padding: '12px 12px 8px',
           display: 'grid',
-          gridTemplateColumns: 'repeat(5, 1fr)',
+          gridTemplateColumns: 'repeat(4, 1fr)',
           gap: 6,
         }}
       >
@@ -372,6 +379,8 @@ function PickerScreen({
           accent={GOLD}
           onTap={onOpenWeb}
         />
+        <HubButton glyph="⚒️" label="Items" accent={GOLD} onTap={onOpenItems} />
+        <HubButton glyph="◇" label="Lattice" accent={MAGE} onTap={onOpenLattice} />
         <HubButton glyph="📚" label="Archive" accent={TEXT} onTap={onOpenArchive} />
         <HubButton glyph="👁️" label="Witness" accent={GOLD} onTap={() => fileRef.current?.click()} />
       </div>
@@ -1311,6 +1320,8 @@ const NODE_TYPE_ORDER: NodeType[] = [
   'cast',
   'vertex',
   'gateway',
+  'artefact',
+  'key',
 ];
 
 const NODE_TYPE_LABEL: Record<NodeType, string> = {
@@ -1330,7 +1341,7 @@ const NODE_TYPE_LABEL: Record<NodeType, string> = {
   civic: 'City',
   gateway: 'Sister Cities',
   artefact: 'Your Artefacts',
-  key: "Swordsman's Keys",
+  key: 'Keys',
 };
 
 const NODE_TYPE_GLYPH: Record<NodeType, string> = {
@@ -1370,9 +1381,9 @@ interface WebSimEdge extends d3.SimulationLinkDatum<WebSimNode> {
 
 // Shared style for the WebScreen zoom-control buttons (＋ / − / ⊙).
 const zoomButtonStyle: CSSProperties = {
-  width: 36,
-  height: 36,
-  borderRadius: 18,
+  width: 44,
+  height: 44,
+  borderRadius: 22,
   background: 'rgba(10, 10, 25, 0.8)',
   border: '1px solid rgba(255, 215, 0, 0.35)',
   color: '#ffd700',
@@ -1417,6 +1428,15 @@ function WebScreen({
   onSettle: (field: GravityField) => void;
   initialField: GravityField | null;
 }) {
+  const [query, setQuery] = useState('');
+  const [selected, setSelected] = useState<SpellwebNode | null>(null);
+  const tapRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const matches = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return [];
+    return NODES.filter(n => `${n.label} ${n.id} ${n.desc ?? ''}`.toLowerCase().includes(term))
+      .sort((a, b) => Number(b.label.toLowerCase().startsWith(term)) - Number(a.label.toLowerCase().startsWith(term)));
+  }, [query]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const simRef = useRef<d3.Simulation<WebSimNode, WebSimEdge> | null>(null);
   const nodesRef = useRef<WebSimNode[]>([]);
@@ -1651,6 +1671,7 @@ function WebScreen({
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if ((e.target as Element).closest('button, input, [data-web-controls]')) return;
     const x = e.clientX;
     const y = e.clientY;
 
@@ -1681,10 +1702,10 @@ function WebScreen({
       }
     }
     if (nearest) {
-      nearest.fx = wx;
-      nearest.fy = wy;
+      tapRef.current = { x, y, moved: false };
+      nearest.fx = nearest.x;
+      nearest.fy = nearest.y;
       draggingRef.current.id = nearest.id;
-      touchedRef.current.add(nearest.id);
       sim.alpha(0.85).restart();
       (e.target as Element).setPointerCapture?.(e.pointerId);
     }
@@ -1693,6 +1714,7 @@ function WebScreen({
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const x = e.clientX;
     const y = e.clientY;
+    if (tapRef.current && Math.hypot(x - tapRef.current.x, y - tapRef.current.y) > 8) tapRef.current.moved = true;
 
     // Edge-swipe-down: still uses screen coords.
     if (swipeRef.current.topZone && swipeRef.current.startY !== null) {
@@ -1706,6 +1728,8 @@ function WebScreen({
 
     const id = draggingRef.current.id;
     if (id) {
+      if (!tapRef.current?.moved) return;
+      touchedRef.current.add(id);
       const node = nodesRef.current.find(n => n.id === id);
       if (node) {
         const { x: wx, y: wy } = screenToWorld(x, y);
@@ -1716,9 +1740,12 @@ function WebScreen({
     }
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     const id = draggingRef.current.id;
     if (id) {
+      if (e.type !== 'pointercancel' && tapRef.current && !tapRef.current.moved) {
+        setSelected(NODES.find(n => n.id === id) ?? null);
+      }
       const node = nodesRef.current.find(n => n.id === id);
       // Release the pin but keep the node's current x/y as its new resting position.
       if (node) {
@@ -1727,6 +1754,7 @@ function WebScreen({
       }
       draggingRef.current.id = null;
     }
+    tapRef.current = null;
     swipeRef.current = { startY: null, startX: null, topZone: false };
   };
 
@@ -1742,12 +1770,12 @@ function WebScreen({
         position: 'fixed',
         inset: 0,
         background: BG,
-        touchAction: 'none',
+        touchAction: 'auto',
         overflow: 'hidden',
         userSelect: 'none',
       }}
     >
-      <canvas ref={canvasRef} style={{ display: 'block' }} />
+      <canvas ref={canvasRef} style={{ display: 'block', touchAction: 'none' }} />
 
       {/* Floating orbs drift over the graph (non-tracing, no waypoints) */}
       <div
@@ -1767,25 +1795,21 @@ function WebScreen({
         />
       </div>
 
-      {/* Top hint — also marks the swipe-down zone */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 56,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: TEXT_DIM,
-          fontSize: 11,
-          letterSpacing: 1.2,
-          pointerEvents: 'none',
-          background: 'linear-gradient(to bottom, rgba(6,6,14,0.6), transparent)',
-        }}
-      >
-        ↓  swipe down from here to exit  ↓
+      <div data-web-controls onPointerDown={e => e.stopPropagation()} onPointerMove={e => e.stopPropagation()}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 75, padding: 'max(10px, env(safe-area-inset-top)) 12px 10px', background: PANEL, touchAction: 'pan-y' }}>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={exitWithField} aria-label="Back to ceremonies" style={{ ...zoomButtonStyle, flexShrink: 0 }}>←</button>
+          <input aria-label="Search the knowledge graph" placeholder="Search the knowledge graph" value={query} onChange={e => setQuery(e.target.value)}
+            style={{ flex: 1, minWidth: 0, minHeight: 44, fontSize: 16, padding: '8px 10px', color: TEXT, background: BG, border: `1px solid ${BORDER}`, borderRadius: 8 }} />
+          {query && <button aria-label="Clear graph search" onClick={() => setQuery('')} style={zoomButtonStyle}>×</button>}
+        </div>
+        {query.trim() && <div style={{ maxHeight: '40dvh', overflowY: 'auto' }}>
+          <p role="status" style={{ color: TEXT_DIM, fontSize: 12 }}>{matches.length} results{matches.length > 12 ? ' · showing first 12; refine your search' : ''}</p>
+          {matches.slice(0, 12).map(node => <button key={node.id} onClick={() => { setSelected(node); setQuery(''); }}
+            style={{ display: 'block', width: '100%', minHeight: 48, textAlign: 'left', padding: '10px 4px', border: 'none', borderBottom: `1px solid ${BORDER}`, background: 'transparent', color: TEXT, fontSize: 14 }}>
+            {node.label}<span style={{ display: 'block', fontSize: 11, color: TEXT_DIM }}>{node.evidence?.status ?? node.type}</span>
+          </button>)}
+        </div>}
       </div>
 
       {/* Zoom controls — sit above the bottom hint, right side. zIndex above
@@ -1839,15 +1863,17 @@ function WebScreen({
         }}
       >
         {touchedCount === 0
-          ? 'press and drag a node — the web reshapes around it'
+          ? 'tap to inspect · drag to reshape · search above'
           : `${touchedCount} node${touchedCount === 1 ? '' : 's'} placed · constellations will warp`}
       </div>
+      {selected && <NodeInfoSheet node={selected} onClose={() => setSelected(null)} onNavigate={setSelected} />}
     </div>
   );
 }
 
 function ArchiveScreen({ onBack }: { onBack: () => void }) {
   const [selected, setSelected] = useState<SpellwebNode | null>(null);
+  const [query, setQuery] = useState('');
 
   const grouped = useMemo(() => {
     const out: Record<NodeType, SpellwebNode[]> = {
@@ -1870,15 +1896,18 @@ function ArchiveScreen({ onBack }: { onBack: () => void }) {
       artefact: [],
       key: [],
     };
-    NODES.forEach(n => {
+    NODES.filter(n => `${n.label} ${n.id} ${n.desc ?? ''}`.toLowerCase().includes(query.trim().toLowerCase())).forEach(n => {
       if (out[n.type]) out[n.type].push(n);
     });
     return out;
-  }, []);
+  }, [query]);
 
   return (
     <>
       <BackHeader title="📚 archive" subtitle="tap a node to learn" onBack={onBack} />
+      <input aria-label="Search archive" placeholder="Search all nodes, keys and artefacts" value={query} onChange={e => setQuery(e.target.value)}
+        style={{ margin: '0 16px 8px', padding: 12, minHeight: 44, fontSize: 16, color: TEXT, background: PANEL, border: `1px solid ${BORDER}`, borderRadius: 8 }} />
+      {Object.values(grouped).every(group => group.length === 0) && <p role="status" style={{ padding: '0 16px', color: TEXT_DIM }}>No matching nodes. Try another name or topic.</p>}
 
       <div
         style={{
@@ -1937,7 +1966,7 @@ function ArchiveScreen({ onBack }: { onBack: () => void }) {
         })}
       </div>
 
-      {selected && <NodeInfoSheet node={selected} onClose={() => setSelected(null)} />}
+      {selected && <NodeInfoSheet node={selected} onClose={() => setSelected(null)} onNavigate={setSelected} />}
     </>
   );
 }
@@ -1945,13 +1974,45 @@ function ArchiveScreen({ onBack }: { onBack: () => void }) {
 function NodeInfoSheet({
   node,
   onClose,
+  onNavigate,
 }: {
   node: SpellwebNode;
   onClose: () => void;
+  onNavigate?: (node: SpellwebNode) => void;
 }) {
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    sheetRef.current?.focus();
+    return () => { previous?.focus(); };
+  }, []);
+  useEffect(() => {
+    if (sheetRef.current) { sheetRef.current.scrollTop = 0; sheetRef.current.focus(); }
+  }, [node.id]);
+  const relationships = EDGES.flatMap(edge => {
+    const outgoing = edge.source === node.id;
+    if (!outgoing && edge.target !== node.id) return [];
+    const other = NODES.find(n => n.id === (outgoing ? edge.target : edge.source));
+    return other ? [{ edge, other, outgoing }] : [];
+  });
   return (
     <div
       onClick={onClose}
+      data-web-controls
+      onPointerDown={e => e.stopPropagation()}
+      onPointerMove={e => e.stopPropagation()}
+      onPointerUp={e => e.stopPropagation()}
+      onKeyDown={e => {
+        if (e.key === 'Escape') { e.stopPropagation(); closeRef.current(); }
+        if (e.key === 'Tab') {
+          const buttons = Array.from(sheetRef.current?.querySelectorAll<HTMLElement>('button, a[href], input, summary') ?? []);
+          const first = buttons[0], last = buttons[buttons.length - 1];
+          if (e.shiftKey && (document.activeElement === first || document.activeElement === sheetRef.current)) { e.preventDefault(); last?.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+        }
+      }}
       style={{
         position: 'fixed',
         inset: 0,
@@ -1963,15 +2024,23 @@ function NodeInfoSheet({
       }}
     >
       <div
+        ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={node.label}
+        tabIndex={-1}
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%',
-          maxHeight: '80vh',
+          maxHeight: '80dvh',
           background: PANEL,
           borderTop: `1px solid ${BORDER}`,
           borderRadius: '16px 16px 0 0',
-          padding: '20px 18px 28px',
+          padding: '20px 18px max(28px, env(safe-area-inset-bottom))',
           overflowY: 'auto',
+          touchAction: 'pan-y',
+          overscrollBehavior: 'contain',
+          overflowWrap: 'anywhere',
           color: TEXT,
         }}
       >
@@ -2012,8 +2081,9 @@ function NodeInfoSheet({
               fontSize: 22,
               cursor: 'pointer',
               padding: 0,
-              width: 28,
-              height: 28,
+              width: 44,
+              height: 44,
+              flexShrink: 0,
             }}
           >
             ✕
@@ -2040,6 +2110,18 @@ function NodeInfoSheet({
         <div style={{ fontSize: 14, lineHeight: 1.5, color: TEXT, marginBottom: 16 }}>
           {node.desc}
         </div>
+        {node.evidence && <section aria-label="Source evidence" style={{ marginBottom: 20, fontSize: 13, lineHeight: 1.6 }}>
+          <strong style={{ color: GOLD }}>{node.evidence.status}</strong>
+          <p>Source inspected {node.evidence.observedAt}. {node.evidence.note}</p>
+          <ul style={{ paddingLeft: 18 }}>{node.evidence.sources.map(source => <li key={source}>{source}</li>)}</ul>
+        </section>}
+        {onNavigate && relationships.length > 0 && <section aria-label="Connected nodes" style={{ marginBottom: 18 }}>
+          <h3 style={{ fontSize: 14 }}>Connections · {relationships.length}</h3>
+          {relationships.map(({ edge, other, outgoing }, i) => <button key={`${edge.type}-${other.id}-${i}`} onClick={() => onNavigate(other)}
+            style={{ display: 'block', minHeight: 48, width: '100%', padding: '10px 0', textAlign: 'left', color: TEXT, border: 'none', borderBottom: `1px solid ${BORDER}`, background: 'transparent', fontSize: 14 }}>
+            <span style={{ display: 'block', color: TEXT_DIM, fontSize: 11 }}>{outgoing ? 'Outgoing → ' : 'Incoming ← '}{edge.type.replace(/_/g, ' ')}</span>{other.label}
+          </button>)}
+        </section>}
 
         {node.emojiSpell && (
           <InfoRow label="Spell" value={node.emojiSpell} mono />
@@ -3437,4 +3519,26 @@ function slug(s: string): string {
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// Open the shared inventory against the same browser-local records as desktop.
+function MobileInventory({ mode, onSwitchMode, onBack }: {
+  mode: LatticeMode; onSwitchMode: (mode: LatticeMode) => void; onBack: () => void;
+}) {
+  const [inventory] = useState(() => {
+    const read = <T,>(key: string, fallback: T): T => {
+      try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; } catch { return fallback; }
+    };
+    const blades = read<LatticeForgedBlade[]>(SPELLWEB_STORAGE_KEYS.forgedBlades, []);
+    return {
+      witnessedShops: read<Record<string, string>>('spellweb:witnessed-shops', {}),
+      forgedBlades: Array.isArray(blades) ? blades.map(b => ({ ...b, constellationMarks: Array.isArray(b.constellationMarks) ? b.constellationMarks : [] })) : [],
+      heldConstellations: read<import('../types/graph').HeldConstellation[]>(SPELLWEB_STORAGE_KEYS.heldConstellations, []),
+      boundFamiliars: read<import('../types/graph').BoundFamiliar[]>(SPELLWEB_STORAGE_KEYS.boundFamiliars, []),
+      dispatchReceipts: read<import('../types/graph').DispatchReceipt[]>(SPELLWEB_STORAGE_KEYS.dispatchReceipts, []),
+    };
+  });
+  const link = getSwordsmanLink();
+  return <ItemLatticeView open mode={mode} onClose={onBack} onSwitchMode={onSwitchMode}
+    {...inventory} keyIdentity={{ bearerName: link?.displayName, swordsmanId: link?.participantId, mageId: getMageIdentity()?.mageId }} />;
 }

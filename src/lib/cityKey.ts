@@ -123,7 +123,9 @@ export function buildPayload(key: SwordsmanCityKey): Record<string, unknown> {
     if (c.vertex === undefined) continue;
     lattice[String(c.vertex)] = (lattice[String(c.vertex)] ?? 0) + c.weight;
   }
-  const identity: Record<string, string> = {};
+  const previousIdentity = key.payload?.identity;
+  const identity: Record<string, unknown> = previousIdentity && typeof previousIdentity === 'object' && !Array.isArray(previousIdentity)
+    ? { ...(previousIdentity as Record<string, unknown>) } : {};
   if (key.swordsmanId) identity.swordsman = key.swordsmanId;
   if (key.mageId) identity.mage = key.mageId;
   const prev = (key.payload ?? {}) as Record<string, unknown>;

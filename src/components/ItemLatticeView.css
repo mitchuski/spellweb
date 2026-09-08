@@ -1,0 +1,25 @@
+
+.item-lattice button, .item-lattice input, .item-lattice select { font: inherit; }
+.item-lattice button:focus-visible, .item-lattice input:focus-visible, .item-lattice select:focus-visible { outline: 2px solid #67e8f9; outline-offset: 2px; }
+.lattice-selector, .lattice-selection { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; color: #c8c8d8; font-size: 13px; }
+.lattice-selector input, .lattice-selection select, .lattice-results button, .lattice-selection button, .inspect-item { background: #11111e; color: #dedee8; border: 1px solid #444054; border-radius: 8px; padding: 10px; min-height: 44px; }
+.lattice-results { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow: auto; }
+.lattice-results button { text-align: left; }
+.lattice-results button[aria-pressed=true] { border-color: #ffd700; color: #ffd700; }
+.mobile-node-info { display: none; }
+@media (max-width: 800px) {
+ .item-lattice { padding: 0 !important; height: 100dvh; }
+ .item-lattice > div { max-height: none !important; border-radius: 0 !important; }
+ .item-lattice > div > div:first-child { padding: 8px !important; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
+ .item-lattice h2 { display: none; }
+ .item-lattice button, .item-lattice select, .item-lattice input { min-height: 44px; font-size: 14px !important; }
+ .item-lattice input { font-size: 16px !important; }
+ .item-lattice-body { display: block !important; overflow: auto !important; overscroll-behavior: contain; padding-bottom: env(safe-area-inset-bottom); }
+ .item-lattice-info { display: none; }
+ .item-lattice-main, .item-lattice-details { width: auto !important; overflow: visible !important; padding: 12px !important; }
+ .item-lattice-main > div:first-child { flex-wrap: wrap; gap: 8px; }
+ .item-lattice-details { border-top: 1px solid #444054; scroll-margin-top: 12px; }
+ .mobile-node-info { display: block; }
+ .item-lattice button[aria-label="Enter focus mode"], .item-lattice button[aria-label="Exit focus mode"] { display: none; }
+ .item-lattice > div > div:last-child { font-size: 11px !important; }
+}

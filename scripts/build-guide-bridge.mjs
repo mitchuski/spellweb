@@ -16,30 +16,31 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { readGraph } from './read-graph.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const NODES = path.join(HERE, '..', 'src', 'data', 'nodes.ts');
 const OUT = path.join(HERE, '..', 'src', 'data', 'guide-bridge.ts');
 const SITE = process.env.AGENTPRIVACY_GUIDE_SITE || path.join(os.homedir(), 'agentprivacy.guide', 'site');
 const DATA = path.join(SITE, 'star-chart', 'data');
 const dry = process.argv.includes('--dry');
 
-// ---- the graph (nodes.ts is one object literal per line; read the fields we need) ----
-const src = fs.readFileSync(NODES, 'utf8');
-const nodes = [];
-for (const line of src.split('\n')) {
-  const id = line.match(/\bid:\s*"([^"]+)"/); if (!id || !/^\s*\{/.test(line)) continue;
-  const g = re => { const m = line.match(re); return m ? m[1] : null; };
-  nodes.push({ id: id[1], type: g(/\btype:\s*"([^"]+)"/), label: g(/\blabel:\s*"((?:[^"\\]|\\.)*)"/),
-    vertex: (v => v == null ? null : +v)(g(/\bvertex:\s*(\d+)/)), href: g(/\bhref:\s*"([^"]+)"/) });
-}
+// Read actual exports: multiline and single-quoted nodes are part of the graph too.
+const { nodes } = await readGraph();
 
 // ---- the bake ---------------------------------------------------------------------------
 const pages = JSON.parse(fs.readFileSync(path.join(DATA, 'pages.json'), 'utf8')).pages;
+// Reviewed projections take precedence over heuristic slug matches.
+const foundationsFile = path.join(SITE, '..', 'flow', 'ecosystem-foundations-manifest.json');
+const foundations = fs.existsSync(foundationsFile)
+  ? JSON.parse(fs.readFileSync(foundationsFile, 'utf8')).pages : [];
+const skillsFile = path.join(SITE, '..', 'flow', 'city-star-skills-manifest.json');
+const skills = fs.existsSync(skillsFile) ? JSON.parse(fs.readFileSync(skillsFile, 'utf8')).pins : [];
+const explicit = new Map([...foundations, ...skills.filter(p => p.node)].map(p => [p.node, p]));
 const bySlug = new Map();
 for (const p of pages) { if (!bySlug.has(p.slug)) bySlug.set(p.slug, []); bySlug.get(p.slug).push(p); }
 const PREFER = ['guide', 'tomes', 'grimoire', 'city', 'atlas', 'skill', 'spellbooks', 'fieldguide', 'dtg', 'research', 'harness', 'game42', 'lexon', 'myterms', 'kyra', 'vpk', 'mouse', 'tiles', 'engine', 'vision'];
-const rank = p => (p.postured ? -100 : 0) + PREFER.indexOf(p.site);
+const rank = p => (p.postured ? -100 : 0) + (PREFER.includes(p.site) ? PREFER.indexOf(p.site) : PREFER.length);
+const comparePages = (a, b) => rank(a) - rank(b) || String(a.site).localeCompare(String(b.site)) || String(a.slug).localeCompare(String(b.slug));
 
 // fedwiki's own slug rule (the same asSlug the bake uses)
 const asSlug = s => String(s).replace(/\s/g, '-').replace(/[^A-Za-z0-9-]/g, '').replace(/^-+|-+$/g, '').toLowerCase();
@@ -58,7 +59,12 @@ function candidates(n) {
 const bridge = {}, audit = { matched: 0, unmatched: 0, agree: 0, disagree: 0, unpostured: 0, byType: {}, disagreements: [] };
 for (const n of nodes) {
   let hit = null;
-  for (const slug of candidates(n)) { const rows = bySlug.get(slug); if (rows) { hit = [...rows].sort((a, b) => rank(a) - rank(b))[0]; break; } }
+  const projected = explicit.get(n.id);
+  if (projected) {
+    hit = pages.find(p => p.site === projected.site && p.slug === projected.slug);
+    if (!hit) throw new Error(`Missing reviewed Guide projection: ${n.id}`);
+  }
+  if (!hit) for (const slug of candidates(n)) { const rows = bySlug.get(slug); if (rows) { hit = [...rows].sort(comparePages)[0]; break; } }
   audit.byType[n.type] = audit.byType[n.type] || { nodes: 0, matched: 0 };
   audit.byType[n.type].nodes++;
   if (!hit) { audit.unmatched++; continue; }

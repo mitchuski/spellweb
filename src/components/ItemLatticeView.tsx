@@ -12,6 +12,12 @@
  * Spec: docs/chronicles/CHRONICLE_LATTICE_ITEMS_INTERFACE_2026-05-14.md
  */
 
+import { BUNDLE_KIND, validateBundle } from '../lib/journey-core';
+import { adoptJourney, downloadJourney } from '../lib/journey-store';
+import { foldActiveJourney } from '../lib/cityKeyJourney';
+import { ingestPacketsPayload } from '../lib/proofPackets';
+import './ItemLatticeView.css';
+import { hasMageIdentity } from '../lib/mageIdentity';
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import type { SpellwebNode, ArtefactClass, EntityKind, HeldConstellation, BoundFamiliar, DispatchReceipt, SwordsmanCityKey } from '../types/graph';
 import { NODES } from '../data/nodes';
@@ -25,7 +31,7 @@ export type LatticeMode = 'items' | 'lattice';
 
 // Lightweight ForgedBlade shape — the lattice only needs enough to display + identify.
 // Full export builds happen in SpellWeb via the onExportArtefact(bladeId) callback.
-interface LatticeForgedBlade {
+export interface LatticeForgedBlade {
   id: string;
   name: string;
   emoji: string;
@@ -225,6 +231,16 @@ export default function ItemLatticeView({
   dispatchReceipts = [],
   onSetTrueNameConsent,
 }: ItemLatticeViewProps) {
+  const [selectionQuery, setSelectionQuery] = useState('');
+  const detailRef = useRef<HTMLElement>(null);
+  const selectNode = (node: SpellwebNode) => {
+    if (node.vertex === undefined) return;
+    setPinnedVertex(node.vertex);
+    setPinnedOccupantIdx((inhabitants.get(node.vertex) ?? []).findIndex(n => n.id === node.id));
+    if (window.matchMedia('(max-width: 800px)').matches) {
+      requestAnimationFrame(() => detailRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+    }
+  };
   const [hoveredVertex, setHoveredVertex] = useState<number | null>(null);
   const [hoveredOccupantIdx, setHoveredOccupantIdx] = useState(0);
   const [focusMode, setFocusMode] = useState(false);   // ⛶ hide side columns, expand lattice canvas
@@ -377,6 +393,7 @@ export default function ItemLatticeView({
 
   return (
     <div
+      className="item-lattice"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       style={{
         position: 'fixed',
@@ -416,7 +433,8 @@ export default function ItemLatticeView({
               {(['items', 'lattice'] as LatticeMode[]).map(m => (
                 <button
                   key={m}
-                  onClick={() => onSwitchMode(m)}
+                  aria-pressed={mode === m}
+                  onClick={() => { onSwitchMode(m); detailRef.current?.parentElement?.scrollTo({ top: 0 }); }}
                   style={{
                     padding: '4px 10px',
                     fontSize: 10.5,
@@ -543,10 +561,10 @@ export default function ItemLatticeView({
         </div>
 
         {/* Three-column body · side columns collapse in focus mode (Lattice tab only) */}
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        <div className="item-lattice-body" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           {/* Left · hover info */}
           {!(focusMode && mode === 'lattice') && (
-          <aside style={{ width: 280, padding: 14, overflow: 'auto', borderRight: '1px solid rgba(212, 175, 55, 0.12)', background: 'rgba(212, 175, 55, 0.02)' }}>
+          <aside className="item-lattice-info" style={{ width: 280, padding: 14, overflow: 'auto', borderRight: '1px solid rgba(212, 175, 55, 0.12)', background: 'rgba(212, 175, 55, 0.02)' }}>
             {activeNode ? (
               <ActiveNodeInfo node={activeNode} />
             ) : (
@@ -556,7 +574,7 @@ export default function ItemLatticeView({
           )}
 
           {/* Centre · the canvas (Items grid OR spatial lattice) */}
-          <main style={{ flex: 1, padding: 16, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <main className="item-lattice-main" style={{ minWidth: 0, flex: 1, padding: 16, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* Summary line · forged · witnessed · workshops unlocked · migrated from retired ArtefactPanel header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 10, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace" }}>
               <span>
@@ -569,6 +587,10 @@ export default function ItemLatticeView({
                 <span style={{ color: '#ffd700' }}>{equipped.size}</span> equipped
               </span>
             </div>
+
+            <button className="inspect-item" onClick={() => detailRef.current?.querySelector('[data-city-key]')?.scrollIntoView({ block: 'start', behavior: 'smooth' })}>
+              City Key &amp; signing routes
+            </button>
 
             {/* Items mode · flat emoji grid grouped by identity slot */}
             {mode === 'items' && (
@@ -583,16 +605,28 @@ export default function ItemLatticeView({
                 equipped={equipped}
                 provenSet={provenSet}
                 onToggle={toggleEquipped}
-                onPinNode={(node) => {
-                  if (node.vertex !== undefined) {
-                    setPinnedVertex(node.vertex);
-                    setPinnedOccupantIdx(0);
-                  }
-                }}
+                onPinNode={selectNode}
                 onExportCatalogue={onExportCatalogue}
                 onExportArtefact={onExportArtefact}
                 activeNodeId={activeNode?.id ?? null}
               />
+            )}
+
+            {mode === 'lattice' && (
+              <div className="lattice-selector">
+                <label htmlFor="lattice-search">Find an item or vertex</label>
+                <input id="lattice-search" type="search" value={selectionQuery}
+                  onChange={e => setSelectionQuery(e.target.value)} placeholder="Name, workshop or V59" />
+                <div className="lattice-results">
+                  {Array.from(inhabitants.values()).flat().filter(n =>
+                    `${n.label} ${n.artefactName ?? ''} V${n.vertex}`.toLowerCase().includes(selectionQuery.trim().toLowerCase())
+                  ).map(n => <button key={n.id} aria-pressed={activeNode?.id === n.id}
+                    onClick={() => selectNode(n)}>{n.emoji} {n.artefactName ?? n.label} · V{n.vertex}</button>)}
+                </div>
+                {selectionQuery && !Array.from(inhabitants.values()).flat().some(n =>
+                  `${n.label} ${n.artefactName ?? ''} V${n.vertex}`.toLowerCase().includes(selectionQuery.trim().toLowerCase())
+                ) && <p role="status">No items match. Try a name or vertex such as V59.</p>}
+              </div>
             )}
 
             {/* Spatial Lattice mode · 64-vertex Pascal's-row geometry */}
@@ -793,7 +827,15 @@ export default function ItemLatticeView({
 
           {/* Right · identity-slots + equip toggle + equipped roster + forged inventory · hidden in focus mode */}
           {!(focusMode && mode === 'lattice') && (
-          <aside style={{ width: 360, padding: 14, overflow: 'auto', borderLeft: '1px solid rgba(212, 175, 55, 0.12)', background: 'rgba(94, 234, 212, 0.02)' }}>
+          <aside ref={detailRef} className="item-lattice-details" style={{ width: 360, padding: 14, overflow: 'auto', borderLeft: '1px solid rgba(212, 175, 55, 0.12)', background: 'rgba(94, 234, 212, 0.02)' }}>
+            {pinnedVertex !== null && <div className="lattice-selection">
+              <button onClick={() => { setPinnedVertex(null); setHoveredVertex(null); }}>Clear selection</button>
+              <label htmlFor="vertex-occupant">Items at V{pinnedVertex}</label>
+              <select id="vertex-occupant" value={pinnedOccupantIdx} onChange={e => setPinnedOccupantIdx(Number(e.target.value))}>
+                {(inhabitants.get(pinnedVertex) ?? []).map((n, i) => <option key={n.id} value={i}>{n.artefactName ?? n.label}</option>)}
+              </select>
+              {activeNode && <div className="mobile-node-info"><ActiveNodeInfo node={activeNode} /></div>}
+            </div>}
             <IdentitySlots activeNode={activeNode} pinnedNode={pinnedVertex !== null ? activeNode : null} />
             <EquipPanel
               activeNode={pinnedVertex !== null ? activeNode : null}
@@ -816,7 +858,7 @@ export default function ItemLatticeView({
 
         {/* Footer hint */}
         <div style={{ padding: '8px 16px', borderTop: '1px solid rgba(212, 175, 55, 0.12)', fontSize: 10, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace" }}>
-          hover a vertex · click to pin · esc to close
+          select an item or vertex · choose its occupant · equip after witnessing
         </div>
       </div>
     </div>
@@ -987,7 +1029,7 @@ function EquipPanel({
   const totalEquipped = equipped.size;
 
   return (
-    <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(255, 215, 0, 0.18)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div data-city-key style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(255, 215, 0, 0.18)', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
         <div style={{ fontSize: 10, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1.2 }}>
           loadout · equipped items
@@ -1663,6 +1705,7 @@ function CatalogueItemCard({
           </div>
         </div>
       </div>
+      <button className="inspect-item" onClick={e => { e.stopPropagation(); onPin(); }} aria-label={`Inspect ${node.artefactName ?? node.label}`}>Inspect item</button>
       <div style={{ display: 'flex', gap: 4 }}>
         {proven ? (
           <button
@@ -1920,7 +1963,15 @@ function SwordsmanCityKeyPanel({
     setBusy(true);
     try {
       const text = await file.text();
-      const result = await importKeyJSON(text, keyIdentity);
+      const value = JSON.parse(text);
+      if (typeof value.type === 'string' && value.type.startsWith('https://trusttasks.org/spec/')) {
+        await foldActiveJourney([], [value]);
+        window.alert('Trust Task document recorded in your key. Completion and credentials await agent review.');
+        return;
+      }
+      const bundle = value.kind === BUNDLE_KIND ? value : null;
+      if (bundle) await validateBundle(bundle);
+      const result = await importKeyJSON(bundle ? JSON.stringify(bundle.key) : text, keyIdentity);
       if (!result.verified) {
         const ok = window.confirm(
           `κ claim does not re-derive.\n\nclaimed: ${result.claimedKappa ?? '(none)'}\nderived: ${result.derivedKappa ?? '(crypto unavailable)'}\n\nAdopt this key anyway?`,
@@ -1932,6 +1983,10 @@ function SwordsmanCityKeyPanel({
           `Adopting this key replaces the current one (κ ${key.kappa?.slice(0, 23) ?? 'unstruck'}…, ${key.charges.length} charge${key.charges.length === 1 ? '' : 's'}).\n\nContinue?`,
         );
         if (!ok) return;
+      }
+      if (bundle) {
+        await adoptJourney(bundle);
+        ingestPacketsPayload({ kind: 'spellweb.bearer.packets', packets: bundle.packets });
       }
       saveKey(result.key);
       setKey(result.key);
@@ -1992,12 +2047,25 @@ function SwordsmanCityKeyPanel({
     <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(255, 215, 0, 0.18)', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
         <div style={{ fontSize: 10, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1.2 }}>
-          🗝️ swordsman city key
+          🗝️ City Key · carried journey
         </div>
         <div style={{ fontSize: 10, color: '#ffd700', fontFamily: "'JetBrains Mono', monospace" }}>
           weight {key?.weight ?? 0} · {charges.length} charge{charges.length === 1 ? '' : 's'}
         </div>
       </div>
+
+      <details style={{ color: THEME.textBright, fontSize: 13, lineHeight: 1.6, overflowWrap: 'anywhere' }}>
+        <summary style={{ cursor: 'pointer', minHeight: 44 }}>Identity &amp; signing routes</summary>
+        <p><strong>Mage · forge</strong><br />{keyIdentity.mageId ?? 'No Mage identity selected'}<br />
+          {hasMageIdentity() ? 'Local signing key present.' : 'No local Mage signing key present.'}</p>
+        <p><strong>Sword · linked identity</strong><br />{keyIdentity.swordsmanId ?? 'No Sword identity linked'}<br />
+          A linked public identity does not provide its signing key.</p>
+        <p><strong>City Key · journey</strong><br />{key ? 'Journey loaded in this browser.' : 'No journey loaded yet.'}
+          {' '}Its κ identifies the carried content. Stamping evolves the journey; it does not sign a VTA record.</p>
+        <p><strong>VTA signing route · integration pending</strong><br />
+          A VTA can hold distinct DIDs with different signing roots. Connecting a signer must identify the DID and permitted action;
+          importing a journey does not establish that connection.</p>
+      </details>
 
       {/* κ readout + prior-chain */}
       <div style={{ padding: '8px 10px', background: 'rgba(255, 215, 0, 0.04)', border: '1px solid rgba(255, 215, 0, 0.2)', borderRadius: 6, fontFamily: "'JetBrains Mono', monospace", fontSize: 10, lineHeight: 1.6 }}>
@@ -2102,7 +2170,7 @@ function SwordsmanCityKeyPanel({
           />
         )}
         <CarryButton
-          label="⤵ import Key.json"
+          label="⤵ Import Key / Journey / Task"
           color="#ffd700"
           dashed
           onClick={() => importRef.current?.click()}
@@ -2121,6 +2189,13 @@ function SwordsmanCityKeyPanel({
           e.target.value = '';
         }}
       />
+
+      <div style={{ fontSize: 10, color: THEME.textDim }}>
+        {((key?.payload.journey as { steps?: unknown[] } | undefined)?.steps?.length ?? 0)} journey steps recorded · credentials pending agent review
+      </div>
+      <CarryButton label="Carry private journey bundle" color="#67e8f9" disabled={busy || !key?.kappa}
+        title="Fold imported artefacts into the key and download their originals with your task documents. Share only with people or agents you choose."
+        onClick={async () => { setBusy(true); try { downloadJourney(await foldActiveJourney()); } catch (error) { window.alert(error instanceof Error ? error.message : String(error)); } finally { setBusy(false); } }} />
 
       {/* Recent charges (the accumulator tape · newest first · last 3) */}
       {charges.length > 0 && (
@@ -2205,3 +2280,4 @@ function SigilPreview({ kappa }: { kappa: string | null }) {
     </svg>
   );
 }
+

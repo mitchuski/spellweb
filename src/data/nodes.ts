@@ -19,6 +19,24 @@ import type { SpellwebNode } from '../types/graph';
 // ═══════════════════════════════════════════════════════════════
 
 export const NODES: SpellwebNode[] = [
+  // Corpus batch 2026-09-08: ecosystem foundations (docs/corpus manifest).
+  { id: "concept-agentprivacy-mcp",type: "concept",label: "AgentPrivacy MCP",domain: "shared",layer: "knowledge",desc: "Local stdio tools for guide discovery, named lattice moves, deterministic City Key evolution and journey evidence. Mage-side tools compose over a baked graph; signing belongs to the separate Swordsman process. Browser action preparation does not dispatch or authorize an effect.",evidence: {status: "local implementation",observedAt: "2026-09-08",sources: ["agentprivacy-mcp/README.md", "agentprivacy-mcp/lib/journey.mjs"],note: "Inspected local code and README; this is distinct from OpenVTC VTA MCP."}},
+  { id: "concept-swordsman-process",type: "concept",label: "The Swordsman Process",domain: "swordsman",layer: "knowledge",desc: "Separate deterministic signing service described by AgentPrivacy MCP. It checks key content, holder identity, lineage and policy before emitting a signed VTA record. No live signer was provisioned or exercised by this graph update.",evidence: {status: "local implementation",observedAt: "2026-09-08",sources: ["agentprivacy-mcp/README.md"],note: "Policy implementation is represented; no new claim of production isolation, PSI or credential issuance."}},
+  { id: "concept-vta-record",type: "concept",label: "The VTA Record",domain: "shared",layer: "knowledge",desc: "The agentprivacy.vta/1 signed projection travels beside a City Key: public identity, content commitment, prior, signing time, walk count and relationship commitments. A record is distinct from its private key payload and from City membership or authority.",evidence: {status: "local implementation",observedAt: "2026-09-08",sources: ["agentprivacy-mcp/README.md"],note: "Record verification and application authorization remain separate."}},
+  { id: "concept-page-posture",type: "concept",label: "Page Posture",domain: "shared",layer: "knowledge",desc: "A guide page can declare a six-bit sovereignty posture: Protection 32, Delegation 16, Memory 8, Connection 4, Computation 2, Value 1. Builder and suggested assignments retain their provenance. This is a separate coordinate convention from legacy Spellweb hexagram scoring.",evidence: {status: "local implementation",observedAt: "2026-09-08",sources: ["agentprivacy.guide/flow/builders/vta-lane.mjs", "agentprivacy-mcp/README.md"],note: "Page-to-node correspondence does not by itself establish an authoritative lattice assignment."}},
+  { id: "concept-guide-bridge",type: "concept",label: "Spellweb Guide Bridge",domain: "shared",layer: "knowledge",desc: "Maps stable Spellweb node references to guide page slugs so a constellation can become a guide walk. The generator reports unmatched nodes and posture drift. Equivalent key evolution requires the same baked content and an actual consumer of the mapping.",evidence: {status: "local implementation",observedAt: "2026-09-08",sources: ["spellweb/scripts/build-guide-bridge.mjs", "agentprivacy-mcp/README.md"],note: "Generator inspected; full tracing UI integration remains open."}},
+  { id: "concept-private-journey-bundle",type: "concept",label: "Private Journey Bundle",domain: "shared",layer: "knowledge",desc: "agentprivacy.journey-bundle/1 retains original artefact packets and task documents while the City Key accumulates their commitments and prior lineage. Validation rejects altered or missing evidence; recording a task is not verifying or authorizing it.",evidence: {status: "local implementation",observedAt: "2026-09-08",sources: ["agentprivacy-mcp/lib/journey.mjs"],note: "Shared Node/browser journey checks pass; local browser persistence is not VTA vault retention."}},
+  { id: "concept-agent-knowledge-space",type: "concept",label: "VTA + Star Knowledge Space",domain: "shared",layer: "knowledge",desc: "September 8 integration design: FedWiki records, a carried Star, MCP Trust Tasks, VTA permission enforcement and an earned City name form one continuing journey. Receiving services enforce grants; a proposed graph relation is not an accepted trust edge.",evidence: {status: "design",observedAt: "2026-09-08",sources: ["cityofmages/mages-city/KNOWLEDGE_SPACES.md"],note: "Live permission, provisioning and cross-origin carry adapters remain staged or partial."}},
+  { id: "concept-openvtc-vti",type: "concept",label: "OpenVTC Verifiable Trust Infrastructure",domain: "shared",layer: "knowledge",desc: "Upstream VTA/VTC infrastructure provides distinct service, key, vault, policy and SDK components. AgentPrivacy integration must name the supported interface and configured service rather than infer authority from a Star or imported City Key.",evidence: {status: "upstream implementation",observedAt: "2026-09-08",sources: ["openvtc/verifiable-trust-infrastructure/AGENTS.md", "openvtc/verifiable-trust-infrastructure/vta-mcp/README.md", "cityofmages/mages-city/KNOWLEDGE_SPACES.md"],note: "Upstream implementation is credited to OpenVTC; no deployment or authenticated connection checked here."}},
+  { id: "concept-openvtc-vta-mcp",type: "concept",label: "OpenVTC VTA MCP",domain: "shared",layer: "knowledge",desc: "Upstream stdio bridge exposes VTA capabilities to MCP hosts using a dedicated context-scoped agent. This management and capability interface is separate from AgentPrivacy MCP guide walking and City Key composition.",evidence: {status: "upstream implementation",observedAt: "2026-09-08",sources: ["openvtc/verifiable-trust-infrastructure/vta-mcp/README.md"],note: "Scope and authentication are provider requirements, not established by graph visibility."}},
+  { id: "concept-vta-star-prototype",type: "concept",label: "VTA Star Browser Prototype",domain: "shared",layer: "knowledge",desc: "Unpacked browser prototype imports an appearance projection from City Key or journey JSON and retains only its validated palette in session storage. Its inspected README states that it cannot contact VTAs, exchange credentials or authenticate a City session.",evidence: {status: "prototype",observedAt: "2026-09-08",sources: ["Documents/Codex/vta_star/README.md"],note: "Located prototype; do not equate it with the separate Star Key experiment or a working sign-on provider."}},
+  { id: "concept-star-presentation",type: "concept",label: "Star Key Selected Presentation",domain: "shared",layer: "knowledge",desc: "September 7 design for an inspectable selection of VTA identity, relationships, knowledge pathways, agreements and artefacts. A presentation must bind its audience, purpose and verified claims; geometry and compression do not confer authority.",evidence: {status: "design",observedAt: "2026-09-08",sources: ["agentprivacy_master/docs/chronicles/2026-09-07_the-star-becomes-the-shared-reading.md", "cityofmages/mages-city/KNOWLEDGE_SPACES.md"],note: "Discovery source is unsigned; standalone Star Key implementation provenance still needs reconciliation."}},
+  { id: "concept-star-core-artefact",type: "concept",label: "Star Core Artefact and Temporal View",domain: "shared",layer: "knowledge",desc: "September 8 direction places a selected core artefact or image inside the Star. Intrinsic SHAPE(key) remains distinct from a context- and time-dependent view. The moving-ceiling source and assumptions govern the surrounding temporal reading.",evidence: {status: "design",observedAt: "2026-09-08",sources: ["codex_mage/STAR_AS_MODEL.md"],note: "No new decay equation, measured activity, or credential authority is asserted."}},
+  { id: "concept-mages-city-runtime",type: "concept",label: "Mages City Agent Knowledge Runtime",domain: "shared",layer: "knowledge",desc: "The City knowledge-space design connects a scoped working space, contributions, task receipts and a later earned address. Wiki rights, membership, DNS entitlement and key custody remain distinct grants enforced by their receiving services.",evidence: {status: "design",observedAt: "2026-09-08",sources: ["cityofmages/mages-city/KNOWLEDGE_SPACES.md"],note: "This node describes the integration contract; individual live services require separate evidence."}},
+  { id: "concept-agentprivacy-labs",type: "concept",label: "AgentPrivacy Labs / agentprivacy.org",domain: "shared",layer: "knowledge",desc: "Human-facing AI cybersecurity research and services surface connecting the open-source stack, research programme, deployable work and experiments. Each contribution and funding feature carries its own status; a local site is not evidence of a deployed backend.",evidence: {status: "local implementation",observedAt: "2026-09-08",sources: ["agentprivacy_labs/README.md"],note: "Local source inspected. Funding copy has successive revisions; no current rail or payment result is inferred."}},
+  { id: "concept-codex-mage",type: "concept",label: "Codex Mage Research Continuity",domain: "shared",layer: "knowledge",desc: "Source-linked observations, questions, journeys, corrections and bounded experiments connect the AgentPrivacy universe across sessions. Contributions remain proposals until their relevant review and acceptance occurs; continuity must be demonstrated through retrieval and correction.",evidence: {status: "source record",observedAt: "2026-09-08",sources: ["codex_mage/PURPOSE.md", "codex_mage/STAR_AS_MODEL.md"],note: "Research role and retained evidence, not a canonical cast admission or independent verifier."}},
+  { id: "concept-harness-contribution-path",type: "concept",label: "Harness Skills and Adoption Evidence",domain: "shared",layer: "knowledge",desc: "Observer proposal connects a versioned harness method and skill package to a task, retained result, limitations and adoption receipt. Replay, adaptation, independent checking and unresolved failures remain distinguishable; counts do not automatically grant reputation or permission.",evidence: {status: "design",observedAt: "2026-09-08",sources: ["codex_mage/outputs/HARNESS_SKILL_ADOPTION.md"],note: "An adoption path is proposed; this batch claims no fresh benchmark result or accepted contribution."}},
+  { id: "doc-dtg-zk-book",type: "document",label: "DTG ZK Book Evidence Bench",domain: "shared",layer: "knowledge",desc: "The local ZK Book is a Spec-Up-T publication source in the DTG evidence workbench. It connects protocol questions to records and construction evidence. The workbench supplies task-force input; it is not itself the upstream specification or ratification authority.",evidence: {status: "source record",observedAt: "2026-09-08",sources: ["dtgwg-cred-spec-main_mage/zkbook/README.md", "dtgwg-cred-spec-main_mage/AGENTS.md"],note: "Exact upstream revisions and this week's individual contributions remain a separate reconciliation pass."}},
   // ══════════════════════════════════════════════════════════════
   // DOCUMENTS (Core Reference Materials)
   // ══════════════════════════════════════════════════════════════
@@ -1910,7 +1928,7 @@ export const NODES: SpellwebNode[] = [
   { id: "conj-c94", type: "concept", label: "C94 · Separation Principle in a Second Substrate", domain: "shared", layer: "knowledge", desc: "The PVM Separation Principle (s ⊥ m | X) realised as a running build on Archon did:cid — the model holds independent of its stones. A second-forge realisation strengthens the abstract convergence case (C34–C37). Active (~55% · Tome X). Edges → C39, C7.", conjectureId: "C94", conjectureStatus: "active", conjectureConfidence: 0.55, conjectureRegister: "city" },
   { id: "conj-c95", type: "concept", label: "C95 · The Evidence Graph as the Anti-Score", domain: "shared", layer: "knowledge", desc: "Issuer-attested disclosure — a signed, decomposable evidence graph verified against issuer DIDs — is the structural refusal of the reputation score. Active (~55% · Tome X). Edges → C61, C17.", conjectureId: "C95", conjectureStatus: "active", conjectureConfidence: 0.55, conjectureRegister: "city" },
   { id: "conj-c96", type: "concept", label: "C96 · Control-Plane ⊥ Data-Plane", domain: "shared", layer: "knowledge", desc: "The Sovereign authorizes the rules the Warden enforces; splitting the occasional control plane from the always-on data plane means compromising the host cannot author authority. Active (~60% · Tome X). Edge → C94.", conjectureId: "C96", conjectureStatus: "active", conjectureConfidence: 0.6, conjectureRegister: "city" },
-  { id: "conj-c97", type: "concept", label: "C97 · Structural Inalienability by Non-Reconstruction", domain: "shared", layer: "knowledge", desc: "The C55 ↔ C82 bridge (Band XI · the Soil Reading): a scoped disclosure does not alienate the underlying stock, because the observing side cannot reconstruct the record from what it receives — the security guarantee IS the ownability mechanism (lease the harvest, not the land), and the ownership is durable exactly for the term the erosion clock permits. Form proven conditional (WP-07 Thm 5.1 + Cor 5.4b); the conjectural content is the economic reading (priced in WP-14 §2). Falsifier: a market where scoped, non-reconstructing disclosures are priced as full alienation. Registered 2026-07-17 (L150).", conjectureId: "C97", conjectureStatus: "active", conjectureConfidence: 0.5, conjectureRegister: "core" },
+  { id: "conj-c97", type: "concept", label: "C97 · Structural Inalienability by Non-Reconstruction", domain: "shared", layer: "knowledge", desc: "The C55 ↔ C82 bridge (Band XI · the Soil Reading): a scoped disclosure does not alienate the underlying stock, because the observing side cannot reconstruct the record from what it receives — the security guarantee IS the ownability mechanism (lease the harvest, not the land), and the ownership is durable exactly for the term the erosion clock permits. Form proven conditional (WP-07 Thm 5.1 + Cor 5.4b); the conjectural content is the economic reading (priced in WP-14 §2). Falsifier: a market where scoped, non-reconstructing disclosures are priced as full alienation. Registered 2026-07-17 (L150).", conjectureId: "C97", conjectureStatus: "active", conjectureRegister: "core" },
   { id: "key-hearthold-citykey", type: "key", label: "the Drake Gamers Guild City Key 🗝️", emoji: "🗝️", domain: "shared", layer: "narrative", desc: "A City Key forged by the cousin-forge from a sealed governance board (the Drake Gamers Guild) seated on the Game of 42: six officers on the axes, VRC → κ → seal computed with the City's OWN canon (a byte-exact port of game42's hashing), matched side-by-side against game42 and soulbis — to the byte. Lit vertices [1,2,4,8,16,32,63]; κ re-derived per Law L5. Carried to soulbis /star as a constellation node — the registry rendered visually. Proof the two forges are one model.", proverb: "It sealed to the City's own hash — to the byte." },
 
   // ── Hearthold v0.11.0 developments (2026-07-07) — the Warden gains memory, the Mage a public face, the ladder made whole. Deepen C94–C96; no new conjecture. ──
@@ -1955,3 +1973,150 @@ export const NODES: SpellwebNode[] = [
   // === END OF NODES ===
 
 ];
+
+// CITY_STAR_OPERATING_PRACTICES
+NODES.push(...([
+  {
+    "id": "skill-city-mcp-entry",
+    "type": "skill",
+    "label": "City MCP Entry",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Guide an agent through City arrival using MCP discovery, private invitation drafting and existing Portal publication rules.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-09-08",
+      "sources": [
+        "agentprivacy-skills/role/agentprivacy-city-mcp-entry/SKILL.md"
+      ],
+      "note": "Operational guidance; configured adapters remain necessary for live credentials and service authorization."
+    }
+  },
+  {
+    "id": "skill-key-journey",
+    "type": "skill",
+    "label": "Key Journey",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Preserve original City Key journey evidence while importing, inspecting and idempotently folding artefacts or observed Trust Task documents.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-09-08",
+      "sources": [
+        "agentprivacy-skills/role/agentprivacy-key-journey/SKILL.md"
+      ],
+      "note": "Operational guidance; configured adapters remain necessary for live credentials and service authorization."
+    }
+  },
+  {
+    "id": "skill-city-mage-runtime",
+    "type": "skill",
+    "label": "City Mage Runtime",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Prepare and resume the City dual-agent harness instance with private City Key evidence and durable checkpoints.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-09-08",
+      "sources": [
+        "agentprivacy-skills/role/agentprivacy-city-mage-runtime/SKILL.md"
+      ],
+      "note": "Operational guidance; configured adapters remain necessary for live credentials and service authorization."
+    }
+  },
+  {
+    "id": "skill-mcp-browser-actions",
+    "type": "skill",
+    "label": "MCP Browser Actions",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Prepare and integrate scoped MCP spell or sticker actions with a durable host ledger and actual artefact receipts.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-09-08",
+      "sources": [
+        "agentprivacy-skills/role/agentprivacy-mcp-browser-actions/SKILL.md"
+      ],
+      "note": "Operational guidance; configured adapters remain necessary for live credentials and service authorization."
+    }
+  },
+  {
+    "id": "skill-star-companion",
+    "type": "skill",
+    "label": "Star Companion",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Maintain the compact Star key-entry companion across City and agentprivacy while preserving appearance, evidence and authorisation boundaries.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-09-08",
+      "sources": [
+        "agentprivacy-skills/role/agentprivacy-star-companion/SKILL.md"
+      ],
+      "note": "Operational guidance; configured adapters remain necessary for live credentials and service authorization."
+    }
+  },
+  {
+    "id": "skill-entry-kit-coherence",
+    "type": "skill",
+    "label": "Entry Kit Coherence",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Audit and align City, Labs and landing agent discovery instructions with actual MCP capabilities and deployment limits.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-09-08",
+      "sources": [
+        "agentprivacy-skills/role/agentprivacy-entry-kit-coherence/SKILL.md"
+      ],
+      "note": "Operational guidance; configured adapters remain necessary for live credentials and service authorization."
+    }
+  },
+  {
+    "id": "skill-review-receipts",
+    "type": "skill",
+    "label": "Review Receipts",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Bind review acknowledgment to exact content and destination, preserve review receipts, and distinguish copied text from reported or verified publication.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-09-08",
+      "sources": [
+        "agentprivacy-skills/role/agentprivacy-review-receipts/SKILL.md"
+      ],
+      "note": "Operational guidance; configured adapters remain necessary for live credentials and service authorization."
+    }
+  },
+  {
+    "id": "skill-namekeeper-write-contract",
+    "type": "skill",
+    "label": "Namekeeper Write Contract",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Prepare and validate VTA-authorized Namekeeper wiki writes with exact scope, revision preconditions, idempotency and receipt reconciliation.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-09-08",
+      "sources": [
+        "agentprivacy-skills/role/agentprivacy-namekeeper-write-contract/SKILL.md"
+      ],
+      "note": "Operational guidance; configured adapters remain necessary for live credentials and service authorization."
+    }
+  },
+  {
+    "id": "per-registry-keeper",
+    "type": "persona",
+    "label": "Registry Keeper",
+    "domain": "mage",
+    "layer": "narrative",
+    "desc": "Link substrate catalog entries to package version, provenance, license and available replay evidence. Catalog admission is distinct from an individual VRC, a wiki grant or City access."
+  }
+] satisfies SpellwebNode[]));
+{ const persona = NODES.find(n => n.id === "per-soulbis"); if (persona && !persona.desc?.includes("Check exact disclosure and requested action against current authority. Keep key possession, verified identity, credential status and execution permission distinct; require the receiving runtime to enforce the scoped decision.")) persona.desc = (persona.desc || '') + " City and Star practice: Check exact disclosure and requested action against current authority. Keep key possession, verified identity, credential status and execution permission distinct; require the receiving runtime to enforce the scoped decision."; }
+{ const persona = NODES.find(n => n.id === "per-soulbae"); if (persona && !persona.desc?.includes("Compose a task-relevant Star perspective and bounded proposal from permitted information. Preserve originals and fold observed receipts into the private journey; do not self-authorize execution.")) persona.desc = (persona.desc || '') + " City and Star practice: Compose a task-relevant Star perspective and bounded proposal from permitted information. Preserve originals and fold observed receipts into the private journey; do not self-authorize execution."; }
+{ const persona = NODES.find(n => n.id === "per-chronicler"); if (persona && !persona.desc?.includes("Record source version, observed result, limitation and later correction together. Retire superseded findings without erasing their history. The Librarian, the existing Chronicler attachment, reconciles canonical files, forks, site projections and SkillSync packets with origin and journal lineage. The canonical wiki category is wikis/; infrastructure callers invoke those skills without acquiring ownership.")) persona.desc = (persona.desc || '') + " City and Star practice: Record source version, observed result, limitation and later correction together. Retire superseded findings without erasing their history. The Librarian, the existing Chronicler attachment, reconciles canonical files, forks, site projections and SkillSync packets with origin and journal lineage. The canonical wiki category is wikis/; infrastructure callers invoke those skills without acquiring ownership."; }
+{ const persona = NODES.find(n => n.id === "per-herald"); if (persona && !persona.desc?.includes("Prepare invitations and timeline entries from deliberately disclosed marks. Distinguish drafts, self-reported publication, checked publication and withdrawal. A visitor mark confers no admission or publication authority.")) persona.desc = (persona.desc || '') + " City and Star practice: Prepare invitations and timeline entries from deliberately disclosed marks. Distinguish drafts, self-reported publication, checked publication and withdrawal. A visitor mark confers no admission or publication authority."; }
+{ const persona = NODES.find(n => n.id === "per-shipwright"); if (persona && !persona.desc?.includes("Run VTA setup rehearsals and service-adapter acceptance checks, including conflicts, retries, revocation and recovery. State which checks used synthetic fixtures and which exercised a real service.")) persona.desc = (persona.desc || '') + " City and Star practice: Run VTA setup rehearsals and service-adapter acceptance checks, including conflicts, retries, revocation and recovery. State which checks used synthetic fixtures and which exercised a real service."; }
+{ const persona = NODES.find(n => n.id === "per-assessor"); if (persona && !persona.desc?.includes("Assess adoption and collaboration under explicit criteria, disclosure budgets and failure accounting. Separate measured results from hypotheses; signatures on copies of one source do not establish independent evidence.")) persona.desc = (persona.desc || '') + " City and Star practice: Assess adoption and collaboration under explicit criteria, disclosure budgets and failure accounting. Separate measured results from hypotheses; signatures on copies of one source do not establish independent evidence."; }
+{ const persona = NODES.find(n => n.id === "per-registry-keeper"); if (persona && !persona.desc?.includes("Link substrate catalog entries to package version, provenance, license and available replay evidence. Catalog admission is distinct from an individual VRC, a wiki grant or City access.")) persona.desc = (persona.desc || '') + " City and Star practice: Link substrate catalog entries to package version, provenance, license and available replay evidence. Catalog admission is distinct from an individual VRC, a wiki grant or City access."; }

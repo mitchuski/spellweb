@@ -1,3 +1,4 @@
+import { foldActiveJourney } from '../lib/cityKeyJourney';
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import * as d3 from "d3";
 import type { SpellwebNode, SpellwebEdge, FilterState, TypeFilterState, SpellbookFilterState } from '../types/graph';
@@ -2224,7 +2225,9 @@ export default function SpellWeb() {
 
   // Standalone content-addressed City Key — star-compatible JSON (κ stamped), round-trips
   // to soulbis /star + /lattice + agentprivacy_master. Null when the key is unstruck.
-  const handleExportCityKeyJSON = useCallback(() => {
+  const handleExportCityKeyJSON = useCallback(async () => {
+    try {
+    await foldActiveJourney();
     const cityKey = loadCityKey();
     if (!cityKey) return;
     const json = exportKeyJSON(cityKey);
@@ -2236,6 +2239,7 @@ export default function SpellWeb() {
     a.download = `city-key-${kshort}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    } catch (error) { window.alert(error instanceof Error ? error.message : String(error)); }
   }, []);
 
   const handleExportConstellation = useCallback((saved: SavedConstellation) => {
@@ -3408,12 +3412,14 @@ export default function SpellWeb() {
         onCraftImport={async (file) => {
           // First try the Tracing-Protocol packets bundle (spellweb.bearer.packets);
           // fall through to the witness-blade .md importer if it isn't one.
-          try {
-            const text = await file.text();
-            const res = ingestPacketsPayload(JSON.parse(text));
-            if (res) { setImportedPackets(getImportedPackets()); return; }
-          } catch {
-            // not JSON / not a packets payload — fall through
+          let value: unknown;
+          try { value = JSON.parse(await file.text()); } catch { /* Markdown blade below. */ }
+          const res = value ? ingestPacketsPayload(value) : null;
+          if (res) {
+            setImportedPackets(getImportedPackets());
+            try { await foldActiveJourney(); }
+            catch (error) { window.alert('Artefacts added to the graph; journey fold pending: ' + (error instanceof Error ? error.message : String(error))); }
+            return;
           }
           await handleWitnessBladeFile(file);
         }}
