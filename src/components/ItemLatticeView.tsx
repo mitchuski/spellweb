@@ -1797,7 +1797,13 @@ function StoryPopup({ node, proven, onClose }: { node: SpellwebNode; proven: boo
   const nextStep = proven
     ? 'Brought back. Equip it, and it joins your loadout — lit on your City Key.'
     : 'An open trust task. Trace its constellation at the workshop and bring the artefact back here.';
-  const storyHref = node.href ? `https://agentprivacy.ai${node.href}` : 'https://agentprivacy.ai/runecraft';
+  let storyHref: string | null = null;
+  if (node.href) {
+    try {
+      const url = new URL(node.href, 'https://agentprivacy.ai');
+      if (url.protocol === 'https:' || url.protocol === 'http:') storyHref = url.href;
+    } catch { /* No link for an invalid imported workshop address. */ }
+  }
   const guideHref = 'https://guide.agentprivacy.ai';
   return (
     <div
@@ -1837,10 +1843,10 @@ function StoryPopup({ node, proven, onClose }: { node: SpellwebNode; proven: boo
 
         {/* where to learn */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <a href={storyHref} target="_blank" rel="noopener noreferrer"
+          {storyHref && <a href={storyHref} target="_blank" rel="noopener noreferrer"
             style={{ flex: 1, minWidth: 150, textAlign: 'center', padding: '8px 12px', borderRadius: 6, background: `${gem}18`, border: `1px solid ${gem}aa`, color: THEME.textBright, fontSize: 11.5, textDecoration: 'none', fontWeight: 600 }}>
             📖 Read the workshop story →
-          </a>
+          </a>}
           <a href={guideHref} target="_blank" rel="noopener noreferrer"
             style={{ flex: 1, minWidth: 150, textAlign: 'center', padding: '8px 12px', borderRadius: 6, background: 'rgba(103,232,249,0.08)', border: '1px solid rgba(103,232,249,0.4)', color: '#67e8f9', fontSize: 11.5, textDecoration: 'none', fontWeight: 600 }}>
             🧭 Learn on the guide →
