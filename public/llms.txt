@@ -1,0 +1,19 @@
+# spellweb.ai
+
+> The source-relationships graph of the agentprivacy universe: canon, personas, research, ceremonies and chronicles as a drawn graph with one JSON behind it. A projection, never a replacement for an original packet. Updated 12 September 2026.
+
+## Start
+- Agent instructions for this host: https://spellweb.ai/skill.md
+- The entry (one command, five starting doors): https://agentprivacy.org/skill.md · https://agentprivacy.org/begin/#one-command
+
+## On this host
+- The graph as data: https://spellweb.ai/assets/spellweb/graph.json
+- The drawn graph: https://spellweb.ai/
+- Sections: https://spellweb.ai/canon/ · https://spellweb.ai/research/ · https://spellweb.ai/persona/ · https://spellweb.ai/chronicle/
+
+## Next
+- The sources with lineage: https://guide.agentprivacy.ai/skill.md
+- Carry an exported packet: https://mages.city/mcp-entry.md
+- Back to the map: https://agentprivacy.org/begin/
+
+A drawn graph is not an original packet; an edge between sources is not a trust edge between people. Nothing here grants City write authority or membership.
