@@ -5,6 +5,8 @@
 **Audience:** spellweb maintainers · the next agent picking up the renderer work
 **License:** CC BY-SA 4.0
 **Signature:** `(⚔️⊥⿻⊥🧙)😊`
+> **Note, 13 September 2026.** Where this chronicle calls GitNexus the "genesis substrate" the spellweb "is descended from", read *design precedent*: no GitNexus code is in the spellweb (see the note in CHRONICLE_SPELLWEB_GENESIS).
+
 **Companion recon:** the agentprivacy/cityofmages 2026-05-14 v1.6.0 patch surfaced a TS "complex union" error in `edges.ts` once the edge count crossed ~600 and EdgeType union widened — symptom that d3 + literal-array-inferred edges has a soft ceiling. GitNexus (the spellweb genesis substrate) has since migrated to Sigma.js + Graphology + WebGL.
 
 ---

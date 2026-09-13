@@ -6,6 +6,9 @@
 **Spell:** ⚔️📊⊥🧙🕸️ | 😊  
 **Compression:** *"The Swordsman maps what must be protected. The Mage graphs what can be shared. The spellweb is where they meet — and neither knows the other's full picture."*
 
+> **Note, 13 September 2026.** This chronicle records the decision as it stood in February 2026. It was never carried out: the GitNexus engine (KuzuDB WASM, the worker pool, the ingestion pipeline, the Graph RAG agent) was not extracted, and no GitNexus code entered this repository. The spellweb that shipped is a d3-force graph (`src/components/SpellWeb.tsx`) over pre-built node and edge data (`src/data/`). The untracked reference copy of GitNexus that sat beside the repo was removed on this date. GitNexus showed the shape and is credited for that; its PolyForm Noncommercial licence places no obligation on this code. Kept as design history.
+
+
 ---
 
 ## What Happened

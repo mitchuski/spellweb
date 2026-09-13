@@ -80,7 +80,7 @@ These items belong to other repositories, not spellweb:
 | /path page gate | agentprivacy_master |
 | Extension↔Website bridge | swordsman-blade, mages-spell |
 | Mana economy persistence | agentprivacy_master |
-| KuzuDB/GitNexus integration | Future enhancement |
+| KuzuDB/GitNexus integration | Dropped 2026-09-13 — never implemented; the spellweb is a d3 graph over pre-built data |
 | Stranger ceremony matching | Requires server component |
 
 ---

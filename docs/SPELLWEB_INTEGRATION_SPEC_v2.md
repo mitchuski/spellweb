@@ -4,8 +4,11 @@
 
 **Version:** 2.0
 **Date:** February 25, 2026
-**Status:** Integration Specification — Ready for Implementation
+**Status:** Superseded — never implemented (see note below)
 **Spell:** ⚔️📊⊥🧙🕸️ | 😊
+
+> **Note, 13 September 2026.** This document records a plan as it stood in February 2026. It was never carried out: the GitNexus engine (KuzuDB WASM, the worker pool, the ingestion pipeline, the Graph RAG agent) was not extracted, and no GitNexus code entered this repository. The spellweb that shipped is a d3-force graph (`src/components/SpellWeb.tsx`) over pre-built node and edge data (`src/data/`). The untracked reference copy of GitNexus that sat beside the repo was removed on this date. GitNexus showed the shape and is credited for that; its PolyForm Noncommercial licence places no obligation on this code. Kept as design history.
+
 **Proverb:** *"Two graphs serve the same truth: what you have walked, and what exists to walk."*
 
 ---
