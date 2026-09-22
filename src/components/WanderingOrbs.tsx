@@ -2,12 +2,16 @@
  * WanderingOrbs - Soul orbs that float through the spellweb
  *
  * The Swordsman and Mage orbit each other while slowly drifting through
- * the graph. When evoke starts, they animate back to the ceremony panel.
+ * the graph. With a City Key equipped, the key's chosen stance — the Star's
+ * geometry (ε, m, n, core, ⚔️:🧙 ratio) — shapes the orbit: the separation
+ * breathes with ε·sin(mφ)·cos(nθ), the ellipse follows the core, the two orbs
+ * sit at radii in the ⚔️:🧙 ratio, and n sets the pace. Colours come from the
+ * key's palette. No label is drawn: the shape and the colours are the sign. When evoke starts, they animate back to the ceremony panel.
  * When tracing a blade's constellation, they follow the path and draw cut lines.
  */
 
 import { useEffect, useRef } from 'react';
-import { useEquippedStar } from '../lib/starLoadout';
+import { useEquippedStar, useStarGeometry } from '../lib/starLoadout';
 import { useStarAppearance } from '../lib/starAppearance';
 
 interface WanderingOrbsProps {
@@ -52,7 +56,8 @@ export function WanderingOrbs({
 }: WanderingOrbsProps) {
   const equipped = useEquippedStar();
   const equippedRef = useRef(equipped); equippedRef.current = equipped;
-  const starButtonRef = useRef<HTMLButtonElement>(null);
+  const geometry = useStarGeometry();
+  const geometryRef = useRef(geometry); geometryRef.current = geometry;
   const appearance = useStarAppearance();
   const paletteRef = useRef(appearance?.palette);
   paletteRef.current = appearance?.palette;
@@ -274,15 +279,24 @@ export function WanderingOrbs({
         center.y = Math.max(100, Math.min(height - 200, center.y));
       }
 
-      // Update orbit angle (slow rotation)
-      orbitAngleRef.current += ORBIT_SPEED * 16; // ~60fps assumed
+      // The equipped key's stance shapes the orbit; without one the orbit is the plain ellipse.
+      const g = equippedRef.current ? geometryRef.current : null;
+
+      // Update orbit angle (slow rotation; n sets the pace — n = 6 is the default pace)
+      orbitAngleRef.current += ORBIT_SPEED * 16 * (g ? g.n / 6 : 1); // ~60fps assumed
 
       // Calculate orb positions orbiting the center
-      const swordsmanX = center.x + Math.cos(orbitAngleRef.current) * ORBIT_RADIUS;
-      const swordsmanY = center.y + Math.sin(orbitAngleRef.current) * ORBIT_RADIUS * 0.6; // Slight ellipse
+      const a = orbitAngleRef.current;
+      const breathe = g ? 1 + g.eps * 0.6 * Math.sin(g.m * a) * Math.cos(g.n * emojiOrbitAngleRef.current * 0.25) : 1; // r = R + ε·sin(mφ)·cos(nθ), the manifold's own rule
+      const squash = g ? 0.35 + g.core * 0.5 : 0.6; // the core sets how flat the ellipse is
+      const ratio = g ? g.smRatio : 1;              // ⚔️:🧙 — the Swordsman sits farther out when the ratio is above 1
+      const rSword = ORBIT_RADIUS * breathe * (2 * ratio / (1 + ratio));
+      const rMage = ORBIT_RADIUS * breathe * (2 / (1 + ratio));
+      const swordsmanX = center.x + Math.cos(a) * rSword;
+      const swordsmanY = center.y + Math.sin(a) * rSword * squash;
 
-      const mageX = center.x + Math.cos(orbitAngleRef.current + Math.PI) * ORBIT_RADIUS;
-      const mageY = center.y + Math.sin(orbitAngleRef.current + Math.PI) * ORBIT_RADIUS * 0.6;
+      const mageX = center.x + Math.cos(a + Math.PI) * rMage;
+      const mageY = center.y + Math.sin(a + Math.PI) * rMage * squash;
 
       // Draw subtle connection line between orbs
       ctx.beginPath();
@@ -302,17 +316,12 @@ export function WanderingOrbs({
       ctx.fill();
 
       if (equippedRef.current) {
-        // The paired star binds the two orbs visually; their ceremony path stays intact.
-        for (let half = 0; half < 2; half++) {
-          ctx.beginPath();
-          for (let i = 0; i < 3; i++) {
-            const a = i * Math.PI * 2 / 3 - Math.PI / 2 + half * Math.PI;
-            const x = center.x + Math.cos(a) * 27, y = center.y + Math.sin(a) * 27;
-            if(i === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-          }
-          ctx.closePath(); ctx.strokeStyle = (half ? paletteRef.current?.mage : paletteRef.current?.sword) ?? '#9fc0ff'; ctx.lineWidth = 1; ctx.stroke();
-        }
-        if(starButtonRef.current) starButtonRef.current.style.transform = `translate(${Math.max(4, Math.min(width - 130, center.x - 60))}px, ${Math.max(4, Math.min(height - 48, center.y - 78))}px)`;
+        // The paired star binds the two orbs visually; their ceremony path stays intact. Its size follows the
+        // core, and it turns with the orbit: the stella octangula drawn in its own dimension, so it reads as
+        // the eight-pointed star the Star renders — a flat pair of triangles is only its silhouette down a
+        // body diagonal, and that silhouette is a hexagram, which is not the figure.
+        const mark = 27 * (g ? g.core / 0.6 : 1);
+        drawStellaOctangula(ctx, center.x, center.y, mark, a * 0.9, paletteRef.current?.sword ?? '#ff6b6b', paletteRef.current?.mage ?? '#a78bfa');
       }
       // Draw orbs
       drawOrb(ctx, swordsmanX, swordsmanY, '⚔️', paletteRef.current?.sword ?? SWORDSMAN_COLOR, paletteRef.current?.sword ?? '#ff6b6b', 14);
@@ -327,8 +336,9 @@ export function WanderingOrbs({
         const emojiCount = swordsmanOrbitEmojis.length;
         swordsmanOrbitEmojis.forEach((emoji, i) => {
           const angle = emojiOrbitAngleRef.current + (i * (2 * Math.PI) / emojiCount);
-          const ex = swordsmanX + Math.cos(angle) * EMOJI_ORBIT_RADIUS;
-          const ey = swordsmanY + Math.sin(angle) * EMOJI_ORBIT_RADIUS * 0.7;
+          const r = EMOJI_ORBIT_RADIUS * (g ? 1 + g.eps * 0.5 * Math.sin(g.m * angle) : 1); // the blade's marks feel the stance too
+          const ex = swordsmanX + Math.cos(angle) * r;
+          const ey = swordsmanY + Math.sin(angle) * r * 0.7;
           drawOrbiterEmoji(ctx, ex, ey, emoji, paletteRef.current?.sword ?? SWORDSMAN_COLOR);
         });
       }
@@ -339,8 +349,9 @@ export function WanderingOrbs({
         const emojiCount = mageOrbitEmojis.length;
         mageOrbitEmojis.forEach((emoji, i) => {
           const angle = -emojiOrbitAngleRef.current + (i * (2 * Math.PI) / emojiCount); // Opposite direction
-          const ex = mageX + Math.cos(angle) * EMOJI_ORBIT_RADIUS;
-          const ey = mageY + Math.sin(angle) * EMOJI_ORBIT_RADIUS * 0.7;
+          const r = EMOJI_ORBIT_RADIUS * (g ? 1 + g.eps * 0.5 * Math.sin(g.m * angle) : 1); // the spells you have learned ride the same stance
+          const ex = mageX + Math.cos(angle) * r;
+          const ey = mageY + Math.sin(angle) * r * 0.7;
           drawOrbiterEmoji(ctx, ex, ey, emoji, paletteRef.current?.mage ?? MAGE_COLOR);
         });
       }
@@ -352,6 +363,7 @@ export function WanderingOrbs({
 
     return () => cancelAnimationFrame(animationRef.current);
   }, [width, height, isEvoking, waypointNodes, ceremonyPosition, isTracing, traceColor, onNodeReached, swordsmanOrbitEmojis, mageOrbitEmojis]);
+  void equipped; // read through equippedRef inside the frame loop
 
   // Don't render when orbs have returned to ceremony
   if (isEvoking && returningRef.current) {
@@ -364,7 +376,6 @@ export function WanderingOrbs({
 
   return (
     <>
-    {equipped && !isEvoking && <button ref={starButtonRef} className="star-orb-control" onClick={() => window.dispatchEvent(new Event('spellweb:open-star'))}>✦ Equipped Star</button>}
     <canvas
       ref={canvasRef}
       width={width}
@@ -382,6 +393,44 @@ export function WanderingOrbs({
     />
     </>
   );
+}
+
+// The stella octangula: two regular tetrahedra crossing — the Swordsman's in the sword colour, the Mage's in the
+// mage colour — projected from three dimensions with fixed tilts that keep the view off the body diagonals
+// (where the figure collapses to a hexagram) and off the axes (where it collapses to a square).
+const TET_A: ReadonlyArray<readonly [number, number, number]> = [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]];
+const TET_B: ReadonlyArray<readonly [number, number, number]> = TET_A.map(([x, y, z]) => [-x, -y, -z] as const);
+const TET_EDGES: ReadonlyArray<readonly [number, number]> = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]];
+function drawStellaOctangula(
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number,
+  size: number,
+  angle: number,
+  swordColor: string,
+  mageColor: string
+) {
+  const tilt = 0.62, roll = 0.31;
+  const cA = Math.cos(angle), sA = Math.sin(angle), cT = Math.cos(tilt), sT = Math.sin(tilt), cR = Math.cos(roll), sR = Math.sin(roll);
+  const s = size / Math.sqrt(3); // vertices sit at radius √3, so the figure fits the mark radius
+  const project = ([x, y, z]: readonly [number, number, number]) => {
+    const X1 = x * cA + z * sA, Z1 = -x * sA + z * cA;          // turn about the vertical axis with the orbit
+    const Y2 = y * cT - Z1 * sT, Z2 = y * sT + Z1 * cT;         // tilt toward the viewer
+    const X3 = X1 * cR - Y2 * sR, Y3 = X1 * sR + Y2 * cR;       // a small roll
+    return { x: cx + X3 * s, y: cy + Y3 * s * 0.92, d: (Z2 + Math.sqrt(3)) / (2 * Math.sqrt(3)) }; // d: 0 far … 1 near
+  };
+  const hex = (v: number) => Math.round(v).toString(16).padStart(2, '0');
+  const draw = (tet: ReadonlyArray<readonly [number, number, number]>, color: string) => {
+    const P = tet.map(project);
+    for (const [i, j] of TET_EDGES) {
+      const p = P[i], q = P[j], d = (p.d + q.d) / 2;
+      ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y);
+      ctx.strokeStyle = color + hex(70 + 150 * d); // nearer edges brighter and heavier
+      ctx.lineWidth = 0.7 + 0.9 * d;
+      ctx.stroke();
+    }
+  };
+  draw(TET_A, swordColor);
+  draw(TET_B, mageColor);
 }
 
 function drawOrbiterEmoji(

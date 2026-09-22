@@ -9,5 +9,3 @@
 .sw-star{top:82px;right:12px;bottom:auto;left:auto;display:flex;flex-direction:column-reverse;align-items:flex-end}
 .sw-star-panel{margin:8px 0 0;max-height:calc(100dvh - 152px)}
 @media(max-width:767px){.sw-star{top:max(10px,env(safe-area-inset-top));right:12px}.sw-star-panel{max-height:calc(100dvh - 82px)}}
-.star-orb-control{position:absolute;left:0;top:0;z-index:51;min-height:44px;padding:6px 12px;border:1px solid #8bd4ec88;border-radius:22px;background:#080c19dd;color:#dcefff;font:11px ui-monospace,monospace;cursor:pointer;white-space:nowrap}
-.star-orb-control:focus-visible{outline:2px solid #ffb9a6}
