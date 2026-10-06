@@ -449,6 +449,21 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 export const EDGES: SpellwebEdge[] = [
+  // References indicate relevance, not validation or access authority.
+  {"source": "doc-oph-v7-research", "target": "doc-oph-external", "type": "references"},
+  {"source": "doc-oph-v7-research", "target": "prototype-oph-atlas-v7", "type": "references"},
+  {"source": "doc-oph-v7-research", "target": "conj-c9", "type": "references"},
+  {"source": "doc-oph-v7-research", "target": "conj-c15", "type": "references"},
+  {"source": "doc-oph-v7-research", "target": "conj-c16", "type": "references"},
+  {"source": "doc-oph-v7-research", "target": "con-c7-compression", "type": "references"},
+  {"source": "doc-oph-v7-research", "target": "con-c10-three-axis", "type": "references"},
+  {"source": "doc-oph-v7-research", "target": "conj-c81", "type": "references"},
+  {"source": "doc-oph-v7-research", "target": "conj-c82", "type": "references"},
+  {"source": "doc-oph-v7-research", "target": "conj-c93", "type": "references"},
+  {"source": "doc-oph-v7-research", "target": "conj-c97", "type": "references"},
+  {"source": "doc-oph-v7-research", "target": "conj-c6-c10", "type": "references"},
+  {"source": "doc-oph-v7-research", "target": "conj-c14-c17", "type": "references"},
+
   // Corpus batch 2026-09-08: ecosystem foundations (docs/corpus manifest).
   { source: "concept-agentprivacy-mcp",target: "key-city-key",type: "references"},
   { source: "concept-agentprivacy-mcp",target: "concept-swordsman-process",type: "references"},
@@ -582,6 +597,11 @@ export const EDGES: SpellwebEdge[] = [
   { source: "fp-act-24", target: "con-holonic-braid", type: "extends" },
   { source: "fp-act-24", target: "con-uor-torus", type: "narrates" },
   { source: "con-braid", target: "con-generator-solver", type: "defines" },
+  // BRAID as a service (2026-09-12)
+  { source: "doc-serv-reasoning", target: "con-braid", type: "implements" },
+  { source: "chron-braid-as-a-service", target: "con-braid", type: "narrates" },
+  { source: "chron-braid-as-a-service", target: "con-c7-compression", type: "references" },
+  { source: "skill-compression-defence", target: "doc-serv-reasoning", type: "references" },
   { source: "con-three-axis-separation", target: "con-separation", type: "extends" },
   { source: "con-three-layer-identity", target: "con-vrc", type: "extends" },
   { source: "con-dragon-vertex", target: "con-7thcapital", type: "extends" },
