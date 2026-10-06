@@ -1,0 +1,156 @@
+{
+  "version": "7.0.0-research.1",
+  "date": "2026-09-11",
+  "authority": "research/CONJECTURE_REGISTER_V6.md",
+  "register_head": "C97",
+  "next_free": "C98",
+  "note": "research/2026-09-11_v7_oph_public_agreement_private_ambiguity.md",
+  "status_changes": [],
+  "new_conjectures": [],
+  "dispositions": [
+    {
+      "id": "C4",
+      "title": "96 vs 64 discrepancy",
+      "confidence": "—",
+      "status": "resolved (holographic + algebraic)",
+      "effect": "reference-only; no promotion",
+      "reason": "No OPH-to-96/64 geometric identification supplied."
+    },
+    {
+      "id": "C5",
+      "title": "~3,000× ZKP reduction",
+      "confidence": "—",
+      "status": "resolved (strengthened by BRAID + holographic bound)",
+      "effect": "reference-only; no promotion",
+      "reason": "No measured or proved ZK cost reduction supplied."
+    },
+    {
+      "id": "C6",
+      "title": "P^1.5 ↔ 96/64 is structural",
+      "confidence": "35%",
+      "status": "convergent",
+      "effect": "reference-only; no promotion",
+      "reason": "Twelve ports do not establish the 96/64 exponent correspondence."
+    },
+    {
+      "id": "C7",
+      "title": "Three-axis separation is multiplicative",
+      "confidence": "30%",
+      "status": "active · V6 falsification frontier",
+      "effect": "reference-only; no promotion",
+      "reason": "No derivation of multiplicative separation or independence."
+    },
+    {
+      "id": "C8",
+      "title": "BRAID compression reduces R_max",
+      "confidence": "45%",
+      "status": "active",
+      "effect": "reference-only; no promotion",
+      "reason": "Compression/invariant experiment proposed; no leakage reduction established."
+    },
+    {
+      "id": "C9",
+      "title": "Holographic boundary sufficiency",
+      "confidence": "25%",
+      "status": "active",
+      "effect": "reference-only; no promotion",
+      "reason": "Direct methodological reference: define task quotient and boundary factorization separately from informed private-state uncertainty."
+    },
+    {
+      "id": "C13",
+      "title": "Bilateral witness as quantum-resistant primitive",
+      "confidence": "65%",
+      "status": "active",
+      "effect": "reference-only; no promotion",
+      "reason": "No quantum-resistant construction or attack demonstrated."
+    },
+    {
+      "id": "C15",
+      "title": "T_∫(π) ≅ UOR resolution pipeline",
+      "confidence": "65%",
+      "status": "active",
+      "effect": "reference-only; no promotion",
+      "reason": "Refinement comparison target only; no UOR/OPH pipeline isomorphism."
+    },
+    {
+      "id": "C16",
+      "title": "Topological trust invariants via Betti numbers",
+      "confidence": "25%",
+      "status": "active",
+      "effect": "reference-only; no promotion",
+      "reason": "Local/global consistency suggests a test setting; no Betti-number trust correspondence proved."
+    },
+    {
+      "id": "C67",
+      "title": "Cryptographic Mosca for the substrate (extends C30 to C33 + C61; C60 is the X-side)",
+      "confidence": "stage 1",
+      "status": "active",
+      "effect": "reference-only; no promotion",
+      "reason": "No new cryptanalytic capability or horizon event."
+    },
+    {
+      "id": "C68",
+      "title": "Resource-estimate as durability signal, not attack (e^(−λt) reading)",
+      "confidence": "stage 1",
+      "status": "active",
+      "effect": "reference-only; no promotion",
+      "reason": "No new attack/resource estimate relevant to durability."
+    },
+    {
+      "id": "C69",
+      "title": "Held-out gate rejects the tuned claim (nonce-island; C13 at the validation layer)",
+      "confidence": "stage 1",
+      "status": "active",
+      "effect": "reference-only; no promotion",
+      "reason": "No new held-out cryptanalytic validation."
+    },
+    {
+      "id": "C70",
+      "title": "Crypto-agility as migration readiness (C30 to C33 migration-window Y)",
+      "confidence": "stage 1",
+      "status": "active",
+      "effect": "reference-only; no promotion",
+      "reason": "No change to migration-readiness evidence."
+    },
+    {
+      "id": "C71",
+      "title": "The Horizon Vertex V35 (Protection ∧ Computation ∧ Value)",
+      "confidence": "geometric",
+      "status": "active",
+      "effect": "reference-only; no promotion",
+      "reason": "No map into the Horizon vertex supplied."
+    },
+    {
+      "id": "C81",
+      "title": "Existence-Leak: a ZK proof of feasibility leaks an upper bound on reconstruction difficulty; I(feasibility; method) > 0",
+      "confidence": "~70%",
+      "status": "active · PROMOTED Run 3 2026-06-10 (Schrottenloher instance + Garg-Jain-Sahai λ<1 impossibility as bookends) · Stage 2 open: held at 70% until a second independent instance · Tarski axis-reading added Run 8 2026-06-28 (C92), framing only, Stage-2 bar unchanged",
+      "effect": "reference-only; no promotion",
+      "reason": "Not a second empirical feasibility-leak instance; Stage-2 bar remains open."
+    },
+    {
+      "id": "C82",
+      "title": "The Moving Ceiling: adversary informational capability grows against fixed archives: the linkage corpus and side priors accumulate along calendar time, shrinking H(X \\| B_t) while nothing is added to the archive and no action of the subject is involved; R_inf(t) drifts upward on a schedule and every static reconstruction guarantee has a finite shelf life t*. Frontier-model releases enter only informationally (better extraction of linkage from existing corpora), never as compute against the information-theoretic guarantee, which is compute-saturated. (Re-worded by First-Person ruling 2026-07-17, ledger L149; erosion form proven conditional in WP-07 Def 3.9 + Cor 5.4b, L145; the conjectural content is the RATE. Pre-ruling wording, retired: \"frontier capability growth raises C_S(t) + C_M(t)\".)",
+      "confidence": "~65%",
+      "status": "active · registered Run 1, 2026-06-10 · re-typed 2026-07-17",
+      "effect": "reference-only; no promotion",
+      "reason": "Finite background-information toy only; no empirical rate estimate."
+    },
+    {
+      "id": "C93",
+      "title": "Content-addressed liveness leak: a live content-address is an existence claim about its content; deduplication/GUID liveness leaks existence, and existence bounds the search. The address does not leak content; its liveness leaks existence. Edges → C81, → C92",
+      "confidence": "~55%",
+      "status": "active · registered Run 8, 2026-06-28 · conjectural",
+      "effect": "reference-only; no promotion",
+      "reason": "Retained-record provenance is not an independently observed GUID-liveness leak."
+    },
+    {
+      "id": "C97",
+      "title": "Structural Inalienability by Non-Reconstruction (the C55 ↔ C82 bridge): a scoped disclosure does not alienate the underlying stock, because the observing side cannot reconstruct the record from what it receives; the security guarantee IS the ownability mechanism (lease the harvest, not the land), and the ownership is durable exactly for the term the erosion clock permits. The non-reconstruction FORM is proven conditional (WP-07 Thm 5.1 + Cor 5.4b, under ER-1..ER-5 and the informed deficit); the conjectural content is the economic reading, that non-reconstruction suffices for the stock to function as inalienable capital in a market (priced in WP-14 §2 as the propertisation answer). Falsifier: a market in which scoped, non-reconstructing disclosures are nonetheless priced and traded as full alienation of the stock.",
+      "confidence": "architectural (form proven-conditional; economic reading conjectural)",
+      "status": "active · registered 2026-07-17 by First-Person assignment (L150) · edges C97 → C55, C97 → C82",
+      "effect": "reference-only; no promotion",
+      "reason": "Task/privacy distinction clarified; no evidence for the economic reading."
+    }
+  ]
+}

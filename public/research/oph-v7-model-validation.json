@@ -1,0 +1,15 @@
+{
+  "model": "6 independent uniform bits, public parity",
+  "tested_secret_mask_pairs": 4096,
+  "checks": [
+    "exact cardinality",
+    "actual state retained",
+    "no duplicate candidates",
+    "constant public result",
+    "compatible-state substitution preserves fiber",
+    "fifth known bit implies sixth",
+    "coalition leaves two states",
+    "parity insufficient for x0 task"
+  ],
+  "result": "PASS"
+}
