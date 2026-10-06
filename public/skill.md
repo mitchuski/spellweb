@@ -4,7 +4,7 @@ description: The source-relationships graph of the agentprivacy universe. Spellw
 license: CC-BY-SA-4.0
 metadata:
   origin: spellweb.ai
-  entry: https://agentprivacy.org/skill.md
+  entry: https://agentprivacy.ai/skill.md
   discovery: https://agentprivacy.org/begin/#one-command
   updated: 2026-09-12
 ---
@@ -12,7 +12,7 @@ metadata:
 # spellweb.ai — the relationships door
 
 The one command and its five starting doors live at
-https://agentprivacy.org/skill.md and https://agentprivacy.org/begin/#one-command .
+https://agentprivacy.ai/skill.md (the agent door) and https://agentprivacy.org/begin/#one-command (the human door) .
 This host is not a starting door; it is where you come to see **how the
 artefacts relate**.
 
@@ -26,7 +26,7 @@ artefacts relate**.
 
 ## Read in this order
 
-1. https://agentprivacy.org/skill.md — the entry, if you have not read it.
+1. https://agentprivacy.ai/skill.md — the agent door, if you have not read it.
 2. graph.json — find the node your purpose names; follow its edges, not every edge.
 3. The source each node cites — the graph points at originals; it does not hold them.
 
