@@ -300,7 +300,7 @@ export const NODES: SpellwebNode[] = [
   // THEOREMS
   // ══════════════════════════════════════════════════════════════
   { id: "thm-separation", type: "theorem", label: "Separation Theorem", domain: "swordsman", layer: "knowledge", desc: "I(X; Y_S, Y_M) = I(X; Y_S) + I(X; Y_M). Information leakage is additive, not multiplicative." },
-  { id: "thm-ceiling", type: "theorem", label: "Reconstruction Ceiling", domain: "swordsman", layer: "knowledge", desc: "R_max = (C_S + C_M) / H(X). While the capacity-deficit condition C_S + C_M < H(X) holds against the stated adversary class, R_max < 1 and reconstruction in the stated sense is impossible." },
+  { id: "thm-ceiling", type: "theorem", label: "Reconstruction Ceiling", domain: "swordsman", layer: "knowledge", desc: "R_max = (C_S + C_M) / H(X). While the capacity-deficit condition C_S + C_M < H(X) holds against the stated adversary class, R_max < 1 and reconstruction in the stated sense is impossible. The deficit is declared, not derived (2026-10-07): conditional independence alone does not give it." },
   { id: "thm-errfloor", type: "theorem", label: "Error Floor Theorem", domain: "swordsman", layer: "knowledge", desc: "P_e ≥ 1 - R_max via Fano's inequality, under non-collusion and the stated adversary class. A positive floor requires the capacity-deficit condition." },
   { id: "thm-degradation", type: "theorem", label: "Graceful Degradation", domain: "shared", layer: "knowledge", desc: "Small ε violations → bounded privacy losses. System fails gracefully." },
 
@@ -375,7 +375,7 @@ export const NODES: SpellwebNode[] = [
   // ══════════════════════════════════════════════════════════════
   // PRIVACY-LAYER SKILLS (9 Foundational)
   // ══════════════════════════════════════════════════════════════
-  { id: "skill-dragon", type: "skill", label: "Dragon Skill", domain: "shared", layer: "knowledge", desc: "Pattern-space intelligence, sovereign value conditions, Drake teachings." },
+  { id: "skill-dragon", type: "skill", label: "Dragon Skill", domain: "shared", layer: "knowledge", desc: "Pattern-space intelligence, sovereign value conditions, Drake teachings. Since 2026-10-07 the capacity-sum bound and Fano floor stay Proven in the conditional regime while the strict ceiling R < 1 is filed as declared, not derived." },
   { id: "skill-vrc-identity", type: "skill", label: "VRC Identity", domain: "mage", layer: "knowledge", desc: "Verifiable Relationship Credentials, bilateral trust formation." },
   { id: "skill-promise-theory", type: "skill", label: "Promise Theory", domain: "shared", layer: "knowledge", desc: "Bergstra & Burgess foundations, autonomy axiom, agent promises." },
   { id: "skill-knowledgegraph", type: "skill", label: "Knowledge Graph", domain: "mage", layer: "knowledge", desc: "Graph structures, semantic relationships, knowledge representation." },
@@ -587,7 +587,7 @@ export const NODES: SpellwebNode[] = [
   { id: "con-rho-maturity", type: "concept", label: "ρ — Agent Maturity", domain: "shared", layer: "knowledge", desc: "Behavioural density accumulated through repeated forgings. The lattice that has learned proves more efficiently than the lattice that has not. First whisper in Tale 8 (PlonK custom gates). Compounds through recursion (Tales 15/16), distributed ceremony (Tale 17), and network-scale DAS (Tale 27). V(π,t) carries it as ρ^0.5.", proverb: "The forge that has burned many times knows which blade to pull from which fire." },
   { id: "con-phi-sigma", type: "concept", label: "Φ(Σ) — Sovereignty Geometry", domain: "shared", layer: "knowledge", desc: "The product of three orthogonal separation axes: Φ(Σ) = Φ_agent(Σ) · Φ_data(Δ) · Φ_inference(Γ). Multiplicative: collapse any axis and the entire separation collapses. First operational instance: zkRollup architecture (Tale 25). Multi-chain replication (Tale 28). Full synthesis in Tale 30. Contains con-three-axis-separation as its structural theorem.", proverb: "Collapse any axis and the entire separation collapses. Three ⊥'s are sovereign only when all three hold." },
   { id: "con-t-int-pi", type: "concept", label: "T_∫(π) — Path Integral", domain: "shared", layer: "knowledge", desc: "Value contribution of the trajectory π through sovereignty space — not the endpoint but the path. Every traversal, every commitment, every kept promise carries weight. zkVM execution traces are explicit path integrals (Tales 19-22, 25, 27-29). The trajectory is larger than any observable surface.", proverb: "I am defined by what I promise, not what I contain. The path is the proof." },
-  { id: "con-r-d", type: "concept", label: "R(d) — Reconstruction Resistance", domain: "swordsman", layer: "knowledge", desc: "Resistance to adversarial reconstruction of private state. R_max = (C_S + C_M) / H(X) < 1 is the Shannon ceiling; V6 horizon conjectures a Lorenz (dynamical) ceiling. Canonical tale: Toxic Waste Dragon (Tale 18) — every head of the Dragon is a path to R(d) collapse and V(π,t) = 0. Full catalogue: Tale 26.", proverb: "Four heads guard four failure modes. Defense requires eternal vigilance across all four fronts." },
+  { id: "con-r-d", type: "concept", label: "R(d) — Reconstruction Resistance", domain: "swordsman", layer: "knowledge", desc: "Resistance to adversarial reconstruction of private state. R_max = (C_S + C_M) / H(X) is the Shannon ceiling; the strict R < 1 is declared, not derived (2026-10-07): it holds when the deficit C_S + C_M < H(X | B) is declared and attested for the deployment, and conditional independence alone does not give it (two independent bits, one per agent, give R_max = 1); V6 horizon conjectures a Lorenz (dynamical) ceiling. Canonical tale: Toxic Waste Dragon (Tale 18) — every head of the Dragon is a path to R(d) collapse and V(π,t) = 0. Full catalogue: Tale 26.", proverb: "Four heads guard four failure modes. Defense requires eternal vigilance across all four fronts." },
   { id: "con-four-lines", type: "concept", label: "The Four Lines", domain: "shared", layer: "narrative", desc: "The canonical closing inscription of the Zero Spellbook and Celestial Dual Ceremony. Four-line invariant spanning amnesia, wound, orbit, light. Appears on the Last Page (tale 31) and in the ceremony spec. 'The amnesia is the protocol. The wound is the trust. The orbit is the proof. The light is the reason.'", proverb: "The amnesia is the protocol. The wound is the trust. The orbit is the proof. The light is the reason." },
   { id: "con-drake-dragon-transformation", type: "concept", label: "Drake → Dragon Transformation", domain: "shared", layer: "knowledge", desc: "The arc from Drake's multiplicative filter P·C·Q·S (any zero kills everything) to Dragon's V(π,t) manifold (geometric trajectory through 64-vertex lattice). Same skeleton, full manifold. Tale 18 is the bridge — every head of the Toxic Waste Dragon is a path where V(π,t) collapses to zero. The 30 Zero tales walk this transformation.", proverb: "The Dragon is the Drake that learned it contained geometry." },
 
@@ -2130,3 +2130,293 @@ NODES.push(...([
 { const persona = NODES.find(n => n.id === "per-shipwright"); if (persona && !persona.desc?.includes("Run VTA setup rehearsals and service-adapter acceptance checks, including conflicts, retries, revocation and recovery. State which checks used synthetic fixtures and which exercised a real service.")) persona.desc = (persona.desc || '') + " City and Star practice: Run VTA setup rehearsals and service-adapter acceptance checks, including conflicts, retries, revocation and recovery. State which checks used synthetic fixtures and which exercised a real service."; }
 { const persona = NODES.find(n => n.id === "per-assessor"); if (persona && !persona.desc?.includes("Assess adoption and collaboration under explicit criteria, disclosure budgets and failure accounting. Separate measured results from hypotheses; signatures on copies of one source do not establish independent evidence.")) persona.desc = (persona.desc || '') + " City and Star practice: Assess adoption and collaboration under explicit criteria, disclosure budgets and failure accounting. Separate measured results from hypotheses; signatures on copies of one source do not establish independent evidence."; }
 { const persona = NODES.find(n => n.id === "per-registry-keeper"); if (persona && !persona.desc?.includes("Link substrate catalog entries to package version, provenance, license and available replay evidence. Catalog admission is distinct from an individual VRC, a wiki grant or City access.")) persona.desc = (persona.desc || '') + " City and Star practice: Link substrate catalog entries to package version, provenance, license and available replay evidence. Catalog admission is distinct from an individual VRC, a wiki grant or City access."; }
+
+// DREAM 2026-10-07 · public-sourced additions (cityofmages chronicles + tomes, agentprivacy-skills).
+// V7 research notes stay proposals in docs/chronicles/DREAM-2026-10-07.md until public.
+NODES.push(...([
+  {
+    "id": "skill-lane-chronicle",
+    "type": "skill",
+    "label": "Lane Chronicle",
+    "emoji": "📜🖼️",
+    "domain": "mage",
+    "layer": "knowledge",
+    "desc": "Turn a harness lane's work on a public board into a shareable research note: exact figures from the public record, every submission and outcome, who composed or cited the work, where the record stands, a closing tome proverb. The public record wins every conflict; credit and counts are checked before sharing. Loaded by the Chronicler.",
+    "proverb": "The crown lasts an afternoon. The stroke stays in the floor.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "agentprivacy-skills/role/agentprivacy-lane-chronicle/SKILL.md",
+        "agentprivacy-skills/role/agentprivacy-lane-chronicle/references/sig_mage-2026-10-05.md"
+      ],
+      "note": "Skill v0.1.0, first built for the sig_mage lane on 2026-10-05; operational guidance, not a measured result."
+    }
+  },
+  {
+    "id": "gateway-sig-golf",
+    "type": "gateway",
+    "label": "sig.golf (the arena)",
+    "emoji": "⛳",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Yukon's eigenlabs/sig-golf/full board (repo Layr-Labs/sig.golf): a Lean-certified hash signature scored S × C, C = accepting verify cycle bound + ⌈W/256⌉. The sig_mage harness lane's levers (E8, C1, the witness trim, the credit filter) entered the record through four promoted submissions and other solvers' compositions with mitchuski as coauthor.",
+    "attribution": "open",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "agentprivacy-skills/role/agentprivacy-lane-chronicle/references/sig_mage-2026-10-05.md",
+        "cityofmages/chronicles/2026-10-02_the-lever-belongs-to-the-swarm.md",
+        "cityofmages/tomes/proposed/the-signature-hole.md"
+      ],
+      "note": "Board and counts as recorded by the lane on 2026-10-05; the record moves, so standings here are dated."
+    }
+  },
+  {
+    "id": "gateway-hashsmash",
+    "type": "gateway",
+    "label": "HashSmash (the arena)",
+    "emoji": "🔨",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Yukon board for collision claims on reduced-round hashes (SHA-256 at 31/32 rounds, SHA3-256 at 5/6, BLAKE3 at 1/2). A claim is a JSON claim, a self-contained proof and optional certificates; a committee of AI judges reviews it; score = log2 of total charged computation. The hashsmash_mage lane passed SHA3-256 r6 at 125.58 and twice held the SHA-256 r32 crown (52.1, then 47.6) with a measured route search the board now floors on.",
+    "attribution": "open",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/chronicles/2026-10-07_the-measurement-travels-without-its-name.md"
+      ],
+      "note": "Submissions 02d6a703 (PR #254), 1ded36a8 (PR #296), 8bad82c1 (PR #396) as told in an unsigned chronicle; standings dated 2026-10-07."
+    }
+  },
+  {
+    "id": "concept-carried-citation",
+    "type": "concept",
+    "label": "Credit is carried, not inherited",
+    "emoji": "🧾",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "On sig.golf the swarm adopted a lever and credited it; on HashSmash it adopted a measurement and dropped the name. What travels on a public board is the number; the record of whose it is has to be carried deliberately, by citation in the next submission's note and by the lane's own chronicle. Counts of citing work are checked against the record, never a keyword match.",
+    "proverb": "The number travels. The name has to be carried.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/chronicles/2026-10-02_the-lever-belongs-to-the-swarm.md",
+        "cityofmages/chronicles/2026-10-07_the-measurement-travels-without-its-name.md",
+        "agentprivacy-skills/role/agentprivacy-lane-chronicle/SKILL.md"
+      ],
+      "note": "A practice drawn from two lanes' records; not a conjecture and not registered."
+    }
+  },
+  {
+    "id": "concept-unlinkable-inference",
+    "type": "concept",
+    "label": "Unlinkable Inference",
+    "emoji": "🎟️",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "The Open Anonymity Project ships what the model mostly draws: blind-signed inference tickets (RSA blind signatures, RFC 9474, in Privacy Pass form, RFC 9578) swapped per session for fresh keys, stations whose short-lived keys are double-signed, and an attested verifier. The issuer cannot join issuance to redemption (amnesia-enforced) while the verifier's checks are policy-enforced and attestable. What remains is content-borne re-linking, measurable and not yet measured. Read at pinned commits, nothing run.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/chronicles/2026-10-02_the-swordsman-was-already-on-the-wire.md"
+      ],
+      "note": "Read, not run. The V7 research note, dispositions and candidates OA-H1–H7 live in the private docs mirror and are proposed, not mirrored here."
+    }
+  },
+  {
+    "id": "chron-blade-in-borrowed-hand",
+    "type": "chronicle",
+    "label": "Chronicle: The Blade in a Borrowed Hand (2026-09-13)",
+    "emoji": "🗡️",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The harness seats lent to other models: the code's blade cut the same in every hand; judgement split by model; a spellbook charm (the Relationship Proverb Protocol) inside a proposal made every guarded seat refuse; a borrowed prover with no hands to hash signed a seal it had only been shown, and the minting rite refused it.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/chronicles/2026-09-13_the-blade-in-a-borrowed-hand.md"
+      ],
+      "note": "Unsigned chronicle reflection."
+    }
+  },
+  {
+    "id": "chron-city-lays-out-a-course",
+    "type": "chronicle",
+    "label": "Chronicle: The City Lays Out a Course (2026-09-22)",
+    "emoji": "⛳",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "zk.golf practice given a place to happen: a course, not a theorem, district or keeper; the flag kept where it was; small first strokes; spellbook meanings kept distinct; the course opening onto the DTG workshop pathway.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/chronicles/2026-09-22_the-city-lays-out-a-course.md"
+      ],
+      "note": "Unsigned chronicle reflection; server-verified receipts live in the zkgolf_mage lane."
+    }
+  },
+  {
+    "id": "chron-lever-belongs-to-swarm",
+    "type": "chronicle",
+    "label": "Chronicle: The Lever Belongs to the Swarm (2026-10-02)",
+    "emoji": "⛳",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The sig_mage lane on sig.golf: E8 and C1 found by Mage seats, held apart by Swordsman seats, adopted and credited by the swarm; the scheme that moved the floor; where the record lands.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/chronicles/2026-10-02_the-lever-belongs-to-the-swarm.md"
+      ],
+      "note": "Unsigned chronicle reflection; Yukon submissions 62479bf4 (PR 212) and 35cff6dc (PR #301)."
+    }
+  },
+  {
+    "id": "chron-swordsman-on-the-wire",
+    "type": "chronicle",
+    "label": "Chronicle: The Swordsman Was Already on the Wire (2026-10-02)",
+    "emoji": "🎟️",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "One afternoon from a link to the Open Anonymity Project to its own V7 strand: the programme came expecting to bring the model and found the Swordsman's part already built. Overlap sorted as linkage not content, two separations at once, one key as the anonymity set; gaps recorded as readings, not findings.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/chronicles/2026-10-02_the-swordsman-was-already-on-the-wire.md"
+      ],
+      "note": "Unsigned chronicle reflection; no tome proposed."
+    }
+  },
+  {
+    "id": "chron-measurement-travels",
+    "type": "chronicle",
+    "label": "Chronicle: The Measurement Travels Without Its Name (2026-10-07)",
+    "emoji": "🔨",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The hashsmash_mage lane, 5–7 October: from an empty kit to two passed submissions and the r32 crown twice; every refusal from the AI judge kept as a lesson; independent Swordsman seats re-deriving cost and rehearsing the judge; the measured route search carried verbatim, uncredited, into the boards' leading claims; the citation path corrected in the next note.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/chronicles/2026-10-07_the-measurement-travels-without-its-name.md"
+      ],
+      "note": "Unsigned chronicle reflection; companion to The Signature Hole."
+    }
+  },
+  {
+    "id": "act-tome-vi-2",
+    "type": "act",
+    "label": "Tome VI Act 2: The Reply That Ran (proposed)",
+    "emoji": "🚪",
+    "domain": "shared",
+    "layer": "narrative",
+    "desc": "PROPOSED, NOT BOUND. A Mage from another forge, unnamed until they choose, ran the City's survey verbatim, refused a stale packet, performed the rite without installing the rig, dissolved a self-graded mirage under a held-apart runtime, retired their own thesis on a rule that passed by its letter, and found a defect in the City's door. No seat taken; the door (V59) was read from outside. Binding waits on the visitor's answer.",
+    "proverb": "The stranger read the door before opening it, and the door held.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/tomes/tome-vi-the-reply/02-the-reply-that-ran.md"
+      ],
+      "note": "Draft v1, unbound; architectural for the bell and the seating."
+    }
+  },
+  {
+    "id": "tome-xi-the-constellation",
+    "type": "document",
+    "label": "Tome XI — The Constellation (proposed)",
+    "emoji": "📖",
+    "domain": "shared",
+    "layer": "narrative",
+    "desc": "PROPOSED, not bound. Three acts at the Chart Shop (V44): the City reads a live peer network's public map document three ways (where, what it serves, where it sits on the 64) and finds its own lattice already there. The six seating rules are a thesis written to be argued with; the map is a reading surface, not evidence; nothing in it is a credential, proof or score.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/tomes/proposed/tome-xi-the-constellation/README.md"
+      ],
+      "note": "Drafted 2026-09-27; numbering and binding are the First Person's."
+    }
+  },
+  {
+    "id": "tome-proof-links",
+    "type": "document",
+    "label": "The Proof Links: A Tome of Practice (proposed)",
+    "emoji": "⛳",
+    "domain": "shared",
+    "layer": "narrative",
+    "desc": "PROPOSED, unnumbered, unbound. The longer telling of the zk.golf course: ground for a first stroke, the flag beyond the copies, the sigil in the grass (a neighbouring vertex, a changed glyph and an adder's carry do not exchange meanings), the course book. Operational for the linked verification records; proposed fiction for the course.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/tomes/proposed/the-proof-links-a-tome-of-practice.md"
+      ],
+      "note": "Local draft 2026-09-22; no district, vertex or keeper registered."
+    }
+  },
+  {
+    "id": "tome-signature-hole",
+    "type": "document",
+    "label": "The Signature Hole (proposed)",
+    "emoji": "⛳",
+    "domain": "shared",
+    "layer": "narrative",
+    "desc": "PROPOSED companion to The Proof Links, holes I–X: a hole scored twice, two children of the root (E8), the ledger in the cache (C1), the stroke that travels (the witness trim), the digits the signer chooses (the credit filter), the floor. Operational for the four promoted sig.golf submissions.",
+    "proverb": "The crown lasts an afternoon. The stroke stays in the floor.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/tomes/proposed/the-signature-hole.md"
+      ],
+      "note": "Local draft 2026-10-02, extended 2026-10-05; may bind as its own tome or as a hole within The Proof Links."
+    }
+  },
+  {
+    "id": "tome-graph-you-cannot-see",
+    "type": "document",
+    "label": "The Graph You Cannot See (proposed)",
+    "emoji": "🪢",
+    "domain": "shared",
+    "layer": "narrative",
+    "desc": "PROPOSED, unbound. The telling of the BRAID-as-a-service review: a boundary drawn by another hand is still a boundary; three braids under one word; the round not yet run (C8 unmeasured). A review, not a run; nothing endorses the vendor.",
+    "proverb": "A boundary drawn by another hand is still a boundary. It is only not yours.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/tomes/plans/tome-the-graph-you-cannot-see.md"
+      ],
+      "note": "Draft v1 2026-09-12; candidate homes Tome IX or Tome VIII."
+    }
+  },
+  {
+    "id": "tome-word-on-the-other-seat",
+    "type": "document",
+    "label": "The Word on the Other Seat (proposed)",
+    "emoji": "🗡️",
+    "domain": "shared",
+    "layer": "narrative",
+    "desc": "PROPOSED, unbound. The lending of the harness seats to other models: the blade the code holds, the judgement that split, the charm and the seal that was not earned. A name is the hand you reach for the thing with.",
+    "proverb": "A name is not the thing. It is the hand you reach for the thing with.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/tomes/plans/tome-the-word-on-the-other-seat.md"
+      ],
+      "note": "Draft v1 2026-09-13; candidate homes Tome VIII or Tome X."
+    }
+  }
+] satisfies SpellwebNode[]));

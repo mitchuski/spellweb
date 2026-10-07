@@ -2766,3 +2766,662 @@ EDGES.push(...([
     "type": "persona_knows"
   }
 ] satisfies SpellwebEdge[]));
+
+// DREAM 2026-10-07 · new nodes wired + orphan term wiring (term → canonical node).
+EDGES.push(...([
+  {
+    "source": "per-chronicler",
+    "target": "skill-lane-chronicle",
+    "type": "persona_knows"
+  },
+  {
+    "source": "skill-lane-chronicle",
+    "target": "skill-narrative",
+    "type": "references"
+  },
+  {
+    "source": "skill-lane-chronicle",
+    "target": "skill-proverbiogenesis",
+    "type": "references"
+  },
+  {
+    "source": "skill-lane-chronicle",
+    "target": "skill-review-receipts",
+    "type": "references"
+  },
+  {
+    "source": "skill-lane-chronicle",
+    "target": "skill-dual-agent-harness",
+    "type": "references"
+  },
+  {
+    "source": "skill-lane-chronicle",
+    "target": "gateway-sig-golf",
+    "type": "references"
+  },
+  {
+    "source": "skill-lane-chronicle",
+    "target": "concept-carried-citation",
+    "type": "implements"
+  },
+  {
+    "source": "chron-lever-belongs-to-swarm",
+    "target": "gateway-sig-golf",
+    "type": "narrates"
+  },
+  {
+    "source": "chron-lever-belongs-to-swarm",
+    "target": "skill-dual-agent-harness",
+    "type": "narrates"
+  },
+  {
+    "source": "chron-lever-belongs-to-swarm",
+    "target": "concept-carried-citation",
+    "type": "references"
+  },
+  {
+    "source": "chron-lever-belongs-to-swarm",
+    "target": "tome-signature-hole",
+    "type": "references"
+  },
+  {
+    "source": "tome-signature-hole",
+    "target": "gateway-sig-golf",
+    "type": "narrates"
+  },
+  {
+    "source": "tome-signature-hole",
+    "target": "tome-proof-links",
+    "type": "extends"
+  },
+  {
+    "source": "chron-measurement-travels",
+    "target": "gateway-hashsmash",
+    "type": "narrates"
+  },
+  {
+    "source": "chron-measurement-travels",
+    "target": "skill-dual-agent-harness",
+    "type": "narrates"
+  },
+  {
+    "source": "chron-measurement-travels",
+    "target": "concept-carried-citation",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-measurement-travels",
+    "target": "chron-lever-belongs-to-swarm",
+    "type": "references"
+  },
+  {
+    "source": "chron-swordsman-on-the-wire",
+    "target": "concept-unlinkable-inference",
+    "type": "narrates"
+  },
+  {
+    "source": "concept-unlinkable-inference",
+    "target": "per-soulbis",
+    "type": "references"
+  },
+  {
+    "source": "concept-unlinkable-inference",
+    "target": "conj-c82",
+    "type": "references"
+  },
+  {
+    "source": "concept-unlinkable-inference",
+    "target": "conj-c83",
+    "type": "references"
+  },
+  {
+    "source": "concept-unlinkable-inference",
+    "target": "conj-c14-c17",
+    "type": "references"
+  },
+  {
+    "source": "chron-blade-in-borrowed-hand",
+    "target": "skill-dual-agent-harness",
+    "type": "narrates"
+  },
+  {
+    "source": "chron-blade-in-borrowed-hand",
+    "target": "tome-word-on-the-other-seat",
+    "type": "references"
+  },
+  {
+    "source": "tome-word-on-the-other-seat",
+    "target": "con-separation",
+    "type": "references"
+  },
+  {
+    "source": "tome-word-on-the-other-seat",
+    "target": "skill-ring-algebra",
+    "type": "references"
+  },
+  {
+    "source": "chron-city-lays-out-a-course",
+    "target": "tome-proof-links",
+    "type": "references"
+  },
+  {
+    "source": "chron-city-lays-out-a-course",
+    "target": "doc-dtg-zk-book",
+    "type": "references"
+  },
+  {
+    "source": "tome-graph-you-cannot-see",
+    "target": "doc-serv-reasoning",
+    "type": "narrates"
+  },
+  {
+    "source": "tome-graph-you-cannot-see",
+    "target": "con-c7-compression",
+    "type": "references"
+  },
+  {
+    "source": "tome-graph-you-cannot-see",
+    "target": "chron-braid-as-a-service",
+    "type": "references"
+  },
+  {
+    "source": "act-tome-vi-1",
+    "target": "act-tome-vi-2",
+    "type": "follows"
+  },
+  {
+    "source": "tome-vi-the-reply",
+    "target": "act-tome-vi-2",
+    "type": "references"
+  },
+  {
+    "source": "act-tome-vi-2",
+    "target": "vertex-v59",
+    "type": "references"
+  },
+  {
+    "source": "act-tome-vi-2",
+    "target": "con-c10-three-axis",
+    "type": "references"
+  },
+  {
+    "source": "act-tome-vi-2",
+    "target": "conj-c39",
+    "type": "references"
+  },
+  {
+    "source": "act-tome-vi-2",
+    "target": "conj-c69",
+    "type": "references"
+  },
+  {
+    "source": "act-tome-vi-2",
+    "target": "conj-c82",
+    "type": "references"
+  },
+  {
+    "source": "tome-xi-the-constellation",
+    "target": "shop-charthouse",
+    "type": "references"
+  },
+  {
+    "source": "tome-xi-the-constellation",
+    "target": "vertex-v44",
+    "type": "references"
+  },
+  {
+    "source": "tome-xi-the-constellation",
+    "target": "concept-sovereign-lattice",
+    "type": "references"
+  },
+  {
+    "source": "tome-xi-the-constellation",
+    "target": "con-holographic-bound",
+    "type": "references"
+  },
+  {
+    "source": "skill-dragon",
+    "target": "thm-ceiling",
+    "type": "references"
+  },
+  {
+    "source": "term-swordsman-and-mage-meet",
+    "target": "term-dual-convergence",
+    "type": "references"
+  },
+  {
+    "source": "term-lattice-measurement",
+    "target": "skill-pretext-measurement",
+    "type": "references"
+  },
+  {
+    "source": "term-domfree",
+    "target": "skill-pretext-measurement",
+    "type": "references"
+  },
+  {
+    "source": "term-pretext",
+    "target": "skill-pretext-measurement",
+    "type": "references"
+  },
+  {
+    "source": "term-measurement-dark",
+    "target": "skill-pretext-measurement",
+    "type": "references"
+  },
+  {
+    "source": "term-hexagram",
+    "target": "skill-hexagram-convergence",
+    "type": "references"
+  },
+  {
+    "source": "term-constellation-nodes",
+    "target": "skill-constellation",
+    "type": "references"
+  },
+  {
+    "source": "term-spell-casting-onto-page",
+    "target": "skill-inscription",
+    "type": "references"
+  },
+  {
+    "source": "term-inscription-flows-to-spellweb",
+    "target": "skill-spellweb",
+    "type": "references"
+  },
+  {
+    "source": "term-drake-emergence-dragon-transformati",
+    "target": "con-drake-dragon-transformation",
+    "type": "references"
+  },
+  {
+    "source": "term-lattice-vertex",
+    "target": "concept-sovereign-lattice",
+    "type": "references"
+  },
+  {
+    "source": "term-manifold",
+    "target": "concept-sovereign-lattice",
+    "type": "references"
+  },
+  {
+    "source": "term-the-strike-identity",
+    "target": "skill-five-strikes",
+    "type": "references"
+  },
+  {
+    "source": "term-neg-bnot-identity",
+    "target": "skill-ring-algebra",
+    "type": "references"
+  },
+  {
+    "source": "term-pascal-distribution",
+    "target": "skill-ring-algebra",
+    "type": "references"
+  },
+  {
+    "source": "term-derivation-chain",
+    "target": "skill-blade-forge",
+    "type": "references"
+  },
+  {
+    "source": "term-same-blade-infinite-forgings",
+    "target": "skill-blade-forge",
+    "type": "references"
+  },
+  {
+    "source": "term-holographic-boundary",
+    "target": "con-holographic-bound",
+    "type": "references"
+  },
+  {
+    "source": "term-path-integral-computed-on-boundary",
+    "target": "skill-path-integral",
+    "type": "references"
+  },
+  {
+    "source": "term-path",
+    "target": "skill-path-integral",
+    "type": "references"
+  },
+  {
+    "source": "term-2d-lock-shatters",
+    "target": "skill-quantum-defence",
+    "type": "references"
+  },
+  {
+    "source": "term-quantum-threshold",
+    "target": "skill-quantum-defence",
+    "type": "references"
+  },
+  {
+    "source": "term-6d-manifold-cannot-be-2dattacked",
+    "target": "skill-quantum-defence",
+    "type": "references"
+  },
+  {
+    "source": "term-2d-fortress",
+    "target": "skill-quantum-defence",
+    "type": "references"
+  },
+  {
+    "source": "term-6d-manifold",
+    "target": "skill-quantum-defence",
+    "type": "references"
+  },
+  {
+    "source": "term-on-spend-attack",
+    "target": "skill-quantum-defence",
+    "type": "references"
+  },
+  {
+    "source": "term-at-rest-attack",
+    "target": "skill-quantum-defence",
+    "type": "references"
+  },
+  {
+    "source": "term-on-setup-attack",
+    "target": "skill-quantum-defence",
+    "type": "references"
+  },
+  {
+    "source": "term-understandingaskey",
+    "target": "con-understanding-as-key",
+    "type": "references"
+  },
+  {
+    "source": "term-understanding-as-key",
+    "target": "con-understanding-as-key",
+    "type": "references"
+  },
+  {
+    "source": "term-dragon-flight",
+    "target": "skill-dragon-flight",
+    "type": "references"
+  },
+  {
+    "source": "term-dragon-anatomy",
+    "target": "skill-dragon-flight",
+    "type": "references"
+  },
+  {
+    "source": "term-emissary-dispersion",
+    "target": "con-emissary-recursion",
+    "type": "references"
+  },
+  {
+    "source": "term-swordsman",
+    "target": "per-soulbis",
+    "type": "references"
+  },
+  {
+    "source": "term-blade-action",
+    "target": "per-soulbis",
+    "type": "references"
+  },
+  {
+    "source": "term-mage",
+    "target": "per-soulbae",
+    "type": "references"
+  },
+  {
+    "source": "term-spell-casting",
+    "target": "per-soulbae",
+    "type": "references"
+  },
+  {
+    "source": "term-shield",
+    "target": "skill-armor-progression",
+    "type": "references"
+  },
+  {
+    "source": "term-blade-tiers",
+    "target": "skill-armor-progression",
+    "type": "references"
+  },
+  {
+    "source": "term-verified-personhood",
+    "target": "skill-personhood",
+    "type": "references"
+  },
+  {
+    "source": "term-the-dragon",
+    "target": "skill-dragon",
+    "type": "references"
+  },
+  {
+    "source": "term-dragon",
+    "target": "skill-dragon",
+    "type": "references"
+  },
+  {
+    "source": "term-the-drake",
+    "target": "per-drake",
+    "type": "references"
+  },
+  {
+    "source": "term-drake",
+    "target": "per-drake",
+    "type": "references"
+  },
+  {
+    "source": "term-tetrahedral-separation-matrix",
+    "target": "skill-tetrahedral",
+    "type": "references"
+  },
+  {
+    "source": "term-manifoldtetrahedronship",
+    "target": "skill-tetrahedral",
+    "type": "references"
+  },
+  {
+    "source": "term-edge",
+    "target": "skill-edge-value",
+    "type": "references"
+  },
+  {
+    "source": "term-edge-primacy",
+    "target": "skill-edge-value",
+    "type": "references"
+  },
+  {
+    "source": "term-secret-language",
+    "target": "skill-spell-encoding",
+    "type": "references"
+  },
+  {
+    "source": "term-the-tailnet",
+    "target": "con-mesh-sovereignty",
+    "type": "references"
+  },
+  {
+    "source": "term-nat-traversal",
+    "target": "skill-mesh-architecture",
+    "type": "references"
+  },
+  {
+    "source": "term-magicdns",
+    "target": "skill-mesh-architecture",
+    "type": "references"
+  },
+  {
+    "source": "term-aperture",
+    "target": "skill-mesh-architecture",
+    "type": "references"
+  },
+  {
+    "source": "term-the-dragons-hide",
+    "target": "skill-mesh-architecture",
+    "type": "references"
+  },
+  {
+    "source": "term-drakes-teaching-manifest-in-the-mes",
+    "target": "skill-mesh-architecture",
+    "type": "references"
+  },
+  {
+    "source": "term-control-plane",
+    "target": "skill-mesh-architecture",
+    "type": "references"
+  },
+  {
+    "source": "term-data-plane",
+    "target": "skill-mesh-architecture",
+    "type": "references"
+  },
+  {
+    "source": "term-encrypted-tunnels",
+    "target": "skill-mesh-architecture",
+    "type": "references"
+  },
+  {
+    "source": "term-the-mesh-itself",
+    "target": "con-mesh-sovereignty",
+    "type": "references"
+  },
+  {
+    "source": "term-coordination-content",
+    "target": "skill-mesh-architecture",
+    "type": "references"
+  },
+  {
+    "source": "term-control-plane-data-plane-separation",
+    "target": "skill-mesh-architecture",
+    "type": "references"
+  },
+  {
+    "source": "term-control-plane-data-plane-separation",
+    "target": "conj-c96",
+    "type": "references"
+  },
+  {
+    "source": "term-hemispheric-separation",
+    "target": "skill-hemispheric-attention",
+    "type": "references"
+  },
+  {
+    "source": "term-two-modes-of-attention",
+    "target": "skill-hemispheric-attention",
+    "type": "references"
+  },
+  {
+    "source": "term-swordsman-as-right-hemisphere",
+    "target": "skill-hemispheric-attention",
+    "type": "references"
+  },
+  {
+    "source": "term-mage-as-left-hemisphere",
+    "target": "skill-hemispheric-attention",
+    "type": "references"
+  },
+  {
+    "source": "term-corpus-callosum",
+    "target": "skill-hemispheric-attention",
+    "type": "references"
+  },
+  {
+    "source": "term-connection-is-not-separation",
+    "target": "skill-hemispheric-attention",
+    "type": "references"
+  },
+  {
+    "source": "term-usurpation-pattern-prevented-by-bou",
+    "target": "skill-hemispheric-attention",
+    "type": "references"
+  },
+  {
+    "source": "term-hemispheric-balance",
+    "target": "skill-hemispheric-attention",
+    "type": "references"
+  },
+  {
+    "source": "term-rightleftright",
+    "target": "skill-hemispheric-attention",
+    "type": "references"
+  },
+  {
+    "source": "term-master",
+    "target": "con-master-emissary",
+    "type": "references"
+  },
+  {
+    "source": "term-emissary",
+    "target": "con-master-emissary",
+    "type": "references"
+  },
+  {
+    "source": "term-universe-blade",
+    "target": "con-dragon-vertex",
+    "type": "references"
+  },
+  {
+    "source": "term-seventh-capital-reclaimed",
+    "target": "con-7thcapital",
+    "type": "references"
+  },
+  {
+    "source": "term-dual-convergence",
+    "target": "term-five-crossings",
+    "type": "references"
+  },
+  {
+    "source": "term-hexagram-cast",
+    "target": "term-five-crossings",
+    "type": "references"
+  },
+  {
+    "source": "term-hexagram-cast",
+    "target": "term-hexagram",
+    "type": "references"
+  },
+  {
+    "source": "term-emoji-cast",
+    "target": "term-five-crossings",
+    "type": "references"
+  },
+  {
+    "source": "term-constellation-wave",
+    "target": "term-five-crossings",
+    "type": "references"
+  },
+  {
+    "source": "term-bilateral-exchange",
+    "target": "term-five-crossings",
+    "type": "references"
+  },
+  {
+    "source": "term-bilateral-exchange",
+    "target": "con-myterms",
+    "type": "references"
+  },
+  {
+    "source": "term-mana-economy",
+    "target": "skill-mana-economy",
+    "type": "references"
+  },
+  {
+    "source": "term-behavioral-density",
+    "target": "skill-behavioural-density",
+    "type": "references"
+  },
+  {
+    "source": "term-v5-1",
+    "target": "doc-privacy-value-v5",
+    "type": "references"
+  },
+  {
+    "source": "term-62-lap-theorem",
+    "target": "con-r-d",
+    "type": "references"
+  },
+  {
+    "source": "fp-act-20",
+    "target": "term-the-keeper",
+    "type": "narrates"
+  },
+  {
+    "source": "skill-spellweb",
+    "target": "spell-spellweb",
+    "type": "compresses_to"
+  }
+] satisfies SpellwebEdge[]));
