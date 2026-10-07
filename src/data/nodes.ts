@@ -4,7 +4,7 @@ import type { SpellwebNode } from '../types/graph';
 // FULL AGENTPRIVACY KNOWLEDGE GRAPH DATA
 // All 5 Spellbooks, Personas, Skills, and Concepts
 // Version: V10 aligned (Grimoire V10.0.0 + Skills V5.3.2)
-// Counts: 86 skills, 42 personas (38 selectable + 4 cosmological)
+// Counts: 96 skills, 42 personas (38 selectable + 4 cosmological) — updated 2026-10-07
 //
 // PRISM Triadic Coordinates (GPS for sovereignty):
 //   - Datum: The identity constraint (hex value 0-63)
@@ -776,15 +776,6 @@ export const NODES: SpellwebNode[] = [
     emoji: '🔷⁶ᴰ≠🔐²ᴰ',
   },
   {
-    id: 'term-understandingaskey',
-    type: 'term',
-    label: 'Understanding-as-key',
-    domain: 'shared',
-    layer: 'knowledge',
-    desc: 'Understanding-as-key / comprehension proof / bilateral knowledge',
-    emoji: '🤝📖(understand)',
-  },
-  {
     id: 'term-dragon-flight',
     type: 'term',
     label: 'Dragon flight',
@@ -1418,7 +1409,7 @@ export const NODES: SpellwebNode[] = [
     label: '62-Lap Theorem',
     domain: 'swordsman',
     layer: 'knowledge',
-    desc: '620 transitions drop R < 1. Dragon tier density.',
+    desc: '62 laps, 620 transitions: Dragon-tier density. The R < 1 they reach holds under a declared deficit, not derived from the laps (2026-10-07).',
     emoji: '62→R<1',
   },
   {
@@ -2417,6 +2408,590 @@ NODES.push(...([
         "cityofmages/tomes/plans/tome-the-word-on-the-other-seat.md"
       ],
       "note": "Draft v1 2026-09-13; candidate homes Tome VIII or Tome X."
+    }
+  }
+] satisfies SpellwebNode[]));
+
+// GATE 2026-10-07 phase 1: harness instances (boards, standards, community), V7 headlines, declared deficit.
+NODES.push(...([
+  {
+    "id": "gateway-sig-mage",
+    "type": "gateway",
+    "label": "sig_mage (the sig.golf lane)",
+    "emoji": "⛳",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Dual-agent harness lane on sig.golf: four promoted submissions, three of them the crown at the time; levers entered the record through the lane and through other solvers composing them with credit. Paused 2026-10-07; standings are dated.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "agentprivacy-skills/role/agentprivacy-lane-chronicle/references/sig_mage-2026-10-05.md",
+        "cityofmages/chronicles/2026-10-02_the-lever-belongs-to-the-swarm.md"
+      ],
+      "note": "As recorded by the lane; the board moves."
+    }
+  },
+  {
+    "id": "gateway-hashsmash-mage",
+    "type": "gateway",
+    "label": "hashsmash_mage (the HashSmash lane)",
+    "emoji": "🔨",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Dual-agent harness lane on HashSmash (AI-judged collision claims). Three claims passed the judge (r32 47.6 and 52.1, sha3-r6 125.58) and await owner review; passed is not promoted. The current r32 head builds on the lane's measured ledger with credit.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/chronicles/2026-10-07_the-measurement-travels-without-its-name.md"
+      ],
+      "note": "Outcomes as recorded by the lane on 2026-10-06/07."
+    }
+  },
+  {
+    "id": "gateway-qsb",
+    "type": "gateway",
+    "label": "Quantum-Safe Bitcoin Challenge (the arena)",
+    "emoji": "₿",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Yukon board for post-quantum Bitcoin circuits; closes 2026-10-08.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "qpcbtc_mage/HANDOVER.md"
+      ],
+      "note": "Arena node; final standing to be recorded after close."
+    }
+  },
+  {
+    "id": "gateway-qpcbtc-mage",
+    "type": "gateway",
+    "label": "qpcbtc_mage (the QSB lane)",
+    "emoji": "₿",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Dual-agent harness lane on the Quantum-Safe Bitcoin Challenge: four submissions, compositions of public trees with co-authors credited; none promoted. Credit to the lane is the method layer only.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "qpcbtc_mage/HANDOVER.md"
+      ],
+      "note": "Estimation and composition, not an attack; others' trees are theirs."
+    }
+  },
+  {
+    "id": "gateway-zk-golf",
+    "type": "gateway",
+    "label": "zk.golf (the arena)",
+    "emoji": "⛳",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Proof-golf board of ZK challenges, each server-verified against a reference.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "zkgolf_mage/README.md"
+      ],
+      "note": "Arena node."
+    }
+  },
+  {
+    "id": "gateway-zkgolf-mage",
+    "type": "gateway",
+    "label": "zkgolf_mage (the zk.golf campaign)",
+    "emoji": "⛳",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Dual-agent harness campaign on zk.golf: 3 of 11 challenges server-verified below the reference score; no record claimed.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "zkgolf_mage/harness/frontier.json"
+      ],
+      "note": "As recorded by the lane."
+    }
+  },
+  {
+    "id": "gateway-matrices-fast",
+    "type": "gateway",
+    "label": "matrices.fast SSI ordering (the arena)",
+    "emoji": "🧮",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Yukon board for SSI matrix ordering.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "matrices_mage/RESUME.md"
+      ],
+      "note": "Arena node."
+    }
+  },
+  {
+    "id": "gateway-matrices-mage",
+    "type": "gateway",
+    "label": "matrices_mage (SSI ordering)",
+    "emoji": "🧮",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Dual-agent harness lane on matrices.fast: finished 3rd of 12 promoted solvers.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "matrices_mage/RESUME.md"
+      ],
+      "note": "As recorded by the lane."
+    }
+  },
+  {
+    "id": "gateway-eip8200",
+    "type": "gateway",
+    "label": "EIP-8200 MODEXP challenge (the arena)",
+    "emoji": "⛽",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Yukon board for the EIP-8200 MODEXP precompile.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "precompile_mage/HANDOVER.md"
+      ],
+      "note": "Arena node."
+    }
+  },
+  {
+    "id": "gateway-precompile-mage",
+    "type": "gateway",
+    "label": "precompile_mage (EIP-8200 MODEXP)",
+    "emoji": "⛽",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Dual-agent harness lane on the EIP-8200 MODEXP board. Paused; nothing submitted.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "precompile_mage/HANDOVER.md"
+      ],
+      "note": "Headline only by ruling."
+    }
+  },
+  {
+    "id": "gateway-heesch",
+    "type": "gateway",
+    "label": "Heesch numbers (the arena)",
+    "emoji": "🧩",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Yukon research board on Heesch numbers of tiles.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "github.com/mitchuski/heesch-mage"
+      ],
+      "note": "Arena node."
+    }
+  },
+  {
+    "id": "gateway-heesch-mage",
+    "type": "gateway",
+    "label": "heesch_mage (published research)",
+    "emoji": "🧩",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Dual-agent harness lane on Heesch numbers: no eligible entry; the research was published as a public repository and board Discussions instead.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "github.com/mitchuski/heesch-mage"
+      ],
+      "note": "Discussions are bot-authored; attribution is in the post body."
+    }
+  },
+  {
+    "id": "gateway-proximity-prize",
+    "type": "gateway",
+    "label": "Proximity Prize (the arena)",
+    "emoji": "📏",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "better.codes proximity-gap board.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "better_codes_mage/SYNC_2026-09-13.md"
+      ],
+      "note": "Arena node."
+    }
+  },
+  {
+    "id": "gateway-better-codes-mage",
+    "type": "gateway",
+    "label": "better_codes_mage (Proximity Prize)",
+    "emoji": "📏",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Dual-agent harness lane on the Proximity Prize; closed with nothing submitted.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "better_codes_mage/SYNC_2026-09-13.md"
+      ],
+      "note": "As recorded by the lane."
+    }
+  },
+  {
+    "id": "gateway-flock",
+    "type": "gateway",
+    "label": "Flock x86 ZK prover (the arena)",
+    "emoji": "🐦",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Yukon board for a Binius-style ZK prover on x86.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "flock_mage/FLOCK_RESUME.md"
+      ],
+      "note": "Arena node."
+    }
+  },
+  {
+    "id": "gateway-flock-mage",
+    "type": "gateway",
+    "label": "flock_mage (x86 ZK prover)",
+    "emoji": "🐦",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Dual-agent harness lane on Flock x86; paused until AVX-512 hardware is available.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "flock_mage/FLOCK_RESUME.md"
+      ],
+      "note": "As recorded by the lane."
+    }
+  },
+  {
+    "id": "gateway-kappa-evidence-mage",
+    "type": "gateway",
+    "label": "kappa_evidence_mage (evidence ledgers)",
+    "emoji": "🔑",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Opened 2026-10-07: content-addressed evidence ledgers for solver notes, so a measurement carries its root wherever it travels.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "kappa_evidence_mage/README.md"
+      ],
+      "note": "New lane; practice not yet folded into the harness."
+    }
+  },
+  {
+    "id": "concept-promotion-not-pass",
+    "type": "concept",
+    "label": "promoted ≠ passed ≠ verified",
+    "emoji": "🏁",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Board outcome grammar for harness lanes: promoted (accepted onto the record), passed (cleared a judge, awaiting review), verified (checked below a reference without a record claim) and rejected are kept distinct, with honest counts for every lane, not only the wins.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "agentprivacy-skills/role/agentprivacy-lane-chronicle/SKILL.md"
+      ],
+      "note": "Reporting discipline; not a measured result."
+    }
+  },
+  {
+    "id": "gateway-dtgwg-zkp-mage",
+    "type": "gateway",
+    "label": "DTG ZKP task force lane (evidence repo)",
+    "emoji": "🧾",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Dual-agent harness lane for the Trust over IP DTG ZKP task force: an evidence repository and implementation guide; spec PRs #12 and #16 merged.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "github.com/mitchuski/dtgwg-zkp-mage"
+      ],
+      "note": "Merged PRs as checked 2026-10-07."
+    }
+  },
+  {
+    "id": "concept-zkbook-formal-layer",
+    "type": "concept",
+    "label": "zkbook formal layer (records as Lean definitions)",
+    "emoji": "📐",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The ZK book's records restated as Lean definitions, so a record's claim and its formal statement travel together.",
+    "evidence": {
+      "status": "design",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "zkbook_workshop_mage"
+      ],
+      "note": "Plan and first record; not a completed formalisation."
+    }
+  },
+  {
+    "id": "gateway-community-security-agent",
+    "type": "gateway",
+    "label": "Community security agent (contributions, not ancestry)",
+    "emoji": "🛡️",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Upstream contributions from the harness to a community security agent: PRs #6–#10 merged. A contribution path, not a harness descendant.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "community_security_mage"
+      ],
+      "note": "Upstream work is its maintainers'."
+    }
+  },
+  {
+    "id": "gateway-ternary-memory",
+    "type": "gateway",
+    "label": "ternary-memory-research (first external adoption)",
+    "emoji": "🌱",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The first unsolicited external adoption of the harness discovery method; its PR #1 merged. A methodological reference, not an installed harness.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "cityofmages/tomes/tome-vi-the-reply/02-the-reply-that-ran.md"
+      ],
+      "note": "External repository; its work is its author's."
+    }
+  },
+  {
+    "id": "concept-door-instances",
+    "type": "concept",
+    "label": "Door instances (entry · readiness · review · invitation)",
+    "emoji": "🚪",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Four small harness instances that walk the agentprivacy entry path as an outsider would: the one-command entry census, agent readiness of the sites, a business reader's review and the City invitation pattern.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "dual-agent-harness/HARNESS_PATHS.md"
+      ],
+      "note": "Lane chronicles copied into the harness."
+    }
+  },
+  {
+    "id": "gateway-openvtc-two-seats",
+    "type": "gateway",
+    "label": "OpenVTC two seats (sword VTA ⊥ mage VTA)",
+    "emoji": "⚖️",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The two-seat setup on OpenVTC: a Swordsman VTA and a Mage VTA kept apart, with a keeper console that records seats without secrets; vti-setup #42 merged upstream.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "mages_city/deploy/pnm-console/serve.js",
+        "mages_city/site/setup.html"
+      ],
+      "note": "Upstream OpenVTC components are credited to OpenVTC."
+    }
+  },
+  {
+    "id": "gateway-pqc-migration-prize",
+    "type": "gateway",
+    "label": "PQC Migration Prize (BGIN coordination repo)",
+    "emoji": "🔐",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Public BGIN coordination repository for a post-quantum migration prize.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "github.com/bgin-global/pqc-agility-competition"
+      ],
+      "note": "Public repository only."
+    }
+  },
+  {
+    "id": "gateway-soul-mage",
+    "type": "gateway",
+    "label": "soul_mage (the harness census)",
+    "emoji": "📚",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Census-gated knowledge base of what every harness lane recorded; renders the agentprivacy.org /harness/ pages.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "soul_mage/README.md"
+      ],
+      "note": "Local census; the public face is the labs /harness/ page."
+    }
+  },
+  {
+    "id": "doc-v7-mtc-hold",
+    "type": "document",
+    "label": "V7 · Merkle Tree Certificates and the Hold",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Related-work reading of post-quantum WebPKI certificates (issue by logging, cosigned roots) against the Hold and the City Key root rule. Open question: private inclusion under a commitment.",
+    "version": "7.0.0-research",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "agentprivacy-docs V7 research intake (headline only; not yet public)"
+      ],
+      "note": "Headline only: the full V7 note is not yet public. V6 remains the formal specification; no conjecture promotion."
+    }
+  },
+  {
+    "id": "doc-v7-open-anonymity",
+    "type": "document",
+    "label": "V7 · Unlinkable inference and the Swordsman",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Related-work reading of the Open Anonymity Project: unlinkable inference tickets and user-owned memory, read at pinned commits; nothing run.",
+    "version": "7.0.0-research",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "agentprivacy-docs V7 research intake (headline only; not yet public)"
+      ],
+      "note": "Headline only: the full V7 note is not yet public. V6 remains the formal specification; no conjecture promotion."
+    }
+  },
+  {
+    "id": "doc-v7-sig-golf-verifier",
+    "type": "document",
+    "label": "V7 · What the verifier reads (sig.golf)",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Readings of the sig.golf lane's measured levers against the Hold: pay only for what the verifier reads, move work to the bearer, compose with credit. No quantum-safety claim.",
+    "version": "7.0.0-research",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "agentprivacy-docs V7 research intake (headline only; not yet public)"
+      ],
+      "note": "Headline only: the full V7 note is not yet public. V6 remains the formal specification; no conjecture promotion."
+    }
+  },
+  {
+    "id": "doc-v7-openai-math",
+    "type": "document",
+    "label": "V7 · OpenAI math research letters",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Three noncanonical notes: PVM reconstruction bounds (first priority), sig_mage proof evidence and HashSmash evidence boundaries. Proposed experiments only; no new proof or benchmark run.",
+    "version": "7.0.0-research",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "agentprivacy-docs V7 research intake (headline only; not yet public)"
+      ],
+      "note": "Headline only: the full V7 note is not yet public. V6 remains the formal specification; no conjecture promotion."
+    }
+  },
+  {
+    "id": "doc-v7-pvm-update",
+    "type": "document",
+    "label": "V7 · Updating PVM V6 toward V7",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Research proposal mapping changes onto V6 sections; its headline is that the strict reconstruction ceiling R < 1 is declared, not derived. Not a V7 paper.",
+    "version": "7.0.0-research",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "agentprivacy-skills/privacy-layer/agentprivacy-dragon/SKILL.md"
+      ],
+      "note": "Headline only: the full V7 note is not yet public. V6 remains the formal specification; no conjecture promotion."
+    }
+  },
+  {
+    "id": "doc-v7-embedding-reconstruction",
+    "type": "document",
+    "label": "V7 · Embedding reconstruction and measured disclosure",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Assay protocol and offline scorer for what embeddings disclose, keeping fact recovery, information budget and task utility separate. No inversion run.",
+    "version": "7.0.0-research",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "agentprivacy-docs V7 research intake (headline only; not yet public)"
+      ],
+      "note": "Headline only: the full V7 note is not yet public. V6 remains the formal specification; no conjecture promotion."
+    }
+  },
+  {
+    "id": "doc-v7-evidence-authority-effects",
+    "type": "document",
+    "label": "V7 · Evidence, authority and effects",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Completed research loop distinguishing historical evidence, admission, receiver effects and closure uncertainty. Production work separately scoped.",
+    "version": "7.0.0-research",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "agentprivacy-docs V7 research intake (headline only; not yet public)"
+      ],
+      "note": "Headline only: the full V7 note is not yet public. V6 remains the formal specification; no conjecture promotion."
+    }
+  },
+  {
+    "id": "concept-declared-deficit",
+    "type": "concept",
+    "label": "The declared deficit (R < 1 declared, not derived)",
+    "emoji": "⚖️",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "The strict reconstruction ceiling R < 1 holds when the capacity deficit C_S + C_M < H(X | B) is declared and attested for a deployment; conditional independence alone does not give it (two independent bits, one per agent, give R_max = 1).",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-07",
+      "sources": [
+        "agentprivacy-skills/privacy-layer/agentprivacy-dragon/SKILL.md"
+      ],
+      "note": "Ruling of 2026-10-07 (dragon skill commit 8482158)."
     }
   }
 ] satisfies SpellwebNode[]));

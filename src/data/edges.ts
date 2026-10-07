@@ -3125,11 +3125,6 @@ EDGES.push(...([
     "type": "references"
   },
   {
-    "source": "term-understandingaskey",
-    "target": "con-understanding-as-key",
-    "type": "references"
-  },
-  {
     "source": "term-understanding-as-key",
     "target": "con-understanding-as-key",
     "type": "references"
@@ -3423,5 +3418,449 @@ EDGES.push(...([
     "source": "skill-spellweb",
     "target": "spell-spellweb",
     "type": "compresses_to"
+  }
+] satisfies SpellwebEdge[]));
+
+// GATE 2026-10-07 phase 1: harness instances, V7 headlines, declared deficit.
+EDGES.push(...([
+  {
+    "source": "gateway-sig-mage",
+    "target": "skill-dual-agent-harness",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-sig-mage",
+    "target": "gateway-sig-golf",
+    "type": "references"
+  },
+  {
+    "source": "gateway-sig-mage",
+    "target": "chron-lever-belongs-to-swarm",
+    "type": "introduces"
+  },
+  {
+    "source": "gateway-sig-mage",
+    "target": "tome-signature-hole",
+    "type": "kin_to"
+  },
+  {
+    "source": "gateway-sig-mage",
+    "target": "skill-lane-chronicle",
+    "type": "kin_to"
+  },
+  {
+    "source": "gateway-sig-mage",
+    "target": "concept-carried-citation",
+    "type": "introduces"
+  },
+  {
+    "source": "gateway-hashsmash-mage",
+    "target": "skill-dual-agent-harness",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-hashsmash-mage",
+    "target": "gateway-hashsmash",
+    "type": "references"
+  },
+  {
+    "source": "gateway-hashsmash-mage",
+    "target": "chron-measurement-travels",
+    "type": "introduces"
+  },
+  {
+    "source": "gateway-hashsmash-mage",
+    "target": "concept-carried-citation",
+    "type": "kin_to"
+  },
+  {
+    "source": "gateway-qsb",
+    "target": "gateway-ecdsa-fail",
+    "type": "kin_to"
+  },
+  {
+    "source": "gateway-qsb",
+    "target": "shop-horizon",
+    "type": "kin_to"
+  },
+  {
+    "source": "gateway-qpcbtc-mage",
+    "target": "skill-dual-agent-harness",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-qpcbtc-mage",
+    "target": "gateway-qsb",
+    "type": "references"
+  },
+  {
+    "source": "gateway-qpcbtc-mage",
+    "target": "gateway-shor-mage",
+    "type": "kin_to"
+  },
+  {
+    "source": "gateway-zk-golf",
+    "target": "gateway-sig-golf",
+    "type": "kin_to"
+  },
+  {
+    "source": "gateway-zkgolf-mage",
+    "target": "skill-dual-agent-harness",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-zkgolf-mage",
+    "target": "gateway-zk-golf",
+    "type": "references"
+  },
+  {
+    "source": "gateway-zkgolf-mage",
+    "target": "tome-proof-links",
+    "type": "introduces"
+  },
+  {
+    "source": "gateway-zkgolf-mage",
+    "target": "gateway-privacy-pools-v2",
+    "type": "kin_to"
+  },
+  {
+    "source": "gateway-zkgolf-mage",
+    "target": "gateway-flock-mage",
+    "type": "kin_to"
+  },
+  {
+    "source": "gateway-matrices-mage",
+    "target": "skill-dual-agent-harness",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-matrices-mage",
+    "target": "gateway-matrices-fast",
+    "type": "references"
+  },
+  {
+    "source": "gateway-precompile-mage",
+    "target": "skill-dual-agent-harness",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-precompile-mage",
+    "target": "gateway-eip8200",
+    "type": "references"
+  },
+  {
+    "source": "gateway-heesch-mage",
+    "target": "skill-dual-agent-harness",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-heesch-mage",
+    "target": "gateway-heesch",
+    "type": "references"
+  },
+  {
+    "source": "gateway-better-codes-mage",
+    "target": "skill-dual-agent-harness",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-better-codes-mage",
+    "target": "gateway-proximity-prize",
+    "type": "references"
+  },
+  {
+    "source": "gateway-flock-mage",
+    "target": "skill-dual-agent-harness",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-flock-mage",
+    "target": "gateway-flock",
+    "type": "references"
+  },
+  {
+    "source": "gateway-kappa-evidence-mage",
+    "target": "skill-dual-agent-harness",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-kappa-evidence-mage",
+    "target": "concept-kappa-derivation",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-kappa-evidence-mage",
+    "target": "concept-holon-kappa-layer",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-kappa-evidence-mage",
+    "target": "gateway-sig-mage",
+    "type": "kin_to"
+  },
+  {
+    "source": "gateway-kappa-evidence-mage",
+    "target": "gateway-hashsmash-mage",
+    "type": "kin_to"
+  },
+  {
+    "source": "gateway-kappa-evidence-mage",
+    "target": "skill-content-addressing",
+    "type": "kin_to"
+  },
+  {
+    "source": "concept-promotion-not-pass",
+    "target": "concept-carried-citation",
+    "type": "kin_to"
+  },
+  {
+    "source": "concept-promotion-not-pass",
+    "target": "gateway-sig-golf",
+    "type": "references"
+  },
+  {
+    "source": "concept-promotion-not-pass",
+    "target": "gateway-hashsmash",
+    "type": "references"
+  },
+  {
+    "source": "concept-promotion-not-pass",
+    "target": "gateway-zk-golf",
+    "type": "references"
+  },
+  {
+    "source": "concept-promotion-not-pass",
+    "target": "gateway-qsb",
+    "type": "references"
+  },
+  {
+    "source": "skill-lane-chronicle",
+    "target": "concept-promotion-not-pass",
+    "type": "teaches"
+  },
+  {
+    "source": "gateway-dtgwg-zkp-mage",
+    "target": "skill-dual-agent-harness",
+    "type": "instance_of"
+  },
+  {
+    "source": "gateway-dtgwg-zkp-mage",
+    "target": "doc-dtg-zk-book",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-dtgwg-zkp-mage",
+    "target": "concept-dtg-credentials",
+    "type": "references"
+  },
+  {
+    "source": "gateway-dtgwg-zkp-mage",
+    "target": "concept-workshop-trust-task",
+    "type": "references"
+  },
+  {
+    "source": "concept-zkbook-formal-layer",
+    "target": "doc-dtg-zk-book",
+    "type": "extends"
+  },
+  {
+    "source": "gateway-dtgwg-zkp-mage",
+    "target": "concept-zkbook-formal-layer",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-community-security-agent",
+    "target": "skill-dual-agent-harness",
+    "type": "instance_of"
+  },
+  {
+    "source": "gateway-community-security-agent",
+    "target": "org-bgin",
+    "type": "references"
+  },
+  {
+    "source": "gateway-ternary-memory",
+    "target": "skill-dual-agent-harness",
+    "type": "references"
+  },
+  {
+    "source": "gateway-ternary-memory",
+    "target": "concept-harness-contribution-path",
+    "type": "instance_of"
+  },
+  {
+    "source": "concept-door-instances",
+    "target": "skill-dual-agent-harness",
+    "type": "instance_of"
+  },
+  {
+    "source": "concept-door-instances",
+    "target": "concept-agentprivacy-mcp",
+    "type": "references"
+  },
+  {
+    "source": "gateway-openvtc-two-seats",
+    "target": "concept-openvtc-vti",
+    "type": "references"
+  },
+  {
+    "source": "gateway-openvtc-two-seats",
+    "target": "concept-openvtc-vta-mcp",
+    "type": "references"
+  },
+  {
+    "source": "gateway-openvtc-two-seats",
+    "target": "concept-vta-record",
+    "type": "references"
+  },
+  {
+    "source": "gateway-openvtc-two-seats",
+    "target": "per-soulbis",
+    "type": "references"
+  },
+  {
+    "source": "gateway-openvtc-two-seats",
+    "target": "per-soulbae",
+    "type": "references"
+  },
+  {
+    "source": "gateway-pqc-migration-prize",
+    "target": "org-bgin",
+    "type": "references"
+  },
+  {
+    "source": "gateway-pqc-migration-prize",
+    "target": "gateway-qsb",
+    "type": "kin_to"
+  },
+  {
+    "source": "skill-dual-agent-harness",
+    "target": "gateway-soul-mage",
+    "type": "measured_by"
+  },
+  {
+    "source": "gateway-soul-mage",
+    "target": "skill-review-receipts",
+    "type": "references"
+  },
+  {
+    "source": "doc-v7-mtc-hold",
+    "target": "key-city-key",
+    "type": "references"
+  },
+  {
+    "source": "doc-v7-mtc-hold",
+    "target": "doc-oph-v7-research",
+    "type": "kin_to"
+  },
+  {
+    "source": "doc-v7-open-anonymity",
+    "target": "concept-unlinkable-inference",
+    "type": "introduces"
+  },
+  {
+    "source": "doc-v7-open-anonymity",
+    "target": "chron-swordsman-on-the-wire",
+    "type": "references"
+  },
+  {
+    "source": "doc-v7-open-anonymity",
+    "target": "doc-oph-v7-research",
+    "type": "kin_to"
+  },
+  {
+    "source": "doc-v7-sig-golf-verifier",
+    "target": "gateway-sig-mage",
+    "type": "references"
+  },
+  {
+    "source": "doc-v7-sig-golf-verifier",
+    "target": "gateway-sig-golf",
+    "type": "references"
+  },
+  {
+    "source": "doc-v7-sig-golf-verifier",
+    "target": "doc-oph-v7-research",
+    "type": "kin_to"
+  },
+  {
+    "source": "doc-v7-openai-math",
+    "target": "con-r-d",
+    "type": "references"
+  },
+  {
+    "source": "doc-v7-openai-math",
+    "target": "gateway-sig-mage",
+    "type": "references"
+  },
+  {
+    "source": "doc-v7-openai-math",
+    "target": "gateway-hashsmash-mage",
+    "type": "references"
+  },
+  {
+    "source": "doc-v7-openai-math",
+    "target": "doc-oph-v7-research",
+    "type": "kin_to"
+  },
+  {
+    "source": "doc-v7-pvm-update",
+    "target": "concept-declared-deficit",
+    "type": "introduces"
+  },
+  {
+    "source": "doc-v7-pvm-update",
+    "target": "thm-ceiling",
+    "type": "references"
+  },
+  {
+    "source": "doc-v7-pvm-update",
+    "target": "doc-v7-openai-math",
+    "type": "kin_to"
+  },
+  {
+    "source": "doc-v7-embedding-reconstruction",
+    "target": "con-r-d",
+    "type": "references"
+  },
+  {
+    "source": "doc-v7-embedding-reconstruction",
+    "target": "doc-oph-v7-research",
+    "type": "kin_to"
+  },
+  {
+    "source": "doc-v7-evidence-authority-effects",
+    "target": "concept-vta-record",
+    "type": "references"
+  },
+  {
+    "source": "doc-v7-evidence-authority-effects",
+    "target": "concept-evidence-graph",
+    "type": "references"
+  },
+  {
+    "source": "doc-v7-evidence-authority-effects",
+    "target": "doc-oph-v7-research",
+    "type": "kin_to"
+  },
+  {
+    "source": "concept-declared-deficit",
+    "target": "thm-ceiling",
+    "type": "extends"
+  },
+  {
+    "source": "concept-declared-deficit",
+    "target": "con-r-d",
+    "type": "references"
+  },
+  {
+    "source": "skill-dragon",
+    "target": "concept-declared-deficit",
+    "type": "teaches"
+  },
+  {
+    "source": "term-62-lap-theorem",
+    "target": "concept-declared-deficit",
+    "type": "references"
   }
 ] satisfies SpellwebEdge[]));
