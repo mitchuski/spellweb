@@ -2,6 +2,36 @@
  "rule": "identity is the slug, never the host",
  "origin": "https://guide.agentprivacy.ai/",
  "bridge": {
+  "conj-c9": {
+   "site": "atlas",
+   "slug": "c9-holographic-boundary-sufficiency",
+   "vertex": 8,
+   "postured": false
+  },
+  "conj-c16": {
+   "site": "atlas",
+   "slug": "c16-topological-trust-invariants-via-betti-numbers",
+   "vertex": 8,
+   "postured": false
+  },
+  "doc-oph-v7-research": {
+   "site": "atlas",
+   "slug": "v7-public-agreement-and-private-ambiguity",
+   "vertex": 8,
+   "postured": false
+  },
+  "doc-oph-external": {
+   "site": "atlas",
+   "slug": "observer-patch-holography-related-work",
+   "vertex": 8,
+   "postured": false
+  },
+  "prototype-oph-atlas-v7": {
+   "site": "atlas",
+   "slug": "atlas-lab-observer-access-and-shared-results",
+   "vertex": 8,
+   "postured": false
+  },
   "concept-agentprivacy-mcp": {
    "site": "harness",
    "slug": "agentprivacy-mcp",
@@ -1235,8 +1265,8 @@
   "con-understanding-as-key": {
    "site": "guide",
    "slug": "understanding-as-key",
-   "vertex": 4,
-   "postured": false
+   "vertex": 33,
+   "postured": true
   },
   "con-emissary-recursion": {
    "site": "atlas",
@@ -1613,8 +1643,8 @@
   "skill-understanding-key": {
    "site": "guide",
    "slug": "understanding-as-key",
-   "vertex": 4,
-   "postured": false
+   "vertex": 33,
+   "postured": true
   },
   "skill-governance-agents": {
    "site": "atlas",
@@ -1859,6 +1889,12 @@
   "con-holonic-braid": {
    "site": "atlas",
    "slug": "holonic-braid",
+   "vertex": 8,
+   "postured": false
+  },
+  "doc-serv-reasoning": {
+   "site": "atlas",
+   "slug": "serv-reasoning-braid-as-a-service",
    "vertex": 8,
    "postured": false
   },
@@ -2260,19 +2296,19 @@
   },
   "con-c7-compression": {
    "site": "atlas",
-   "slug": "c7-compression-modifier",
+   "slug": "c8-compression-modifier",
    "vertex": 8,
    "postured": false
   },
   "con-c8-guild-scalability": {
    "site": "atlas",
-   "slug": "c8-guild-scalability",
+   "slug": "c10-guild-scalability",
    "vertex": 8,
    "postured": false
   },
   "con-c10-three-axis": {
    "site": "atlas",
-   "slug": "c10-three-axis-multiplicativity",
+   "slug": "c7-three-axis-multiplicativity",
    "vertex": 8,
    "postured": false
   },
@@ -2568,12 +2604,6 @@
    "site": "atlas",
    "slug": "6d-manifold-cannot-be-2d-attacked",
    "vertex": 8,
-   "postured": false
-  },
-  "term-understandingaskey": {
-   "site": "guide",
-   "slug": "understanding-as-key",
-   "vertex": 4,
    "postured": false
   },
   "term-dragon-flight": {
@@ -2945,8 +2975,8 @@
   "term-understanding-as-key": {
    "site": "guide",
    "slug": "understanding-as-key",
-   "vertex": 4,
-   "postured": false
+   "vertex": 33,
+   "postured": true
   },
   "term-on-spend-attack": {
    "site": "atlas",
@@ -4776,6 +4806,258 @@
    "site": "skill",
    "slug": "registry-keeper",
    "vertex": 16,
+   "postured": false
+  },
+  "skill-lane-chronicle": {
+   "site": "atlas",
+   "slug": "lane-chronicle",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-sig-golf": {
+   "site": "atlas",
+   "slug": "siggolf-the-arena",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-hashsmash": {
+   "site": "atlas",
+   "slug": "hashsmash-the-arena",
+   "vertex": 8,
+   "postured": false
+  },
+  "concept-carried-citation": {
+   "site": "atlas",
+   "slug": "credit-is-carried-not-inherited",
+   "vertex": 8,
+   "postured": false
+  },
+  "concept-unlinkable-inference": {
+   "site": "atlas",
+   "slug": "unlinkable-inference",
+   "vertex": 8,
+   "postured": false
+  },
+  "act-tome-vi-2": {
+   "site": "atlas",
+   "slug": "tome-vi-act-2-the-reply-that-ran-proposed",
+   "vertex": 8,
+   "postured": false
+  },
+  "tome-xi-the-constellation": {
+   "site": "atlas",
+   "slug": "tome-xi-the-constellation-proposed",
+   "vertex": 8,
+   "postured": false
+  },
+  "tome-proof-links": {
+   "site": "atlas",
+   "slug": "the-proof-links-a-tome-of-practice-proposed",
+   "vertex": 8,
+   "postured": false
+  },
+  "tome-signature-hole": {
+   "site": "atlas",
+   "slug": "the-signature-hole-proposed",
+   "vertex": 8,
+   "postured": false
+  },
+  "tome-graph-you-cannot-see": {
+   "site": "atlas",
+   "slug": "the-graph-you-cannot-see-proposed",
+   "vertex": 8,
+   "postured": false
+  },
+  "tome-word-on-the-other-seat": {
+   "site": "atlas",
+   "slug": "the-word-on-the-other-seat-proposed",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-sig-mage": {
+   "site": "atlas",
+   "slug": "sigmage-the-siggolf-lane",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-hashsmash-mage": {
+   "site": "atlas",
+   "slug": "hashsmashmage-the-hashsmash-lane",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-qsb": {
+   "site": "atlas",
+   "slug": "quantum-safe-bitcoin-challenge-the-arena",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-qpcbtc-mage": {
+   "site": "atlas",
+   "slug": "qpcbtcmage-the-qsb-lane",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-zk-golf": {
+   "site": "atlas",
+   "slug": "zkgolf-the-arena",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-zkgolf-mage": {
+   "site": "atlas",
+   "slug": "zkgolfmage-the-zkgolf-campaign",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-matrices-fast": {
+   "site": "atlas",
+   "slug": "matricesfast-ssi-ordering-the-arena",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-matrices-mage": {
+   "site": "atlas",
+   "slug": "matricesmage-ssi-ordering",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-eip8200": {
+   "site": "atlas",
+   "slug": "eip-8200-modexp-challenge-the-arena",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-precompile-mage": {
+   "site": "atlas",
+   "slug": "precompilemage-eip-8200-modexp",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-heesch": {
+   "site": "atlas",
+   "slug": "heesch-numbers-the-arena",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-heesch-mage": {
+   "site": "atlas",
+   "slug": "heeschmage-published-research",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-proximity-prize": {
+   "site": "atlas",
+   "slug": "proximity-prize-the-arena",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-better-codes-mage": {
+   "site": "atlas",
+   "slug": "bettercodesmage-proximity-prize",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-flock": {
+   "site": "atlas",
+   "slug": "flock-x86-zk-prover-the-arena",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-flock-mage": {
+   "site": "atlas",
+   "slug": "flockmage-x86-zk-prover",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-kappa-evidence-mage": {
+   "site": "atlas",
+   "slug": "kappaevidencemage-evidence-ledgers",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-dtgwg-zkp-mage": {
+   "site": "atlas",
+   "slug": "dtg-zkp-task-force-lane-evidence-repo",
+   "vertex": 8,
+   "postured": false
+  },
+  "concept-zkbook-formal-layer": {
+   "site": "atlas",
+   "slug": "zkbook-formal-layer-records-as-lean-definitions",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-community-security-agent": {
+   "site": "atlas",
+   "slug": "community-security-agent-contributions-not-ancestry",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-ternary-memory": {
+   "site": "atlas",
+   "slug": "ternary-memory-research-first-external-adoption",
+   "vertex": 8,
+   "postured": false
+  },
+  "concept-door-instances": {
+   "site": "atlas",
+   "slug": "door-instances-entry-readiness-review-invitation",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-pqc-migration-prize": {
+   "site": "atlas",
+   "slug": "pqc-migration-prize-bgin-coordination-repo",
+   "vertex": 8,
+   "postured": false
+  },
+  "gateway-soul-mage": {
+   "site": "atlas",
+   "slug": "soulmage-the-harness-census",
+   "vertex": 8,
+   "postured": false
+  },
+  "doc-v7-mtc-hold": {
+   "site": "atlas",
+   "slug": "v7-merkle-tree-certificates-and-the-hold",
+   "vertex": 8,
+   "postured": false
+  },
+  "doc-v7-open-anonymity": {
+   "site": "atlas",
+   "slug": "v7-unlinkable-inference-and-the-swordsman",
+   "vertex": 8,
+   "postured": false
+  },
+  "doc-v7-sig-golf-verifier": {
+   "site": "atlas",
+   "slug": "v7-what-the-verifier-reads-siggolf",
+   "vertex": 8,
+   "postured": false
+  },
+  "doc-v7-openai-math": {
+   "site": "atlas",
+   "slug": "v7-openai-math-research-letters",
+   "vertex": 8,
+   "postured": false
+  },
+  "doc-v7-pvm-update": {
+   "site": "atlas",
+   "slug": "v7-updating-pvm-v6-toward-v7",
+   "vertex": 8,
+   "postured": false
+  },
+  "doc-v7-embedding-reconstruction": {
+   "site": "atlas",
+   "slug": "v7-embedding-reconstruction-and-measured-disclosure",
+   "vertex": 8,
+   "postured": false
+  },
+  "doc-v7-evidence-authority-effects": {
+   "site": "atlas",
+   "slug": "v7-evidence-authority-and-effects",
+   "vertex": 8,
    "postured": false
   }
  }
