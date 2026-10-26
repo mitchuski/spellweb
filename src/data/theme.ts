@@ -37,6 +37,7 @@ export const THEME: Theme = {
     artefact:  { fill: "#1c1c2e", stroke: "#ffd700", icon: "✦" },    // Sovereign's deviation node; stroke replaced per-tier in getNodeVisual
     // City Key bridge (2026-05-27)
     key:       { fill: "#0e1c24", stroke: "#9fe8ff", icon: "🗝️" },   // the City Key carrier; bridges the lattice to soulbis /star + /lattice
+    chain:     { fill: "#0c1a22", stroke: "#4dd9e8", icon: "⛓️" },   // a PoAW chain (Mage side: the work), at the vertex its ledger root names
   },
   edges: {
     defines: { color: "#00d9ff", width: 1.5, dash: null },

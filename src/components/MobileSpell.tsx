@@ -1322,6 +1322,7 @@ const NODE_TYPE_ORDER: NodeType[] = [
   'gateway',
   'artefact',
   'key',
+  'chain',
 ];
 
 const NODE_TYPE_LABEL: Record<NodeType, string> = {
@@ -1341,6 +1342,7 @@ const NODE_TYPE_LABEL: Record<NodeType, string> = {
   civic: 'City',
   gateway: 'Sister Cities',
   artefact: 'Your Artefacts',
+  chain: 'PoAW chains',
   key: 'Keys',
 };
 
@@ -1361,6 +1363,7 @@ const NODE_TYPE_GLYPH: Record<NodeType, string> = {
   civic: '🏰',
   gateway: '↗',
   artefact: '✦',
+  chain: '⛓️',
   key: '🗝️',
 };
 
@@ -1416,6 +1419,7 @@ const NODE_COLOR_BY_TYPE: Record<NodeType, string> = {
   civic:     '#e4c84f',
   gateway:   '#86c5ff',
   artefact:  '#ffd700',
+  chain:     '#4dd9e8',
   key:       '#9fe8ff',
 };
 
@@ -1895,6 +1899,7 @@ function ArchiveScreen({ onBack }: { onBack: () => void }) {
       gateway: [],
       artefact: [],
       key: [],
+      chain: [],
     };
     NODES.filter(n => `${n.label} ${n.id} ${n.desc ?? ''}`.toLowerCase().includes(query.trim().toLowerCase())).forEach(n => {
       if (out[n.type]) out[n.type].push(n);

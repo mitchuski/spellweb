@@ -30,7 +30,11 @@ export type NodeType =
   // ⚔️ Swordsman's Key (agentprivacy→spellweb identity) and the future 🧙 Mage's
   // Key (spellweb·DID). The key node is a carrier; the soulbis pages are
   // `gateway` nodes it `synced_with`.
-  | 'key';        // a City Key (exported/imported), keys_to the vertices it describes
+  | 'key'         // a City Key (exported/imported), keys_to the vertices it describes
+  // PoAW chains (2026-10-25): a mage instance's proof of agentic work as a page of its own — every record of the
+  // work addressed by its hash under one root — placed at the vertex its ledger root names. Generated from
+  // mages.city's chains.json (scripts/sync-chains.mjs). A face of the evidence folds chosen roots into a City Key.
+  | 'chain';
 
 // ═══════════════════════════════════════════════════════════════
 // HEXAGRAM SYSTEM (64-Tetrahedra Lattice Mapping)
@@ -405,6 +409,7 @@ export interface Theme {
     gateway: NodeVisual;
     artefact: NodeVisual;
     key: NodeVisual;
+    chain: NodeVisual;
   };
   edges: Record<EdgeType, EdgeStyle>;
 }
@@ -433,6 +438,7 @@ export interface TypeFilterState {
   gateway: boolean;
   artefact: boolean;
   key: boolean;
+  chain: boolean;
 }
 
 export interface SpellbookFilterState {

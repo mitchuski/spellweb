@@ -388,6 +388,7 @@ export default function SpellWeb() {
     civic: true,
     gateway: true,
     artefact: true,
+    chain: true,
     key: true,
   });
 
