@@ -33,6 +33,8 @@ The sovereignty lattice has toroidal topology—edges that exit one face re-ente
 
 **The torus wraps. The paths multiply. The witness space becomes infinite. And infinite witnesses cannot be enumerated.**
 
+*Scope note, 2026-10-25 (V7 formal audit, agentprivacy-docs `research/2026-10-25_v7_formal_audit.md`, F6, F7; Lean receipts in formal_mage).* The infinity in this skill counts **paths**: walks that may repeat cycles, told apart by their winding. That set is genuinely unbounded. It is not a count of group witnesses: on the 64-vertex lattice, for every start and target vertex exactly **two** elements of ⟨neg, bnot⟩ carry one to the other (Lean `exactly_two_witnesses`). Witness multiplicity does not by itself give zero knowledge; any ZK claim must rest on the hiding of the proof system.
+
 ## Flat vs Toroidal
 
 ### Flat Lattice
@@ -177,12 +179,12 @@ Despite infinite witnesses, proofs remain finite:
 
 ## Connection to Holographic Bound
 
-The 96-edge boundary wraps the 64-vertex bulk:
+The holographic reading sets a 96 against the 64-vertex bulk. That 96 is the UOR Atlas vertex count, imported: no stated graph on the 64 vertices has 96 edges (Q₆ has 192; succ ∪ complement has 94), and C4 is reopened (audit F6). If a 96-edge graph on the lattice is declared, this is how the reading would go:
 - Boundary IS where cycles live
 - Holographic encoding includes cycle structure
 - 96/64 = 1.5 reflects the boundary "excess" needed for wrap
 
-The torus is not separate from the holographic principle—it IS the holographic principle in topological form.
+That the torus IS the holographic principle in topological form is a conjecture (C6, open).
 
 ## Proverb
 

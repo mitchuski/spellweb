@@ -93,7 +93,7 @@ Four quantities the model requires but cannot currently measure:
 
 **M3: Network exponent k.** Sub-, linear, or superlinear? Requires comparative measurement across networks of different sizes and sovereignty quality distributions.
 
-**M4: Edge weight f(e).** How much more valuable are vertical transitions than lateral transitions? No empirical basis for the weighting.
+**M4: Edge weight f(e).** How much more valuable are upward than downward edges, and how is a two-edge lateral composite weighted (the lattice has no lateral edges; audit F4)? No empirical basis for the weighting.
 
 ## The cheapest attacks
 

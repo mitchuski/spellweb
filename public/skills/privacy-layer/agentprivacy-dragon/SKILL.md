@@ -4,7 +4,7 @@ description: >
     Root equation and complete Privacy Value Model V4 overview for
   0xagentprivacy. Activates when discussing V(π,t), the sovereignty value
   equation, proven bounds (reconstruction ceiling R<1), conjectured properties
-  (golden ratio φ optimality), or any foundational question about how privacy
+  (golden ratio φ as a threshold, C1 challenged), or any foundational question about how privacy
   creates measurable value. Use when the user needs the complete model,
   equation term definitions, or version lineage.
 license: Apache-2.0
@@ -43,7 +43,7 @@ Multiplicative gating: if any term hits zero, total value collapses. This is del
 3. **Network topology** — A 64-vertex Boolean lattice ({0,1}⁶) models sovereignty configurations. Six binary dimensions yield 7 strata following Pascal's row. Agents are weighted by stratum, with combinatorial midpoints (stratum 3) contributing most. Power-law network effects.
 4. **Reconstruction resistance** — Proven ceiling: R_max = (C_S + C_M)/H(X) < 1 under dual-agent separation. An adversary observing all outputs from both agents still cannot reconstruct the full private state.
 5. **Market conditions** — User sophistication × market maturity. Captures adoption readiness.
-6. **Sovereignty geometry** — A 4×4 separation matrix Σ over four forces (Protect, Project, Reflect, Connect). The determinant measures the "volume" of the sovereignty tetrahedron. Entanglement between any pair of forces shrinks the entire multiplier. Golden ratio φ ≈ 1.618 conjectured as optimal protect-to-project ratio.
+6. **Sovereignty geometry** — A 4×4 separation matrix Σ over four forces (Protect, Project, Reflect, Connect). The determinant measures the "volume" of the sovereignty tetrahedron. Entanglement between any pair of forces shrinks the entire multiplier. Golden ratio φ ≈ 1.618 enters as a threshold on the protect-to-project ratio: below φ is penalised, at or above φ scores the same (C1 challenged as an optimum; V7 formal audit F1, F2).
 
 ## Key architectural concepts
 
@@ -51,7 +51,7 @@ Multiplicative gating: if any term hits zero, total value collapses. This is del
 
 **Four sovereignty forces.** Protect and Project are primary. Reflect (temporal integral of protection decisions) and Connect (network effect of delegation patterns) emerge from sustained operation. These four forces form a tetrahedron whose volume (det(Σ)) gates the entire model.
 
-**Edge value T(π).** Prior models measured what an agent *is* at a configuration. V4 adds what an agent *does* — its trajectory through sovereignty space. The 64-vertex lattice has 192 undirected edges; the transition space dominates the state space. Vertical moves (activating/deactivating sovereignty dimensions) are weighted more than lateral moves. Repetition decays.
+**Edge value T(π).** Prior models measured what an agent *is* at a configuration. V4 adds what an agent *does* — its trajectory through sovereignty space. The 64-vertex lattice has 192 undirected edges; the transition space dominates the state space. Vertical moves (activating/deactivating sovereignty dimensions) are weighted more than lateral moves, which are two-edge composites: every edge of the lattice changes the stratum by one (V7 formal audit F4). Repetition decays.
 
 **Stratum logic.** The 64 vertices sit across 7 strata (0–6 active dimensions). Distribution follows binomial coefficients: 1, 6, 15, 20, 15, 6, 1. Stratum 0 = full surveillance; stratum 6 = full sovereignty. Network value peaks at combinatorial midpoints.
 
@@ -75,7 +75,7 @@ Multiplicative gating: if any term hits zero, total value collapses. This is del
 | **Proven** | Reconstruction ceiling R < 1 under dual-agent conditional independence |
 | **Proven** | Additive (not multiplicative) information bounds from agent separation |
 | **Proven** | Multiplicative gating — any zero term kills total value |
-| **Conjectured** | Golden ratio φ as optimal protect/project balance |
+| **Challenged (C1)** | Golden ratio φ as optimal protect/project balance: refuted as worded for the stated Φ, restated as a threshold (modelling choice; audit F2) |
 | **Conjectured** | Logarithmic growth of temporal memory (vs. power-law or sigmoid) |
 | **Conjectured** | Edge value additivity (assumes transition independence) |
 | **Conjectured** | UOR toroidal correspondence (96 vs. 64 discrepancy open) |

@@ -6,7 +6,7 @@ The Moonkeeper follows the **Amnesia Constellation** through the First Person gr
 
 ### Required Traversal
 
-1. **Act XXIV: The Holographic Bound** — Understanding why 96 edges encode 64 vertices
+1. **Act XXIV: The Holographic Bound** — Understanding the 96/64 reading (C4 reopened: 96 is the Atlas vertex count; the lattice has 192 edges)
 2. **Act XXX: The Dihedral Mirror** — The naming that creates the gap
 3. **Act XXXI: The First Delegation** — The cosmological closure
 

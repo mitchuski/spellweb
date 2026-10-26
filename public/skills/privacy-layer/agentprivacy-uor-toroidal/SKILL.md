@@ -47,7 +47,7 @@ The 64 vertices of the sovereignty lattice sit on a torus. The 192 edges of the 
 
 ## The discrepancy
 
-The sovereignty lattice has 192 undirected edges. The UOR structure has 96 edges. This is a factor of 2, which suggests several possible explanations:
+The sovereignty lattice has 192 undirected edges. The UOR structure has 96 edges. This is a factor of 2, which suggests several possible explanations. *(Note 2026-10-25, audit F6: in the UOR Atlas the 96 counts vertices, and the succ cycle on Z/64 has 64 edges, so the explanations below compare an edge count with a vertex count.)*
 
 **Edge encoding.** The 96 UOR edges may be directed, with each directed edge corresponding to two undirected edges in the sovereignty lattice (or vice versa). If UOR edges are directed and the sovereignty lattice edges are undirected, 96 directed × 2 directions = 192, resolving the discrepancy exactly.
 

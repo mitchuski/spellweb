@@ -72,7 +72,7 @@ The model does not address: side-channel attacks on the execution environment, c
 
 | ID | Conjecture | Validation approach |
 |---|---|---|
-| C1 | Golden ratio φ is optimal protect/project ratio | Numerical optimisation over parameterised agent simulations |
+| C1 | Golden ratio φ is optimal protect/project ratio | Challenged 2026-10-25: refuted as worded for the stated Φ (min(1, (S/M)/φ) is flat for S/M ≥ φ), so φ is a threshold, a modelling choice (V7 formal audit F2) |
 | C2 | Memory growth is logarithmic in chain length | Empirical measurement of trust/reputation accumulation dynamics |
 | C3 | Edge value is additive over path | Statistical test for transition independence in real agent traces |
 | C4 | UOR toroidal correspondence | Algebraic topology: explicit homomorphism or obstruction proof |
