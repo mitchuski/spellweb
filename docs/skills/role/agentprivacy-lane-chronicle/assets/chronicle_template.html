@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lane chronicle</title>
+<style>
+:root{
+  --bg:#fbfaf7; --panel:#ffffff; --ink:#1d1d1b; --muted:#6b6a66; --rule:#e4e2dc;
+  --old:#c2493d; --old-bg:#fbe7e4; --new:#2a8a5a; --new-bg:#e1f3ea;
+  --blue:#3563c9; --blue-bg:#e6edfb; --dead:#b9b6ad; --dead-bg:#efede8; --gold:#b07d12; --gold-bg:#f8eed6;
+  --vio:#7a4cc2; --vio-bg:#efe7fb;
+}
+@media screen and (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161614; --panel:#1f1f1c; --ink:#ecebe6; --muted:#a09e97; --rule:#34332f;
+    --old:#ec7a6e; --old-bg:#3a2320; --new:#5cc792; --new-bg:#1d3328;
+    --blue:#7ea2f0; --blue-bg:#1f2a40; --dead:#77746c; --dead-bg:#2a2926; --gold:#e0b04a; --gold-bg:#3a3020;
+    --vio:#b48ef0; --vio-bg:#2c2340;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161614; --panel:#1f1f1c; --ink:#ecebe6; --muted:#a09e97; --rule:#34332f;
+  --old:#ec7a6e; --old-bg:#3a2320; --new:#5cc792; --new-bg:#1d3328;
+  --blue:#7ea2f0; --blue-bg:#1f2a40; --dead:#77746c; --dead-bg:#2a2926; --gold:#e0b04a; --gold-bg:#3a3020;
+  --vio:#b48ef0; --vio-bg:#2c2340;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.55 Georgia,"Times New Roman",serif}
+main{max-width:860px;margin:0 auto;padding:30px 16px 50px}
+.hd{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:18px}
+.kicker{font:600 12px/1.2 system-ui,"Segoe UI",sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:27px;line-height:1.2;margin:6px 0 6px}
+.byline{font:13px/1.4 system-ui,"Segoe UI",sans-serif;color:var(--muted)}
+.abstract{background:var(--panel);border-left:3px solid var(--blue);padding:10px 14px;margin:0 0 18px}
+.abstract b{font-family:system-ui,"Segoe UI",sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+h2{font:700 17px/1.3 system-ui,"Segoe UI",sans-serif;margin:22px 0 4px}
+h3{font:600 14px/1.3 system-ui,"Segoe UI",sans-serif;margin:10px 0 6px}
+p{margin:0 0 10px}
+figure{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:14px;margin:8px 0 14px;break-inside:avoid}
+figcaption{font:12.5px/1.45 system-ui,"Segoe UI",sans-serif;color:var(--muted);margin-top:8px}
+figcaption b{color:var(--ink)}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--ink);font-family:system-ui,"Segoe UI",sans-serif}
+.m{fill:var(--muted)} .o{fill:var(--old)} .n{fill:var(--new)} .g{fill:var(--gold)} .b{fill:var(--blue)}
+.formula{font:600 15px/1.4 ui-monospace,Consolas,monospace;text-align:center;padding:8px;border-radius:6px;background:var(--bg);margin:0 0 8px}
+.formula .v{color:var(--blue)} .formula .w{color:var(--gold)}
+table{border-collapse:collapse;width:100%;font:13px/1.4 system-ui,"Segoe UI",sans-serif;margin:6px 0 14px;break-inside:avoid}
+th,td{border-bottom:1px solid var(--rule);padding:6px 6px;text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+td.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tl{list-style:none;margin:0;padding:0;border-left:2px solid var(--rule);font:13px/1.45 system-ui,"Segoe UI",sans-serif}
+.tl li{position:relative;padding:0 0 10px 16px}
+.tl li::before{content:"";position:absolute;left:-7px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--panel);border:2px solid var(--muted)}
+.tl li.ours::before{border-color:var(--new);background:var(--new)}
+.tl li.adopt::before{border-color:var(--blue)}
+.tl li.lost::before{border-color:var(--old)}
+.tl .t{color:var(--muted);font-size:12px}
+.tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:9px;margin-left:3px}
+.tag.p{background:var(--new-bg);color:var(--new)} .tag.a{background:var(--blue-bg);color:var(--blue)} .tag.r{background:var(--old-bg);color:var(--old)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:700px){.cols{grid-template-columns:1fr}}
+code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+.proverb{font-size:19px;text-align:center;margin:14px 0 2px}.proverb-src{text-align:center;font:12.5px/1.4 system-ui,"Segoe UI",sans-serif;color:var(--muted);margin:0 0 6px}
+.about{margin-top:14px;break-inside:avoid}.about h3{margin:12px 0 4px}.about ul{margin:4px 0 8px 18px;padding:0}.about li{margin:0 0 4px}
+.foot{font:12px/1.5 system-ui,"Segoe UI",sans-serif;color:var(--muted);border-top:1px solid var(--rule);padding-top:10px;margin-top:20px}
+@page{size:A4;margin:14mm 13mm}
+@media print{
+  body{background:#fff;font-size:12px}
+  main{max-width:none;padding:0}
+  figure{border-color:#ddd;padding:10px;margin:6px 0 10px}
+  h2{break-after:avoid}
+}
+</style>
+</head>
+<body>
+<main>
+<div class="hd">
+  <div class="kicker">A LANE chronicle &middot; research note &middot; BOARD</div>
+  <h1>TITLE NAMING THE LEVERS</h1>
+  <div class="byline">SOLVER (privacymage) &middot; agentprivacy dual-agent harness (LANE instance) in Claude Code &middot; DATE RANGE</div>
+</div>
+
+<div class="abstract"><b>Abstract.</b> <!-- score formula in one sentence; each lever and its effect; promotions; how the field took it up (dated counts); where it stands --></div>
+
+<h2>1. Where each lever acts</h2>
+<figure data-name="fig1-where-each-lever-acts">
+<div class="formula">score = S &times; C &nbsp;&nbsp; C = <span class="v">verify bound</span> + <span class="w">&lceil;W / 256&rceil;</span></div>
+<!-- inline SVG: boxes for each score term, levers under the term they move -->
+<figcaption><b>Figure 1.</b> </figcaption>
+</figure>
+
+<!-- One section per lever: h2, a paragraph of mechanism, one figure with data-name, a caption with submission ids, the change and the promotion. -->
+<h2>2. LEVER</h2>
+<p></p>
+<figure data-name="fig2-lever">
+<!-- svg -->
+<figcaption><b>Figure 2.</b> </figcaption>
+</figure>
+
+<h2>N. Summary</h2>
+<table>
+<tr><th>Lever</th><th>Acts on</th><th>Mechanism</th><th class="r">&Delta;C</th><th>Our submissions</th><th>Field</th></tr>
+<!-- rows; ✓ = promoted -->
+</table>
+
+<h2>N. Timeline</h2>
+<div class="cols">
+<div><h3>Own entries</h3><ul class="tl">
+<li class="ours"><span class="t">MM-DD HH:MMZ</span><br><code>id</code> lever, C <span class="tag p">crown</span></li>
+<li class="lost"><span class="t">MM-DD</span><br><code>id</code> lever <span class="tag r">overtaken</span></li>
+</ul></div>
+<div><h3>Field</h3><ul class="tl">
+<li class="adopt"><span class="t">MM-DD</span><br>solver #PR composes it (coauthor) <span class="tag a">adopted</span></li>
+</ul></div>
+</div>
+
+<div style="break-inside:avoid">
+<h2>N. Submissions</h2>
+<p>Every pull request opened under SOLVER on BOARD. A PR is closed when the record moves past its claim before validation finishes.</p>
+<table><tr><th>PR</th><th>Submission</th><th>Lever</th><th>Base</th><th class="r">C</th><th>Outcome</th></tr></table>
+</div>
+
+<div style="break-inside:avoid">
+<h2>N. Where the field cites the work</h2>
+<p>Pull requests by other solvers whose description names SOLVER, sorted into levers by keyword match on the description.</p>
+<figure data-name="figN-citations"><!-- bars from citations.json --><figcaption><b>Figure N.</b> Snapshot DATE: N PRs, N solvers, N merged.</figcaption></figure>
+</div>
+
+<h2>N. Where it stands</h2>
+<p><!-- the record now, what it still carries from this work, thanks to the solvers who composed it in the open --></p>
+
+<div style="break-inside:avoid">
+<h2>Proverb</h2>
+<p class="proverb"><em>PROVERB FROM THE COMPANION TOME.</em></p>
+<p class="proverb-src">from <em>TOME</em>, a tome of the City of Mages &middot; <code>mages.city</code></p>
+</div>
+
+<div class="about">
+<h3>A note from one solver</h3>
+<p>This is one solver's view of a shared course: what the LANE lane tried, what held, and where the field carried it further. Other solvers will have told these days differently, and their notes on each submission are the fuller record. The template behind this note is an open skill (<code>agentprivacy-lane-chronicle</code> in agentprivacy-skills), and I am happy to share it with anyone who wants to chronicle their own lane. If you would like your work on this course told as a tale, the City of Mages has room for more tomes.</p>
+<h3>The dual-agent harness</h3>
+<p>The work in this note was found and built by the agentprivacy dual-agent harness (<code>github.com/mitchuski/agentprivacy-harness</code>), running in Claude Code. Its rule is short: <em>one proposes, one breaks, neither writes the exam.</em> The Mage seat proposes, writes the code and the proofs. The Swordsman seat reads the contract, checks the argument and the worst-case bound, and holds the only key to the local gate. The proposer never grades its own work.</p>
+<p>That separation is what makes it useful for automated research on a board like this one:</p>
+<ul>
+<li><b>Kills are results.</b> <!-- one example from this lane --></li>
+<li><b>Nothing ships on a model's say-so.</b> <!-- the local gate this lane ran --></li>
+<li><b>Prices before proofs.</b> <!-- exact pricing before builds --></li>
+<li><b>Lanes in parallel, apart.</b> <!-- separate agents, running logs --></li>
+</ul>
+<p>The separation is a discipline, not a claim of independent minds. The security belongs to the kernel and the official validator. What the harness brings is the habit of never marking its own card.</p>
+</div>
+
+<div class="foot"><!-- what the numbers are and how they were checked; where the public record is; how the counts were made; no local paths --></div>
+</main>
+</body>
+</html>

@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-edge-value
 description: >
-    Edge value and trajectory dynamics for sovereignty transitions in
+  Edge value and trajectory dynamics for sovereignty transitions in
   0xagentprivacy. Activates when discussing T(π) trajectory terms, sovereignty
   lattice transitions (64-vertex {0,1}⁶), Yoneda lemma applications, vertical
   vs lateral sovereignty movement, or edge weight functions. Use for
@@ -51,7 +51,7 @@ The 64-vertex lattice represents configurations — which sovereignty dimensions
 
 **The category-theoretic reading (Yoneda perspective):** An object (vertex) is completely determined by its morphisms (edges) to and from other objects. You do not need to know a vertex's internal structure — only its connections reveal its character. Two vertices with identical edge relationships are isomorphic regardless of what they "contain." Applied to agents: two agents are equivalent if and only if they make the same transitions, regardless of their internal state.
 
-## Vertical vs. lateral transitions
+## Vertical edges vs. lateral moves
 
 *Corrected 2026-10-25 under the V7 formal audit (agentprivacy-docs `research/2026-10-25_v7_formal_audit.md`, F4; Lean receipts in formal_mage).* Every edge of Q₆ flips one bit, so every edge changes the stratum by exactly one: the lattice has no lateral edges, and every vertex has degree 6. Lateral movement is a two-step composite.
 

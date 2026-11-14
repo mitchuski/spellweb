@@ -1,10 +1,13 @@
 ---
 name: agentprivacy-economics
 description: >
-    Tokenomics and privacy economics for 0xagentprivacy. Activates when
+  Tokenomics and privacy economics for 0xagentprivacy. Activates when
   discussing SWORD/MAGE token pairs, emission curves, staking mechanisms,
   guild economics, Privacy Pool financial instruments, or the economic models
   underlying the sovereignty architecture.
+  V6 register note (2026-06-10): conjecture and version citations resolve to
+  agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head:
+  privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
   version: "4.0"
@@ -56,7 +59,7 @@ The model maps to a dual-token economy:
 
 **Armor progression** — token holdings unlock capability tiers: Blade → Light → Heavy → Dragon. This is not a pay-to-play model; it is a demonstrate-to-earn model. Agents cannot purchase higher tiers. They must exhibit sustained privacy-respecting behaviour across enough sovereignty transitions. The logarithmic memory term A(τ) naturally models this: early transitions provide the most marginal value, creating strong incentives for early good behaviour.
 
-**Token interaction.** The separation matrix Σ requires that SWORD and MAGE token economies remain independent. Cross-contamination (e.g., earning SWORD tokens through delegation activity) would violate the conditional independence that guarantees the reconstruction ceiling R < 1.
+**Token interaction.** The separation matrix Σ requires that SWORD and MAGE token economies remain independent. Cross-contamination (e.g., earning SWORD tokens through delegation activity) would violate the conditional independence that guarantees the reconstruction ceiling R < 1. V6: the ceiling is time-dependent, R(t) with shelf life t* (C82); the static result is Proven in the conditional regime.
 
 ## Surveillance gap as market inefficiency
 
@@ -101,6 +104,10 @@ The model has four empirically uncalibrated terms: the memory scaling coefficien
 3. What discount rate should apply to A(τ) for agents with verified histories spanning multiple market cycles?
 4. How do sovereignty transitions interact with traditional financial risk models?
 5. Can the multiplicative gating property be exploited by adversaries to cheaply collapse entire markets by targeting a single dimension?
+
+### 2026-09-12 · BRAID as a service
+
+PPD's denominator is itemised in SERV's billing: upstream inference, reasoning generation, prompt-guard evaluation, audit or repair, shadow validation, each a billable component of one request; cache hits skip generation and still pay the upstream model. That is C_amortized = C_BRAID/N + C_inference written as a price list. The 25% revenue buy-and-burn of the vendor's token is a token mechanic outside this model and is not a term in V(π,t).
 
 ---
 

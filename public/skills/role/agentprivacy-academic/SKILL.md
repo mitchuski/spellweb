@@ -1,13 +1,16 @@
 ---
 name: agentprivacy-academic
 description: >
-    Formal academic specification and research methodology for 0xagentprivacy.
+  Formal academic specification and research methodology for 0xagentprivacy.
   Activates when writing papers, proofs, formal specifications, literature
   reviews, or preparing work for peer review. Use for LaTeX formatting,
   citation standards, theorem-proof structure, or research presentation.
+  V6 register note (2026-06-10): conjecture and version citations resolve to
+  agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head:
+  privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
-  version: "4.0"
+  version: "6.0"
   category: "role"
   origin: "0xagentprivacy"
   author: "Mitchell Travers"
@@ -18,9 +21,9 @@ metadata:
   template_references: "cipher, gatekeeper"
 ---
 
-# PVM-V4 Context — Academic Research
+# PVM V6 Context · Academic Research
 
-**Source:** Privacy Value Model V4 Formal Specification (Travers, Feb 2026)  
+**Source:** Privacy Value Model V6 Formal Specification (privacy_value_v6_formal_specification.md, 2026-06-10); the V4 specification (Travers, Feb 2026) is the lineage stage this skill was first written against  
 **Target context:** PETS, IEEE S&P, USENIX Security, CCS, privacy economics venues, peer reviewers  
 **Architecture:** [agentprivacy.ai](https://agentprivacy.ai) · **Sync:** [sync.soulbis.com](https://sync.soulbis.com) · **Contact:** mage@agentprivacy.ai
 
@@ -30,7 +33,7 @@ metadata:
 
 This work presents a multiplicative economic model for privacy-preserving agent architectures with six formally specified valuation dimensions. The principal contributions are:
 
-1. **A proven reconstruction ceiling** for dual-agent architectures: R_max = (C_S + C_M)/H(X) < 1, establishing that mathematically separated privacy and delegation agents produce additive (not multiplicative) information leakage, bounding adversarial reconstruction below full behavioural recovery.
+1. **A proven reconstruction ceiling** for dual-agent architectures: R_max = (C_S + C_M)/H(X) < 1, establishing that mathematically separated privacy and delegation agents produce additive (not multiplicative) information leakage, bounding adversarial reconstruction below full behavioural recovery. V6: the ceiling is time-indexed, R(t) = (C_S(t) + C_M(t))/H(X) with shelf life t* = sup{t : R(t) < 1} (C82, ~65%); the static result is Proven in the conditional regime (Precondition 1 non-collusion, Precondition 2 fixed adversary class).
 
 2. **A temporal memory function** A(τ) = α · ln(1+|τ|) · h(τ) that models verified history accumulation as a counterweight to data depreciation, gated by cryptographic integrity fraction h(τ). This formalises the intuition that attested histories are assets while unverified claims contribute nothing.
 
@@ -48,9 +51,9 @@ The model does not address: side-channel attacks on the execution environment, c
 
 ## Relationship to prior work
 
-**Privacy economics.** Acquisti et al. (2016) survey privacy valuation but focus on willingness-to-pay and revealed preference. PVM-V4 models privacy as infrastructure value rather than consumer preference, providing a supply-side complement. The multiplicative gating structure is novel — it encodes the empirical observation that privacy failures are catastrophic rather than degrading.
+**Privacy economics.** Acquisti et al. (2016) survey privacy valuation but focus on willingness-to-pay and revealed preference. PVM V6 models privacy as infrastructure value rather than consumer preference, providing a supply-side complement. The multiplicative gating structure is novel — it encodes the empirical observation that privacy failures are catastrophic rather than degrading.
 
-**Information-theoretic privacy.** The reconstruction bound extends differential privacy's ε-δ framework to a dual-agent setting. Where DP bounds what a mechanism reveals about any individual record, PVM-V4 bounds what two cooperating mechanisms reveal about a complete behavioural profile. The additive (rather than multiplicative) composition under conditional independence is the key structural difference from standard DP composition theorems.
+**Information-theoretic privacy.** The reconstruction bound extends differential privacy's ε-δ framework to a dual-agent setting. Where DP bounds what a mechanism reveals about any individual record, PVM V6 bounds what two cooperating mechanisms reveal about a complete behavioural profile, inside Precondition 1 (non-collusion). The additive (rather than multiplicative) composition under conditional independence is the key structural difference from standard DP composition theorems; outside the regime, the compounding bound governs, (2^N − 1)ε versus Nε under amnesia (C83, ~55%).
 
 **Network economics.** The stratum-weighted network effect generalises Metcalfe's Law and Reed's Law by weighting participants according to their position in a Boolean lattice. The binomial coefficient weighting has no direct precedent in network economics literature. The power-law exponent k is a free parameter requiring empirical calibration.
 
@@ -60,7 +63,7 @@ The model does not address: side-channel attacks on the execution environment, c
 
 ## Formal results
 
-**Theorem 1 (Reconstruction ceiling).** Under dual-agent conditional independence with quality ε < 0.1, the maximum fraction of private state X reconstructable from both agents' output streams is R_max = (C_S + C_M)/H(X) < 1, where C_S and C_M are the channel capacities of the Swordsman and Mage output channels respectively. (Proof in Research Paper v3.8.)
+**Theorem 1 (Reconstruction ceiling).** Under dual-agent conditional independence with quality ε < 0.1, the maximum fraction of private state X reconstructable from both agents' output streams is R_max = (C_S + C_M)/H(X) < 1, where C_S and C_M are the channel capacities of the Swordsman and Mage output channels respectively. (Proof in Research Paper v3.8.) V6: the ceiling is time-indexed, R(t) = (C_S(t) + C_M(t))/H(X) with shelf life t* = sup{t : R(t) < 1} (C82, ~65%); the static result is Proven in the conditional regime (Precondition 1 non-collusion, Precondition 2 fixed adversary class).
 
 **Theorem 2 (Additive composition).** Information leakage from conditionally independent agents composes additively: I(X; O_S, O_M) ≤ I(X; O_S) + I(X; O_M) + ε, where ε is the conditional independence violation. (Follows from standard mutual information chain rule under near-independence.)
 
@@ -68,15 +71,26 @@ The model does not address: side-channel attacks on the execution environment, c
 
 **Property 2 (Temporal boundedness).** For any finite derivation chain τ: Temporal(t, τ) → 0 as t → ∞, regardless of history depth. (Exponential decay dominates logarithmic growth.)
 
-## Conjectures requiring validation
+## Conjecture status and open problems
 
-| ID | Conjecture | Validation approach |
-|---|---|---|
-| C1 | Golden ratio φ is optimal protect/project ratio | Challenged 2026-10-25: refuted as worded for the stated Φ (min(1, (S/M)/φ) is flat for S/M ≥ φ), so φ is a threshold, a modelling choice (V7 formal audit F2) |
-| C2 | Memory growth is logarithmic in chain length | Empirical measurement of trust/reputation accumulation dynamics |
-| C3 | Edge value is additive over path | Statistical test for transition independence in real agent traces |
-| C4 | UOR toroidal correspondence | Algebraic topology: explicit homomorphism or obstruction proof |
-| C5 | ~3,000× ZKP size reduction from lattice constraints | Circuit complexity analysis comparing constrained vs general proofs |
+Numbering authority: CONJECTURE_REGISTER_V6.md (head C89). When this skill and the register disagree, the register wins and this prose gets an erratum. Status of the original C1 to C5 set as of 2026-06-10:
+
+| ID | Conjecture | Status | Disposition |
+|---|---|---|---|
+| C1 | Golden ratio φ is optimal S/M (protect:project) ratio | challenged (2026-10-25) | Refuted as worded for the stated Φ: min(1, (S/M)/φ) is flat for S/M ≥ φ, so φ is a threshold, a modelling choice (V7 formal audit F2). An optimum at φ needs a new Φ that peaks there, declared as such |
+| C2 | A(τ) should be logarithmic | open | Validation: empirical measurement of trust/reputation accumulation dynamics |
+| C3 | Edge value is additive | challenged | The path integral T_∫(π) replaces it; do not cite as open |
+| C4 | 96 vs 64 discrepancy | challenged (2026-10-25) | Reopened: no stated graph on the 64 vertices has 96 edges (Q₆ 192, succ 64, complement 32, succ ∪ complement 94, succ ∪ neg 95; Lean-checked); the 96 is the UOR Atlas vertex count, imported, so the algebraic derivation is withdrawn (V7 formal audit F6). Was: resolved, holographic + algebraic |
+| C5 | ~3,000× ZKP reduction | resolved | Strengthened by BRAID + holographic bound |
+
+The live open problems a researcher should walk through at V6:
+
+| ID | Conjecture | Conf. | Validation approach |
+|---|---|---|---|
+| C7 | Three-axis separation is multiplicative | 30% | The V6 falsification frontier. Boundary cases are register-bound: partial collapse (alternatives: additive-with-floor, min()), axis correlation under composition (candidate correction: det(Σ) form), time dependence (repair path: the differential form) |
+| C18 | Sovereignty path exhibits strange attractor dynamics (λ > 0) | 25% | Lyapunov exponent measurement on real traversal traces; λ is currently unmeasured |
+| C82 | The Moving Ceiling: R(t) drifts upward against fixed archives; every static guarantee has a finite shelf life t* | 65% | Longitudinal re-runs of reconstruction attacks against archived corpora with successive decoder generations |
+| C86 | Obstruction-Theoretic Amnesia: Grade-2 forgetting = non-vanishing gluing obstruction; amnesia is the only t-independent term | 30% | Falsification: exhibit any view-composition recovering a Grade-2-forgotten origin O |
 
 ## Empirical calibration requirements
 
@@ -84,16 +98,17 @@ Four parameters lack empirical grounding: α (memory scaling), β (edge value sc
 
 ## Falsifiability
 
-The model explicitly states four breaking conditions: (B1) UOR structural incompatibility, (B2) practical failure of ε < 0.1 conditional independence, (B3) sublinear rather than power-law network effects, (B4) clustering of real architectures near singular Σ matrices. Any of these, if empirically demonstrated, would require fundamental revision rather than parameter adjustment.
+The model explicitly states four breaking conditions: (B1) UOR structural incompatibility, now retired since C4 is resolved at the register; the live falsification frontier is C7 (multiplicative three-axis form, 30%), (B2) practical failure of ε < 0.1 conditional independence, (B3) sublinear rather than power-law network effects, (B4) clustering of real architectures near singular Σ matrices. Any of these, if empirically demonstrated, would require fundamental revision rather than parameter adjustment.
 
 ## Limitations and scope
 
-The model values privacy-preserving agent architectures. It does not: provide a general theory of data valuation, address privacy in non-agent contexts, model adversaries with quantum computational capabilities, or account for regulatory arbitrage across jurisdictions. The golden ratio conjecture, UOR correspondence, and ZKP efficiency claims are speculative and should not be treated as established results.
+The model values privacy-preserving agent architectures. It does not: provide a general theory of data valuation, address privacy in non-agent contexts, model adversaries with quantum computational capabilities, or account for regulatory arbitrage across jurisdictions. The golden ratio conjecture (C1) remains open and should not be treated as established. The UOR correspondence (C4) and the ZKP efficiency claim (C5) are resolved at the register; cite them with their register dispositions rather than as open questions.
 
 ## Key external references
 
 - Amcalar, A. & Cinar, E. "BRAID: Bounded Reasoning for Autonomous Inference and Decisions." arXiv:2512.15959 (2025). [Structured prompting economics, PPD metric, Generator/Solver split architecture, Numerical Masking Protocol]
 - Gershfield, M. "Holonic Architecture: Identity-Independent Data Structures for Cross-Environment Interoperability." OASIS / NextGen Software Whitepaper v1.2 (2026). [Holon model, HyperDrive runtime, multi-provider persistence, shared-parent patterns, Holonic BRAID]
+- Cunningham, W. et al. "Smallest Federated Wiki." (federatedwiki.org) — the fork-with-attribution model the `guide/` onboarding layer builds on. [Federated page forking; the journal as lineage; pages-as-skills (skill.fedwiki.club); the git-less-clone distribution thesis — a fedwiki URL forks a `SKILL.md` whose journal carries its origin, kept by the Librarian 🗃️ in the Wikis]
 
 ## Suggested review criteria
 

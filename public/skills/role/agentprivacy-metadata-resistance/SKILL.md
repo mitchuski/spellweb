@@ -8,6 +8,7 @@ description: >
   the signals AROUND encrypted content rather than the content itself.
   Triggers: "metadata", "traffic analysis", "timing attack", "correlation",
   "mixnet", "padding", "network fingerprint", "side channel", "metadata leakage".
+  V6 register note (2026-06-10): conjecture and version citations resolve to agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head: privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
   version: "5.0"
@@ -96,7 +97,7 @@ Metadata resistance can provide formal privacy guarantees when the underlying pr
 
 ## The reconstruction connection
 
-Metadata is the primary reconstruction vector that bypasses content encryption. The reconstruction ceiling R<1 holds only if metadata analysis cannot fill the gap left by content protection. If content is perfectly encrypted but metadata is fully exposed, R can approach 1 through metadata alone — the swordsman has failed.
+Metadata is the primary reconstruction vector that bypasses content encryption. The reconstruction ceiling R<1 holds only if metadata analysis cannot fill the gap left by content protection. V6: the ceiling is time-dependent, R(t) with shelf life t* (C82); the static result is Proven in the conditional regime. If content is perfectly encrypted but metadata is fully exposed, R can approach 1 through metadata alone — the swordsman has failed.
 
 The R<1 proof assumes bounded metadata leakage. This skill operationalises that assumption: these are the specific defences that keep metadata leakage within the bounds the proof requires.
 

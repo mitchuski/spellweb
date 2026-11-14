@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-holonic-reasoning
 description: >
-    Shared reasoning graphs and inference artefacts as persistent, provider-agnostic
+  Shared reasoning graphs and inference artefacts as persistent, provider-agnostic
   holons. Activates when discussing Holonic BRAID, reasoning graph libraries,
   learn-once-reuse-everywhere patterns, agent memory as holon trees, narrative
   compression into holon MetaData, or shared intelligence structures that persist

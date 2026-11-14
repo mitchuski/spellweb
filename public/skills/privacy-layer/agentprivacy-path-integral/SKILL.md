@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-path-integral
 description: >
-    Path integral edge value for 0xagentprivacy V5. Activates when discussing
+  Path integral edge value for 0xagentprivacy V5. Activates when discussing
   T_∫(π) replacing additive T(π), non-local correlations in paths, verification
   checkpoints, feedback loops in traversal, or why edges are not independent.
 license: Apache-2.0

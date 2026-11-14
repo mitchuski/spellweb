@@ -9,6 +9,9 @@ description: >
   Triggers: "intel pool", "collective intelligence", "knowledge sharing",
   "guild intelligence", "privacy-preserving aggregation", "shared signal",
   "data contribution without disclosure".
+  V6 register note (2026-06-10): conjecture and version citations resolve to
+  agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head:
+  privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
   version: "5.0"
@@ -102,7 +105,7 @@ This maintains the dual-agent separation within collective intelligence operatio
 
 **Minimum pool size.** Intel Pools enforce a minimum participant count before producing any output. Below the threshold, the pool accepts contributions but releases nothing. This prevents small-pool deanonymisation.
 
-**Reconstruction ceiling inheritance.** The Intel Pool inherits the architecture's R<1 guarantee. Even with access to all pool contributions (raw, before aggregation), reconstructing any individual Person's complete behavioural model remains impossible. The pool adds noise; the dual-agent separation prevents the noise from being calibrated away.
+**Reconstruction ceiling inheritance.** The Intel Pool inherits the architecture's R<1 guarantee. Even with access to all pool contributions (raw, before aggregation), reconstructing any individual Person's complete behavioural model remains impossible. The pool adds noise; the dual-agent separation prevents the noise from being calibrated away. V6: the ceiling is time-dependent, R(t) with shelf life t* (C82); the static result is Proven in the conditional regime.
 
 ## BRAID graph libraries as Intel Pool artefacts
 

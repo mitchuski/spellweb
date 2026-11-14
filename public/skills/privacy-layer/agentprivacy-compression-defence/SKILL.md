@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-compression-defence
 description: >
-    Compression-as-defence principle for 0xagentprivacy V5. Activates when
+  Compression-as-defence principle for 0xagentprivacy V5. Activates when
   discussing BRAID 74× compression, R(d,compression) modifier, token reduction
   as attack surface reduction, the compression spectrum (7 layers), or why
   efficient inference is also private inference.
@@ -14,7 +14,8 @@ metadata:
   affiliation: "0xagentprivacy, BGIN, First Person Network"
   status: "working_paper"
   target_context: "AI system builders, privacy engineers, efficiency researchers"
-  equation_term: "R(d, compression) = R_base(d) · (1 - 1/compression_ratio)"
+  equation_term: "R(d, compression, ρ) — the reconstruction-difficulty factor. The compression modifier is CONJECTURAL (register C8, ~45%, open), not a calibrated coefficient."
+  register_entry: "C8 — BRAID compression reduces R_max — confidence ~45%, status: active/open"
   template_references: "chronicler, architect, mage"
   spellbook_act: "Act XXIV — The Holographic Bound"
   v5_concept: "V5-D COMP-DEF"
@@ -30,27 +31,37 @@ metadata:
 
 ## What this is
 
-BRAID demonstrated 74× inference compression while maintaining performance. This isn't just efficiency — it's a privacy property.
+BRAID demonstrated 74× inference compression while maintaining performance. The conjecture in this skill is that this is not only efficiency but also a privacy property.
 
-**Every token not sent is a token that cannot be intercepted, reconstructed, or analysed.**
+**Every token not sent is a token that cannot be intercepted.** That much is plain. What it is *not* is a statement about how much the tokens you *did* send reveal about the protected variable.
 
-Compression reduces the attack surface for inference-layer surveillance. The same techniques that make inference efficient also make it more private.
+Compression reduces the volume of transmitted material available to inference-layer surveillance. Whether it reduces *disclosure* is the open question this skill exists to work on.
 
-## The Insight
+## The Insight — and its conditions
 
-V4's reconstruction difficulty R(d) measured architectural resistance to adversarial reconstruction. V5 adds a compression modifier:
+> **Register status: C8 — "BRAID compression reduces R_max" — confidence ~45%, status active/open.**
+> This is a live conjecture on the falsification frontier, not a measured law. Everything below is
+> the shape of a proposal. Do not compute with it, quote a factor from it, or let it style itself
+> as settled next to the exact algebra elsewhere in the corpus.
+
+V8's reconstruction difficulty R(d) measured architectural resistance to adversarial reconstruction. V41 proposes a compression modifier of the form:
 
 ```
-R_v5(d, compression) = R_base(d) · (1 - 1/compression_ratio)
+R_v5(d, compression) = R_base(d) · (1 - 1/compression_ratio)      # PROPOSED FORM, NOT CALIBRATED
 ```
 
-| Compression | Factor | Effect |
-|---|---|---|
-| None (ratio = 1) | 0.00 | Maximal attack surface |
-| 2× | 0.50 | Half the surface |
-| 10× | 0.90 | 90% reduction |
-| 74× (BRAID typical) | 0.986 | Near-minimal surface |
-| ∞ | 1.00 | Perfect compression (theoretical limit) |
+**Two counterexamples the form does not yet survive.** Both are elementary and neither needs a formal argument:
+
+1. Compress a 5,000-word analysis into the 30-word proverb *"the Person's key is 7f3a…"*. The ratio is ≈167×, which the proposed form scores at 0.994 — while reconstruction of the protected variable is **complete**. Ratio is orthogonal to what the output reveals.
+2. The ratio = 1 case asserts that any uncompressed text has R = 0. But uncompressed text about an unrelated topic reveals nothing about the Person. Zero compression is not maximal disclosure.
+
+**The variable the model actually needs.** Disclosure depends on what the released text reveals about the protected variable X, conditional on the adversary's background B — not on how much material was discarded on the way. WP-07 states the usable form: a leakage budget over declared channels, conditioned on what was already received (ER-1…ER-5), evaluated against a named adversary over a stated horizon. A compression ratio is not a leakage budget and cannot be substituted for one.
+
+**A true thing nearby, which is weaker than it looks.** A fixed deterministic transform cannot create information about X relative to its full input under the same observation model. That is the data-processing inequality, and it is real. It does not establish a strict privacy *gain*, and it stops applying as soon as the recipient's access or background changes.
+
+**Reading discipline.** R is overloaded across the corpus: reconstruction *difficulty* (rises with protection), leakage/reconstructability *ratios* (rise toward loss of assurance), and R(step) for resolution gained. They are three different quantities and must not share a numerical variable in code.
+
+**What would settle it.** A compression procedure, a protected variable, a declared adversary and background, and a measured conditional leakage before and after — with the ordering holding across a family of inputs rather than a chosen example. Until that exists, C8 stays at its registered confidence.
 
 ## The BRAID Parity Effect
 
@@ -156,15 +167,16 @@ Shared reasoning libraries (shared-parent pattern) work because they're compress
 ## Operational Guidance
 
 ### For System Design
-- Default to compressed inference (BRAID-style)
+- Default to compressed inference (BRAID-style) — for efficiency, and for the smaller transmitted volume
 - Use reasoning graphs over unbounded context
 - Transmit skill files, not training data
-- Measure compression ratio as a privacy metric
+- Report compression ratio as an efficiency metric. It is **not** a privacy metric: state the protected variable, the declared channels and the adversary's background separately
 
 ### For Evaluation
-- Higher compression ratio = better R modifier
-- But: lossy compression may degrade C (credential verifiability)
-- Balance: compress to the limit where verification still works
+- Do **not** score privacy by compression ratio, and do not compute an R modifier from it — C8 is open at ~45%
+- Measure conditional leakage about the named protected variable, before and after, against a declared adversary and horizon
+- A short output can disclose everything that matters; a long one can disclose nothing. Order by what is revealed, never by length
+- Lossy compression may separately degrade C (credential verifiability); compress to the limit where verification still works
 
 ### Proverb
 
@@ -185,3 +197,7 @@ Shared reasoning libraries (shared-parent pattern) work because they're compress
 ---
 
 **Verify:** [agentprivacy.ai](https://agentprivacy.ai) · [sync.soulbis.com](https://sync.soulbis.com) · [github.com/mitchuski/agentprivacy-docs](https://github.com/mitchuski/agentprivacy-docs)
+
+### 2026-09-12 · C8 gets its test
+
+BRAID now ships as an API with an off switch (`x-openserv-disable-braid: true`), which makes the compression a variable. The test for C8 is a harness round: same instance, same seat, same model, raw versus SERV, the census as the gate, tokens emitted under each recorded in the lane's own file. Until that round runs, C8 stays at 45%; when it runs, the number lives in the run's files, not in the vendor's console.

@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-stranger-witness
 description: >
-    Specialist persona for stranger-to-stranger ceremony verification. Activates
+  Specialist persona for stranger-to-stranger ceremony verification. Activates
   for anonymous pairing, simultaneous forging, understanding proof without prior trust,
   sealed comparison, or stranger witness protocols.
 license: Apache-2.0

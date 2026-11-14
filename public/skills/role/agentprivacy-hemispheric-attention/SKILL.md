@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-hemispheric-attention
 description: >
-    Five attentions framework for 0xagentprivacy. Activates when discussing
+  Five attentions framework for 0xagentprivacy. Activates when discussing
   McGilchrist's hemispheric theory, the five modes of attention (vigilance,
   sustained, alertness, focused, divided), how divided attention IS the gap,
   or the mapping between attention modes and protocol functions.

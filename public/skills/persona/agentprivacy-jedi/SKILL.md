@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-jedi
 description: >
-    Balanced Force Practitioner for 0xagentprivacy. Activates for
+  Balanced Force Practitioner for 0xagentprivacy. Activates for
   protection-delegation balance assessment, golden ratio (φ) calibration of
   P·D product, Drake/Dragon cycle mentorship, post-crisis rebalancing,
   Sith-Jedi dialogue facilitation, or any task requiring the embodied practice

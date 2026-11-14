@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-holographic-bound
 description: >
-    Holographic boundary principle for 0xagentprivacy V5. Activates when
+  Holographic boundary principle for 0xagentprivacy V5. Activates when
   discussing the 96/64 resolution, boundary-encodes-volume, differential form
   computation on ∂M, P^1.5 ↔ 96/64 conjecture (C6), boundary sufficiency,
   or how the lattice surface IS the holographic encoding of the bulk.

@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-environmental-commons
 description: >
-    Environmental commons and polycentric governance for 0xagentprivacy.
+  Environmental commons and polycentric governance for 0xagentprivacy.
   Activates when discussing climate coordination, environmental DAOs, carbon
   accounting, ecosystem services valuation, future-representing mechanisms,
   or how the dual-agent architecture protects environmental whistleblowers

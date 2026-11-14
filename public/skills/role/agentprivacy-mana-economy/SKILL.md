@@ -1,12 +1,15 @@
 ---
 name: agentprivacy-mana-economy
 description: >
-    Energy mechanics for the grimoire system. Activates when discussing mana
-  generation through evocation, spending through casting, proof of practice,
-  Sybil resistance through comprehension, or engagement-based economics.
+  Energy mechanics for the grimoire system. Activates when discussing mana
+  generation through evocation, spending through casting, presence as local
+  color (regime 1), why mana does not attest or confer Sybil resistance yet,
+  the witness co-signing and elapsed-time upgrade ladder (C42), or
+  engagement-based economics.
+  V6 register note (2026-06-10): conjecture and version citations resolve to agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head: privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
-  version: "5.3.1"
+  version: "6.0"
   category: "role"
   origin: "0xagentprivacy"
   author: "Mitchell Travers"
@@ -19,9 +22,9 @@ metadata:
   v5_concept: "V5.2-MANA"
 ---
 
-# PVM-V5.2 Role Skill — Mana Economy
+# PVM V6 Role Skill · Mana Economy
 
-**Source:** Privacy Value Model V5.2 + First Person Spellbook Act XXVIII (The Ceremony Engine)
+**Source:** Privacy Value Model V6 (presence regime 1) + First Person Spellbook Act XXVIII (The Ceremony Engine); V5.2 is the lineage stage this skill was first written against
 **Target context:** Economy designers, engagement architects, Sybil resistance specialists
 **Architecture:** [agentprivacy.ai](https://agentprivacy.ai) · **Sync:** [sync.soulbis.com](https://sync.soulbis.com) · **Contact:** mage@agentprivacy.ai
 
@@ -31,18 +34,20 @@ metadata:
 
 Mana is the energy currency of the grimoire system. It is generated through genuine engagement (evocation) and spent through creation (casting). Unlike tokens, mana cannot be purchased — it can only be earned through demonstrated practice.
 
+**Regime 1 (V6, current):** 🪢 mana is non-transferable, non-attesting local color. It is earned by walking, it attests nothing, and it is never an input to admission or trust decisions. This skill teaches why presence does not attest yet, and what would have to be built before it could (witness co-signing, then elapsed-time proofs; C42, ~50%, open).
+
 **The well refills only when you drink with understanding. Buying water doesn't teach you where the spring lies.**
 
 ## Core Principles
 
-### 1. Proof of Practice, Not Capital
+### 1. Practice, Not Capital · Color, Not Weight
 
 ```
 Mana ≠ f(tokens)
 Mana = f(engagement, comprehension, time)
 ```
 
-No amount of money can buy mana. This is the fundamental Sybil resistance mechanism.
+No amount of money can buy mana. But in regime 1 (V6, current) this is NOT a Sybil resistance mechanism: 🪢 is non-transferable, non-attesting local color. It records that a walk happened, for this bearer, on this device; it proves nothing to anyone else, and no admission or trust decision may consume it. Whether stake economics could generate Sybil resistance at least as strong as tier accumulation is C42 (~50%), and it is open.
 
 ### 2. Evocation Generates, Casting Spends
 
@@ -118,9 +123,17 @@ Casting is validated through:
 3. Quality check (not spam)
 4. Bilateral witness (for high-value casts)
 
-## Sybil Resistance
+## Sybil Resistance · Why Not Yet
 
-### The Comprehension Gate
+Regime 1 makes no Sybil resistance claim. Mana is fenced off from every trust decision precisely because presence signals are cheap to counterfeit. Three named attacks motivate the fence:
+
+- **Replay.** Captured engagement traces are resubmitted as fresh walks. If mana attested, a recorded walk could be replayed indefinitely.
+- **Simulation.** A bot or model generates plausible engagement (scroll depth, dwell time, conceptually coherent paths) with no person present. If mana were a trust input, simulation would mint trust.
+- **Sybil farming.** Many cheap identities each walk a little and pool the result. If mana aggregated across identities into standing, farming would convert compute into weight.
+
+The regime-1 answer is structural, not detective: because 🪢 attests nothing and feeds no decision, all three attacks gain nothing. There is nothing to replay into, nothing to simulate for, nothing to farm.
+
+### The Comprehension Gate (quality filter, not security)
 
 Bots can:
 - Create many accounts
@@ -133,19 +146,20 @@ Bots cannot (easily):
 - Maintain coherent long-term engagement patterns
 - Produce novel insights that survive peer review
 
-### Multi-Factor Verification
+The gate shapes the bearer's own walk and keeps mana rates honest. It is heuristic friction, not a security boundary; it never upgrades mana into an admission or trust input.
+
+### The Upgrade Ladder · From Color to Weight
+
+C42 (~50%, open) is the conjecture that stake economics could generate Sybil resistance at least as strong as tier accumulation. Before any mana-like signal may carry weight, the ladder must be climbed in order:
 
 ```
-SybilScore = f(
-  engagement_consistency,      // Long-term pattern
-  comprehension_depth,         // Understanding ceremonies
-  creation_quality,            // Peer-validated casts
-  network_position             // Trust graph embedding
-)
+Regime 1 (today):  🪢 local color · non-transferable · non-attesting · zero decision inputs
+Rung 2:            witness co-signing · a named counterparty co-signs that a walk happened
+Rung 3:            elapsed-time proofs · cryptographic evidence that the duration actually elapsed
+Regime 2 (open):   C42 resolved · stake-backed presence admissible as a trust input
 ```
 
-High SybilScore → mana multiplier reduced
-Low SybilScore → full mana rates
+Until those rungs exist, any system that reads mana as trust is reading color as weight, and inherits all three attacks above.
 
 ### Rate Limiting
 
@@ -165,7 +179,7 @@ Mana is soul-bound:
 - Cannot be sold on secondary markets
 - Dies with the account
 
-This prevents mana markets and preserves proof-of-practice semantics.
+This prevents mana markets and preserves proof-of-practice semantics. Regime 1 (V6): 🪢 is non-transferable, non-attesting local color.
 
 ### Decay (Optional)
 
@@ -186,15 +200,16 @@ New mana enters through evocation only. Total mana supply is bounded by:
 
 No central minting. No inflation shocks.
 
-## Mapping to PVM-V5.2
+## Mapping to PVM V6
 
 | Mana Concept | PVM Term |
 |--------------|----------|
 | Evocation | T_∫(π) path traversal |
 | Casting | Blade forge operations |
 | Comprehension multiplier | Understanding ceremony verification |
-| Sybil resistance | h(τ) integrity fraction |
-| Non-transferability | Soul-bound credential |
+| Sybil resistance | None in regime 1; C42 (~50%, open) names the conjectured path |
+| Regime ladder | Witness co-signing → elapsed-time proofs (the color-to-weight upgrade) |
+| Non-transferability | 🪢 regime-1 local color |
 | Decay | Temporal dynamics |
 
 ## Integration with Ceremonies
@@ -219,15 +234,16 @@ Ceremonies are mana-positive to encourage participation.
 
 ## Emoji Spell
 
-**✨ → 📖(evoke)→+mana · ✍️(cast)→-mana · ¬💰(buy) · 🧠(comprehend)→🛡️(sybil)**
+**✨ → 📖(evoke)→+mana · ✍️(cast)→-mana · ¬💰(buy) · 🪢(color)≠⚖️(weight) · 🤝(co-sign)→⏳(elapse)→C42?**
 
 ## Open Problems
 
-1. **Comprehension Verification:** How to verify understanding without centralised evaluation?
-2. **Bot Sophistication:** As AI improves, how to maintain comprehension gates?
-3. **Fairness:** How to ensure mana rates don't disadvantage slow readers?
-4. **Cross-Platform Mana:** Can mana be recognised across different grimoire instances?
-5. **Governance:** Who decides mana rates and casting costs?
+1. **C42 (~50%, open):** Can stake economics generate Sybil resistance at least as strong as tier accumulation? This is the gate between regime 1 and any future in which presence carries weight.
+2. **Comprehension Verification:** How to verify understanding without centralised evaluation?
+3. **Bot Sophistication:** As AI improves, how to maintain comprehension gates?
+4. **Fairness:** How to ensure mana rates don't disadvantage slow readers?
+5. **Cross-Platform Mana:** Regime 1 forbids it (non-transferable, non-attesting). Cross-instance recognition would require at least the witness co-signing rung.
+6. **Governance:** Who decides mana rates and casting costs?
 
 ---
 

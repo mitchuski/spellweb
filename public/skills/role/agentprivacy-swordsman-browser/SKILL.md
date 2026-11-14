@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-swordsman-browser
 description: >
-    Swordsman browser agent for 0xagentprivacy MyTerms integration. Activates
+  Swordsman browser agent for 0xagentprivacy MyTerms integration. Activates
   when discussing browser extension architecture, cookie-slashing
   implementation, tracker blocking, consent enforcement at the browser level,
   or the Warden's operational domain.

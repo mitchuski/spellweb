@@ -1,8 +1,9 @@
 ---
 name: agentprivacy-toroidal-witness
 description: >
-    Infinite witness space from toroidal topology. Activates when discussing
-  cyclic paths through the lattice, unbounded witnesses, computational hardness
+  Unbounded path space from toroidal topology (paths, not group witnesses:
+  two per transition). Activates when discussing
+  cyclic paths through the lattice, unbounded paths, computational hardness
   from path enumeration, toroidal wrap, or why witness extraction is infeasible.
 license: Apache-2.0
 metadata:
@@ -29,11 +30,11 @@ metadata:
 
 ## What this is
 
-The sovereignty lattice has toroidal topology—edges that exit one face re-enter the opposite face. This creates cyclic paths through the lattice. Unlike a flat space where paths between points are finite, the torus allows infinite distinct paths. This property is the source of zero-knowledge soundness.
+The sovereignty lattice has toroidal topology—edges that exit one face re-enter the opposite face. This creates cyclic paths through the lattice. Unlike a flat space where paths between points are finite, the torus allows infinite distinct paths. This property hides the route; it is not by itself the source of zero knowledge, which must rest on the hiding of the proof system.
 
-**The torus wraps. The paths multiply. The witness space becomes infinite. And infinite witnesses cannot be enumerated.**
+**The torus wraps. The paths multiply. The path space becomes unbounded. And unbounded paths cannot be enumerated — though between any two vertices the group carries exactly two witnesses.**
 
-*Scope note, 2026-10-25 (V7 formal audit, agentprivacy-docs `research/2026-10-25_v7_formal_audit.md`, F6, F7; Lean receipts in formal_mage).* The infinity in this skill counts **paths**: walks that may repeat cycles, told apart by their winding. That set is genuinely unbounded. It is not a count of group witnesses: on the 64-vertex lattice, for every start and target vertex exactly **two** elements of ⟨neg, bnot⟩ carry one to the other (Lean `exactly_two_witnesses`). Witness multiplicity does not by itself give zero knowledge; any ZK claim must rest on the hiding of the proof system.
+*Scope note, 2026-10-25 (V7 formal audit, agentprivacy-docs `research/2026-10-25_v7_formal_audit.md`, F6, F7; Lean receipts in formal_mage).* The infinity in this skill counts **paths**: walks that may repeat cycles, told apart by their winding. That set is genuinely unbounded. It is not a count of group witnesses: on the 64-vertex lattice, for every start and target vertex exactly **two** elements of ⟨neg, bnot⟩ carry one to the other (Lean `exactly_two_witnesses`). Witness multiplicity does not by itself give zero knowledge; any ZK claim must rest on the hiding of the proof system. *Corrected 2026-10-26 under the V7 formal audit (agentprivacy-docs `research/2026-10-25_v7_formal_audit.md`, F7; Lean receipts in formal_mage).* The lines above once read "infinite witnesses"; they now read "unbounded paths".
 
 ## Flat vs Toroidal
 
@@ -162,7 +163,7 @@ The ceremony can verify equivalence class membership without identifying specifi
 
 ### Proof Size
 
-Despite infinite witnesses, proofs remain finite:
+Despite an unbounded path space, proofs remain finite:
 - Prove you COULD take a path (existential)
 - Don't enumerate the path (avoid linear size)
 - ZK-SNARK techniques apply
@@ -201,6 +202,12 @@ That the torus IS the holographic principle in topological form is a conjecture 
 3. **Practical Security:** What are the concrete bit-security estimates?
 4. **Proof Systems:** Which ZK proof systems best leverage toroidal structure?
 5. **Topology Variants:** Would other topologies (Klein bottle, projective space) have different security properties?
+
+## External convergence — UOR Atlas UTQC (2026-06-30)
+
+The UOR Foundation's UTQC paper makes the same *shape* of argument this skill rests on: reframe an evaluation as a **topological decision problem over invariants** — "are two braid words isotopic?" — and thereby subvert the #P-hard tensor-contraction boundary. Their braid-word representation and topological-invariant readout are a **mechanism-cousin** of the toroidal witness-hiding / topological-ZK reduction here (register **C5**, resolved).
+
+Take the *shape* of the reduction argument as an external precedent; **do not** import their O(N⁶) closure magnitude (theirs to defend) or the surrounding P = BQP banner (quarantined). See `research/uor-atlas-utqc-v6-note.md`.
 
 ---
 

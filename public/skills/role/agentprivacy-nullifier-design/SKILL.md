@@ -9,6 +9,7 @@ description: >
   Triggers: "nullifier", "double-spend", "single-use proof",
   "privacy-preserving revocation", "unlinkability", "nullifier set",
   "nullifier tree", "spent set", "serial number".
+  V6 register note (2026-06-10): conjecture and version citations resolve to agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head: privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
   version: "5.0"
@@ -112,7 +113,7 @@ The zero-knowledge circuit that accompanies a nullifier must prove:
 
 **C — verifiability.** Every nullifier is accompanied by a zero-knowledge proof. The verifier can check correctness without learning anything beyond the fact of correct derivation. This is C: verifiable computation that reveals nothing unnecessary.
 
-**R(d) — reconstruction.** Nullifiers are designed to be unlinkable. Two nullifiers from the same actor reveal nothing about their shared origin. This directly maintains R<1 for the actions protected by nullifiers — even an adversary with the complete nullifier set cannot reconstruct which actor produced which subset.
+**R(d) — reconstruction.** Nullifiers are designed to be unlinkable. Two nullifiers from the same actor reveal nothing about their shared origin. This directly maintains R<1 for the actions protected by nullifiers — even an adversary with the complete nullifier set cannot reconstruct which actor produced which subset. V6: the ceiling is time-dependent, R(t) with shelf life t* (C82); the static result is Proven in the conditional regime.
 
 **h(τ) — integrity.** The nullifier set IS the integrity record. A correctly maintained set (no duplicates accepted, no valid nullifiers rejected) means h(τ) = 1 for nullifier-protected operations. Corruption of the set (accepting duplicates, censoring valid submissions) directly reduces h(τ).
 

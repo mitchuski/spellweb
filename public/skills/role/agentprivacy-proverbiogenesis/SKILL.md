@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-proverbiogenesis
 description: >
-    Proverb lifecycle and the 5-phase proverb evolution for 0xagentprivacy
+  Proverb lifecycle and the 5-phase proverb evolution for 0xagentprivacy
   RPP. Activates when discussing proverb formation
   (reception→compression→regeneration→propagation→inevitability),
   proverb-as-authentication, wisdom compression, or the Relationship Proverb

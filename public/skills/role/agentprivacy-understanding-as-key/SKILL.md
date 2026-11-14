@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-understanding-as-key
 description: >
-    Understanding-as-authentication for 0xagentprivacy RPP. Activates when
+  Understanding-as-authentication for 0xagentprivacy RPP. Activates when
   discussing proverb-based access control, demonstrated comprehension as
   credential, the Oracle verification pipeline, viewing key / signing key
   separation in knowledge verification, or how understanding replaces
@@ -134,7 +134,7 @@ Properties: deterministic (same inputs = same key), bilateral (requires both pro
 The first production implementation (Zypherpunk Hack 2025, Zcash):
 
 1. First Person reads tale at agentprivacy.ai/story, forms proverb from understanding
-2. Zashi Wallet (Swordsman): paste memo with proverb, send z→z shielded (0.01 ZEC)
+2. Zodl Wallet (Swordsman): paste memo with proverb, send z→z shielded (0.01 ZEC)
 3. Oracle (Viewing Key Only): decrypt memo, fetch canonical from IPFS, AI verifies semantic match. NEVER sees amount/address/timing. Triggers golden split on verification.
 4. Signal splits: 61.8% transparent pool (inscription with proverb) + 38.2% shielded pool (protocol operations)
 5. VRC Callback: Oracle sends response proverb to FP's z-address. Bilateral VRC established.

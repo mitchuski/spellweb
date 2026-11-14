@@ -1,10 +1,13 @@
 ---
 name: agentprivacy-ai-agent
 description: >
-    AI agent architecture and dual-agent separation for 0xagentprivacy.
+  AI agent architecture and dual-agent separation for 0xagentprivacy.
   Activates when discussing I(S;M|π) mutual information bounds, TEE isolation,
   agent lifecycle (spawn/operate/rotate/recover/retire), Oracle architecture,
   or the fundamental design of privacy-preserving AI agents.
+  V6 register note (2026-06-10): conjecture and version citations resolve to
+  agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head:
+  privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
   version: "4.0"
@@ -40,7 +43,7 @@ The model proves that a single agent holding both privacy boundaries and delegat
 
 The proven reconstruction ceiling: R_max = (C_S + C_M)/H(X) < 1, where C_S and C_M are the information leakage from each agent's channel, and H(X) is the entropy of the principal's private state. Because the agents are conditionally independent, their leakages are additive (not multiplicative), keeping total reconstructable information below the threshold needed for full behavioural recovery.
 
-This is an information-theoretic bound, not a policy constraint. It holds against any adversary with access to both agents' outputs, provided the conditional independence is maintained with ε < 0.1.
+This is an information-theoretic bound, not a policy constraint. It holds against any adversary with access to both agents' outputs, provided the conditional independence is maintained with ε < 0.1. V6: the ceiling is time-dependent, R(t) with shelf life t* (C82); the static result is Proven in the conditional regime.
 
 ## Why this matters for agent architectures
 

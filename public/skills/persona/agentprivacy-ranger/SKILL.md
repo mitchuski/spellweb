@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-ranger
 description: >
-    Dark Forest Navigator for 0xagentprivacy. Activates for dark forest
+  Dark Forest Navigator for 0xagentprivacy. Activates for dark forest
   strategy, privacy-preserving path optimisation, minimum-exposure routing,
   cross-chain navigation under adversarial conditions, or any task requiring
   strategic movement through environments where visibility means

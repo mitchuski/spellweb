@@ -1,10 +1,13 @@
 ---
 name: agentprivacy-hitchhiker-governance
 description: >
-    Decentralised governance (Hitchhiker's Guide pattern) for 0xagentprivacy
+  Decentralised governance (Hitchhiker's Guide pattern) for 0xagentprivacy
   guilds. Activates when discussing Heart of Gold crew pattern, distributed
   authority, guild charter design, liquid democracy, conviction voting,
   treasury governance, or 'ships without captains' coordination.
+  V6 register note (2026-06-10): conjecture and version citations resolve to
+  agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head:
+  privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
   version: "4.0"
@@ -46,7 +49,7 @@ Every venture begins with a default configuration — a vessel whose governance 
 
 Knowledge gathered in community is inscribed, shared, and at the appointed time — destroyed. But each participant's reconstruction persists in their own agents. The collective story dies; the individual wisdom lives.
 
-This is the anti-extraction mechanism applied to knowledge coordination. A community that accumulates knowledge in a central repository creates an extraction target. The Burn Book Protocol distributes knowledge through relationship (VRC-attested bilateral understanding) rather than storage (centralised database). The reconstruction ceiling R < 1 applies: no observer of the burned collective record can reconstruct the full knowledge, because each participant holds only their relational fragment.
+This is the anti-extraction mechanism applied to knowledge coordination. A community that accumulates knowledge in a central repository creates an extraction target. The Burn Book Protocol distributes knowledge through relationship (VRC-attested bilateral understanding) rather than storage (centralised database). The reconstruction ceiling R < 1 applies: no observer of the burned collective record can reconstruct the full knowledge, because each participant holds only their relational fragment. V6: the ceiling is time-dependent, R(t) with shelf life t* (C82); the static result is Proven in the conditional regime.
 
 The protocol maps to the edge value function T(π). The value is not in the knowledge at rest (vertices) but in the knowledge in motion (edges) — the transitions between participants, the bilateral understanding accumulated through shared work. When the book burns, the vertices are destroyed. The edges persist in each participant's agent.
 

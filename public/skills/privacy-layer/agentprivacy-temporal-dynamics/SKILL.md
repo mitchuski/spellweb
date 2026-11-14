@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-temporal-dynamics
 description: >
-    Temporal dynamics and memory accumulation for 0xagentprivacy. Activates
+  Temporal dynamics and memory accumulation for 0xagentprivacy. Activates
   when discussing e^{-λt}·(1+A(τ)), decay rates, memory scaling
   (α·ln(1+|τ|)·h(τ)), the h(τ) integrity gate, crossover time calculations, or
   how privacy value compounds over time. Use for temporal modelling of

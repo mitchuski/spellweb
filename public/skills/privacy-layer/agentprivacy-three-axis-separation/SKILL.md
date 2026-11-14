@@ -1,10 +1,11 @@
 ---
 name: agentprivacy-three-axis-separation
 description: >
-    Three-axis separation model for 0xagentprivacy V5. Activates when discussing
+  Three-axis separation model for 0xagentprivacy V5. Activates when discussing
   Φ_agent · Φ_data · Φ_inference, multiplicative separation, Generator-Solver
   split, provider fragmentation, why collapse on any axis collapses total value,
   or the orthogonal axes of the sovereignty architecture.
+  V6 register note (2026-06-10): conjecture and version citations resolve to agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head: privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
   version: "5.0"
@@ -30,7 +31,7 @@ metadata:
 
 ## What this is
 
-V4 measured separation as a single 4×4 matrix Σ encoding four forces (Protect, Project, Reflect, Connect). V5 recognises that separation operates on **three orthogonal axes**:
+V8 measured separation as a single 4×4 matrix Σ encoding four forces (Protect, Project, Reflect, Connect). V41 recognises that separation operates on **three orthogonal axes**:
 
 ```
 Φ_v5 = Φ_agent(Σ) · Φ_data(Δ) · Φ_inference(Γ)
@@ -161,6 +162,7 @@ The Trust Graph emerges at the intersection of all three — trust requires all 
 3. **Fourth Axis:** Is there a fourth separation axis we haven't identified?
 4. **Measurement:** How do we operationally measure Φ_inference for deployed systems?
 5. **Recovery Order:** When multiple axes are collapsed, is there an optimal recovery sequence?
+6. **C54 (register lock 2026-06-10; C8 is BRAID compression) — Disclosure-φ (Zero Tale 31):** Zero Tale 31 introduces Φ(Σ) as a *proportion* (disclosure ratio δ(b) = b/63 approaching 1/φ) rather than a binary separation quantity. Is disclosure-φ a fourth separation axis, a refinement of Φ_agent, or a transversal measure that cuts across all three axes? Aletheia (38/63 ≈ 0.603) and Lethe (25/63 ≈ 0.397) sum to 1.0 with the split sitting 2.4% from the golden section (per the 2026-06-09 v10.4.0 reseat: Aletheia at blade 38, Lethe at blade 25) · see `disclosure-phi` skill.
 
 ---
 

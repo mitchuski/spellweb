@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-plurality-cooperative
 description: >
-    Plurality and cooperative technology (⿻) for 0xagentprivacy. Activates
+  Plurality and cooperative technology (⿻) for 0xagentprivacy. Activates
   when discussing quadratic voting/funding/voice, intersectional identity,
   Audrey Tang / Glen Weyl lineage, cross-difference collaboration, or how
   privacy preserves the difference that plurality requires.

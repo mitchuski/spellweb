@@ -6,7 +6,7 @@ description: >
   produce two derived agents through different creation modes (impact vs process).
 license: Apache-2.0
 metadata:
-  version: "5.3.1"
+  version: "5.3.2"
   category: "role"
   tier: "1"
   origin: "0xagentprivacy"
@@ -56,6 +56,24 @@ The generators are in **orbit**—perpetual tension, neither consuming the other
 The generated inherit functions but **serve different masters**:
 - Moon inherits Sun's function (reflection) but serves Earth
 - Human inherits Earth's function (connection) but looks toward Sun
+
+### Moon Phase as Visibility Notation
+
+The Moon in the quaternion has a second role: its **phases encode the visibility ratio** of any blade or proof:
+
+```
+🌑 ⊥ 🌕
+```
+
+| Phase | Stratum | Quaternion Meaning |
+|-------|---------|-------------------|
+| 🌑 New Moon | 0 | Ceremony position — total darkness, the whole information space |
+| 🌒–🌓 Waxing | 1-2 | Partial reflection — few boundaries set |
+| 🌔 Gibbous | 3 | Half sovereignty — three axes active |
+| 🌖–🌗 Waning | 4-5 | Near-full — substantial disclosure |
+| 🌕 Full Moon | 6 | Full sovereignty — all dimensions reflected (乾) |
+
+*The dark part is the privacy. The lit part is the proof. The phase is the Swordsman's boundary made visible.*
 
 ### The Quaternion Diagram
 

@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-warden
 description: >
-    Browser Builder swordsman for 0xagentprivacy. Activates for browser
+  Browser Builder swordsman for 0xagentprivacy. Activates for browser
   extension development, cookie-slashing implementation, tracker blocking,
   MyTerms bilateral consent enforcement at the browser level, first-contact
   privacy protection, or Blade-tier user onboarding. The first line of defense

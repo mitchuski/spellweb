@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-consent-infrastructure
 description: >
-    Consent infrastructure and IEEE 7012 MyTerms integration for
+  Consent infrastructure and IEEE 7012 MyTerms integration for
   0xagentprivacy. Activates when discussing bilateral consent,
   cookie-slashing, consent receipts, Customer Commons, MyTerms Alliance, or
   how P·C·Σ creates enforceable consent rather than checkbox compliance.
@@ -118,6 +118,10 @@ BRAID's deterministic branching principle (arXiv:2512.15959) provides external v
 4. Regulatory recognition — will courts and regulators recognise automated bilateral consent as legally valid?
 5. Legacy compatibility — how does MyTerms-based consent coexist with existing GDPR consent mechanisms?
 6. The cold start problem — how does the system work before critical mass of sites accept MyTerms?
+
+### 2026-09-12 · BRAID as a service
+
+Deterministic branching for rulebooks now ships as a model-id suffix (`-serv-multipath`), and the vendor draws the same line this skill draws: Multipath "transforms reasoning only, does not execute branches or authorise actions"; business logic and permissions remain the application's. Consent decisions therefore stay where IEEE 7012 and MyTerms put them, in the agreement layer, with the reasoning layer as an aid to reading a rulebook, not as the party that grants.
 
 ---
 

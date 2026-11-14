@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-ceremony-engine
 description: >
-    Interaction protocols for the dual-territory architecture. Activates when
+  Interaction protocols for the dual-territory architecture. Activates when
   discussing ceremony types (progressive trust, light armor, trust graph, guild
   efficiency, Understanding-as-Key), cross-territory coordination, bilateral
   witness, or ceremony channel mechanics.

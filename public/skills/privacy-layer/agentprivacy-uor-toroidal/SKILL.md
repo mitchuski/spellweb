@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-uor-toroidal
 description: >
-    UOR toroidal correspondence and manifold conjecture for 0xagentprivacy.
+  UOR toroidal correspondence and manifold conjecture for 0xagentprivacy.
   Activates when discussing the toroidal manifold mapping, 96 vs 192 edge
   structures, conjectured ~3,000× ZKP reduction from lattice constraints, or
   the relationship between sovereignty geometry and proof efficiency.
@@ -31,7 +31,7 @@ metadata:
 
 The 64-vertex sovereignty lattice ({0,1}⁶) used in PVM-V4 exhibits a conjectured structural correspondence with the UOR Foundation's toroidal algebraic structure. If this correspondence holds, the sovereignty lattice is not an arbitrary mathematical convenience but a fragment of a deeper geometric object — a compact manifold with periodic boundary conditions that constrain the possible value flows and create natural compactification of the sovereignty configuration space.
 
-This is the most speculative element of PVM-V4. The correspondence is observed but unproven. A 96-versus-64 edge-count discrepancy remains unresolved. This skill file is for mathematicians who can either prove the correspondence, explain the discrepancy, or demonstrate that it is a structural mismatch rather than an encoding feature.
+This is the most speculative element of PVM-V4. The correspondence is observed but unproven. The 96-versus-64 question was marked resolved on 2026-07-10 and is reopened (2026-10-25, V7 formal audit F6, agentprivacy-docs `research/2026-10-25_v7_formal_audit.md`): no stated graph on the 64 vertices has 96 edges (Q₆ has 192, succ ∪ complement 94, succ ∪ neg 95), and the 96 is the UOR Atlas vertex count, imported. The holographic reading (boundary-encodes-volume; C6, now open; see `agentprivacy-holographic-bound`) is kept as a conjecture. The separate 96-versus-192 edge-count question treated below remains open. This skill file is for mathematicians who can either prove the correspondence, explain that remaining discrepancy, or demonstrate that it is a structural mismatch rather than an encoding feature.
 
 ## The lattice structure
 

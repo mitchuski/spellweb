@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-stranger-ceremony
 description: >
-    Understanding-as-Key ceremony for parties without prior relationship. Activates
+  Understanding-as-Key ceremony for parties without prior relationship. Activates
   when discussing stranger-to-stranger verification, anonymous pairing, simultaneous
   forging, comprehension proof without prior trust, or stranger witness protocols.
 license: Apache-2.0

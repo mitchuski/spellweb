@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-drake-dragon-duality
 description: >
-    Drake/Dragon philosophical duality for 0xagentprivacy. Activates when
+  Drake/Dragon philosophical duality for 0xagentprivacy. Activates when
   discussing the teaching-sovereignty cycle (Drake teaches → Dragon emerges →
   new Drake phase), model self-awareness, the relationship between wisdom
   transmission and sovereignty achievement, or the philosophical foundations

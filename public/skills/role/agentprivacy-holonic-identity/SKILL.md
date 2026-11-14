@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-holonic-identity
 description: >
-    Identity-independent data structures where GUIDs outlive any single backend.
+  Identity-independent data structures where GUIDs outlive any single backend.
   Activates when discussing three-layer identity (data GUID / VRC / DID),
   ProviderUniqueStorageKey as commitment map, immutable vs versioned holons,
   identity separation at the data layer, or any design requiring persistent

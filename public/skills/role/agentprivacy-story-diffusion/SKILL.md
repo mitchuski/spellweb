@@ -8,6 +8,7 @@ description: >
   formation through narrative variation.
   Triggers: "story fracture", "principle convergence", "narrative variation",
   "multi-frame", "idea propagation", "diffusion strategy", "different audiences".
+  V6 register note (2026-06-10): conjecture and version citations resolve to agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head: privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
   version: "5.0"
@@ -44,13 +45,13 @@ Story diffusion solves this by making the invisible visible through narrative. N
 
 A single technical concept — say, R<1 (reconstruction ceiling) — fractures into:
 
-**Technical frame (Zero Knowledge).** "Given the information-theoretic separation between swordsman and mage observation sets, the maximum reconstructable fraction of a Person's behavioural model is bounded above by R_max = (C_S + C_M)/H(X) < 1." Audience: cryptographers, formal verification researchers.
+**Technical frame (Zero Knowledge).** "Given the information-theoretic separation between swordsman and mage observation sets, the maximum reconstructable fraction of a Person's behavioural model is bounded above by R_max = (C_S + C_M)/H(X) < 1." Audience: cryptographers, formal verification researchers. V6: the ceiling is time-dependent, R(t) with shelf life t* (C82); the static result is Proven in the conditional regime.
 
 **Narrative frame (First Person).** "The mirror that never completes. However many fragments you gather, the reflection always has gaps. That's not a bug — that's the architecture." Audience: storytellers, philosophers, general readers.
 
 **Policy frame (Parallel Society).** "No single entity — corporate, governmental, or algorithmic — can reconstruct a complete behavioural profile from the system's outputs. This is enforced by mathematical bounds, not policy promises." Audience: regulators, standards bodies, policymakers.
 
-**Economic frame (Assessor lens).** "The reconstruction ceiling creates a permanent information asymmetry that favours the individual. This asymmetry is the source of the 17×–12,000× sovereign value premium." Audience: economists, investors, token designers.
+**Economic frame (Assessor lens).** "The reconstruction ceiling creates a permanent information asymmetry that favours the individual. This asymmetry is the source of the 17×–12,000× sovereign value premium." Audience: economists, investors, token designers. V6: the ceiling is time-dependent, R(t) with shelf life t* (C82); the static result is Proven in the conditional regime.
 
 **Experiential frame (Person lens).** "You know that feeling when a site shows you an ad for something you only thought about? That can't happen here. Not because we promised it won't — because the math makes it impossible." Audience: end users, privacy-seeking individuals.
 
@@ -92,7 +93,7 @@ Each platform reaches a different audience. Each audience encounters a different
 
 ## Connection to the equation
 
-**Network topology: (1 + Σ wᵢ nᵢ/N₀)^k.** Story diffusion is HOW the network grows. Each frame seeds a different stratum (wᵢ). Each audience that adopts the principle adds nodes (nᵢ). The exponent k captures the superlinear compound effect when different strata connect. Diffusion that reaches only one audience adds linearly. Diffusion that bridges audiences compounds exponentially.
+**Network topology: (1 + Σ wᵢ nᵢ/N₀)^k.** Story diffusion is HOW the network grows. Each frame seeds a different stratum (wᵢ). Each audience that adopts the principle adds nodes (nᵢ). The exponent k captures the superlinear effect when different strata connect. Diffusion that reaches only one audience adds linearly; diffusion that bridges audiences compounds — in reach and relationship (the reputational stock), never in the data itself, which yields rent by position, not value by aggregation.
 
 **Proverbiogenesis.** Story diffusion is the macro-scale mechanism that proverbiogenesis describes at the individual level. Proverbiogenesis tracks how a single statement evolves from personal insight to cultural truth. Story diffusion tracks how a single principle evolves from specialist knowledge to collective inevitability.
 

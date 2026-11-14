@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-armor-progression
 description: >
-    Armor progression system (Blade→Light→Heavy→Full Plate→Dragon) for
+  Armor progression system (Blade→Light→Heavy→Full Plate→Dragon) for
   0xagentprivacy. Activates when discussing progressive privacy tiers, user
   onboarding through increasing protection levels, P(progressive) scaling, or
   how privacy capability evolves with understanding.

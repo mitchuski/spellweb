@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-dihedral-sovereignty
 description: >
-    Dihedral group foundation for dual-agent separation. Activates when discussing
+  Dihedral group foundation for dual-agent separation. Activates when discussing
   the D₂ₙ group structure, Swordsman as negation generator, Mage as complement
   generator, Φ_agent as determinant, the critical identity neg∘bnot=succ, or the
   algebraic foundation of the swordsman-mage separation.
@@ -203,7 +203,7 @@ No amount of Swordsman operations produces Mage capability, and vice versa.
 | neg involution | Swordsman (P term) |
 | bnot involution | Mage (D term) |
 | neg∘bnot rotation | First Person (V(π,t)) |
-| det(ρ(D₂ₙ)) | Φ_agent(Σ) |
+| det(ρ(D₂ₙ)) | ~~Φ_agent(Σ)~~ refuted (det ρ(g) = ±1 for the permutation representation; C14 challenged) |
 | Group transitivity | Reachability guarantee |
 | Generator independence | The Gap |
 
@@ -213,8 +213,8 @@ No amount of Swordsman operations produces Mage capability, and vice versa.
 |-------|------------|
 | neg and bnot are involutions | 100% (mathematical fact) |
 | neg∘bnot = succ | 100% (mathematical fact) |
-| D₂ₙ structure applies to lattice | 95% (implemented, verified) |
-| Φ_agent = det(ρ(D₂ₙ)) | 75% (C14 conjecture) |
+| D₂ₙ structure applies to lattice | proven: ⟨neg, bnot⟩ ≅ D₆₄, order 128, transitive (Lean `order_128`, `succ_transitive`) |
+| Φ_agent = det(ρ(D₂ₙ)) | refuted (C14 challenged, V7 formal audit F7) |
 | Full representation theory proof | 50% (needs formalization) |
 
 ## Proverb

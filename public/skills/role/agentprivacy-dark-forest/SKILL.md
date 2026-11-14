@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-dark-forest
 description: >
-    Dark forest strategy and adversarial environment navigation for
+  Dark forest strategy and adversarial environment navigation for
   0xagentprivacy. Activates when discussing R(d) strategic disclosure,
   information asymmetry, predator-prey dynamics in data markets,
   position-revealing risks, or how to navigate environments where visibility

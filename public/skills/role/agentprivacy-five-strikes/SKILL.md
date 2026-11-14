@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-five-strikes
 description: >
-    The five UOR operations as lattice transformations. Activates when discussing
+  The five UOR operations as lattice transformations. Activates when discussing
   neg, bnot, xor, and, or as blade transformations, hammer strikes in the forge,
   lattice movements, or the algebraic mechanics of sovereignty configuration changes.
 license: Apache-2.0

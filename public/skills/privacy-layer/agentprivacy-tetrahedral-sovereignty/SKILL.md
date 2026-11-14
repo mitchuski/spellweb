@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-tetrahedral-sovereignty
 description: >
-    Tetrahedral sovereignty model and 4×4 separation matrix for
+  Tetrahedral sovereignty model and 4×4 separation matrix for
   0xagentprivacy. Activates when discussing Φ(Σ), det(Σ), the four forces
   (Protect, Project, Reflect, Connect), cross-force separations σ_ij, golden
   ratio φ conjectures, or the geometric model of dual-agent sovereignty. Use

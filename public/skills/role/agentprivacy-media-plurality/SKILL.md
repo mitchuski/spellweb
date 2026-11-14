@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-media-plurality
 description: >
-    Media plurality and information commons for 0xagentprivacy. Activates when
+  Media plurality and information commons for 0xagentprivacy. Activates when
   discussing signal vs noise, algorithmic capture, community-funded journalism,
   federated social media (fediverse), AI for verification/synthesis/creation,
   inoculation over censorship, or how privacy architecture applies to

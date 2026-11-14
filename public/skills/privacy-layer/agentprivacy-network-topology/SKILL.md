@@ -1,14 +1,15 @@
 ---
 name: agentprivacy-network-topology
 description: >
-    Network topology and stratum-weighted effects for 0xagentprivacy Privacy
+  Network topology and stratum-weighted effects for 0xagentprivacy Privacy
   Pools. Activates when discussing (1 + Σ wᵢ nᵢ/N₀)^k, binomial coefficients
   across strata, Metcalfe generalisation, pool composition optimisation, or
   network scaling exponents. Use for Privacy Pool design and network value
   modelling.
+  V6 register note (2026-06-10): conjecture and version citations resolve to agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head: privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
-  version: "4.0"
+  version: "5.4"
   category: "privacy_layer"
   origin: "0xagentprivacy"
   author: "Mitchell Travers"
@@ -19,9 +20,9 @@ metadata:
   template_references: "all"
 ---
 
-# PVM-V4 Skill — Network Topology & Stratum Weighting
+# PVM-V5.4 Skill — Network Topology, Stratum Weighting & Betweenness Centrality
 
-**Source:** Privacy Value Model V4
+**Source:** Privacy Value Model V6 (privacy_value_v6_formal_specification.md; section introduced at V5.4)
 **Target context:** All agents, network economists, Privacy Pool designers, guild architects, protocol incentive engineers
 **Architecture:** [agentprivacy.ai](https://agentprivacy.ai) · **Sync:** [sync.soulbis.com](https://sync.soulbis.com) · **Contact:** mage@agentprivacy.ai
 
@@ -41,6 +42,25 @@ This is privacy's network economics: the more sovereign agents participate, the 
 - **nᵢ (count at stratum).** The number of agents operating at sovereignty stratum i.
 - **N₀ (normalisation).** Baseline network size. Prevents the term from diverging for large networks.
 - **k (power-law exponent).** Determines whether network effects are sublinear (k < 1), linear (k = 1), or superlinear (k > 1). Currently conjectured to be superlinear but uncalibrated.
+
+## V5.4 Addition: Betweenness Centrality of the Gap (§10.2)
+
+The Gap is not empty space. It is the node with **maximal betweenness centrality** in the trust graph:
+
+C_B(v) = sum over s,t of sigma_st(v)/sigma_st
+
+where sigma_st is the total number of shortest paths from s to t, and sigma_st(v) is the number passing through v.
+
+**Interpretation:** The value lives in the Gap because the most paths cross there.
+
+**Reference:** Brandes, U. (2001). "A faster algorithm for betweenness centrality." Journal of Mathematical Sociology, 25(2), 163-177.
+
+### Why betweenness matters for privacy networks
+
+1. **Value concentration:** High-betweenness nodes see more traffic. Risk and opportunity.
+2. **Gap as mediator:** The irreducible gap between agents has maximal betweenness.
+3. **Mesh optimization:** DERP relay placement and Privacy Pool design can use C_B analysis.
+4. **Attack surface:** Nodes with high C_B are high-value targets.
 
 ## Why stratum weighting matters
 
@@ -100,7 +120,11 @@ The model conjectures k > 1 (superlinear network effects). This means that doubl
 4. Dynamic effects — does the network term respond to real-time changes in membership, or is it averaged over time?
 5. Cross-network effects — how do agents participating in multiple guilds/pools contribute to each?
 6. Whether the combinatorial midpoint optimum (stratum 3) holds in higher-dimensional lattices ({0,1}^7, {0,1}^8).
+7. **(V5.4)** Relationship between stratum position and betweenness centrality.
+8. **(V5.4)** Optimal betweenness distribution for privacy resilience.
 
 ---
+
+*"The value lives in the gap because the most paths cross there."* — V5.4
 
 **Verify:** [agentprivacy.ai](https://agentprivacy.ai) · [sync.soulbis.com](https://sync.soulbis.com) · [github.com/mitchuski/agentprivacy-docs](https://github.com/mitchuski/agentprivacy-docs)

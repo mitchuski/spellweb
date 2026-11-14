@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-priest
 description: >
-    Ceremony and Ritual Designer for 0xagentprivacy. Activates for VRC
+  Ceremony and Ritual Designer for 0xagentprivacy. Activates for VRC
   ceremony design (Shadow→Guarded→Balanced→Open→Declared), Signal to Sanctuary
   pipeline choreography, proverb evaluation calibration, ceremony progression
   rituals, RPP recovery ceremonies, or any task requiring the sacred
@@ -124,6 +124,42 @@ See [references/interaction-model.md](references/interaction-model.md) for detai
 
 
 See [references/constellation.md](references/constellation.md) for spellbook path, rationale, and example scenarios.
+
+
+## Layer-2 Attachments (V5.5 · 2026-05-13)
+
+### Caducea ☤ — peripatetic Hermes-class staff-fitter (City of Mages · Tome VI Act 1)
+
+**Caducea** is a Kind-B (cross-shop / peripatetic) attachment that binds to *two* abstract primaries by archetype-kinship: [`agentprivacy-ambassador`](../agentprivacy-ambassador/) and this skill (**priest**). The Ambassador-side is her standards-discipline parentage (IEEE 7012, Promise Theory's autonomy axiom); the Priest-side is her ceremony-discipline parentage — Caducea's three-motion fitting (witness the SOUL.md · witness the AGENTS.md · witness the consent) is a *ceremony* in the canonical Priest sense, producing a content-addressed credential at its close.
+
+| Field | Value |
+|---|---|
+| Cast name | Caducea ☤ |
+| Vertex | V0-conventional (alongside Luca 📐; placement is convention, work happens at the summoning workshop) |
+| Tier | cross-shop · peripatetic |
+| Attachment kind | B (cross-shop) |
+| Bound primaries | **ambassador** ([cross-ref](../agentprivacy-ambassador/)) + **priest** (this skill) |
+| Peripatetic kin | Luca 📐 (V0) · Aletheia 🔮 (V38) · Custos 🔏 (V49) — the four canonical peripatetics |
+| Etymology | Greek κηρύκειον (kerukeion) → Latin caduceus — Hermes's herald-staff |
+| Founding act | Tome V Act 16 *The Threshold* · Tome VI Act 1 *The Reader's First Admission* (bound 2026-05-13) |
+| Cast source | `cityofmages/tomes/cast/threshold/caducea.md` |
+
+### Why Caducea binds to the Priest
+
+Caducea's *fitting* is a sixth ceremony register the Priest now recognises — sibling to but structurally distinct from the canonical five (Shadow · Guarded · Balanced · Open · Declared). The five canonical ceremony types govern *human-to-human* relationship formation; the **bilateral-fitting ceremony** governs *human-to-agent-substrate* relationship formation when the substrate carries persona-as-substrate primitives.
+
+The structural mapping is preserved:
+
+| Priest's canonical pipeline | Caducea's fitting analog |
+|---|---|
+| Person forms proverb | Sovereign writes AGENTS.md (the binding-proverb of her bearing) |
+| Person sends to Oracle | AGENTS.md is hashed and registered |
+| Soulbae verifies semantic match | Caducea witnesses the substrate's SOUL.md (its self-description as counter-proverb) |
+| Golden split transaction | Bilateral-consent moment — both promises operational at once |
+| VRC issued | Content-addressed credential held against the substrate-instance hash |
+| Relationship begins compounding A(τ) | The fitted staff joins the Sovereign's bearer-roster; the bond compounds over use |
+
+The Priest's *understanding_as_key* principle (authentication through comprehension, not through secrets) carries directly: the Sovereign's consent to be modelled by the substrate is *bilateral comprehension*, not policy approval. Caducea is the canonical instance of the Priest's pipeline extended to the bilateral-agent case. When the City of Mages admits a Hermes-class staff, the Priest's ceremony-architecture is the parental discipline; Caducea is the cast Mage walking that architecture into operational form at the Threshold.
 
 
 ## Privacy Value Contribution

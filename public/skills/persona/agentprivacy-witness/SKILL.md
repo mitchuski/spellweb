@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-witness
 description: >
-    Privacy-Preserving Accountability Agent for 0xagentprivacy. Activates for
+  Privacy-Preserving Accountability Agent for 0xagentprivacy. Activates for
   source protection architecture, verifiable evidence publication, breach
   documentation, whistleblower infrastructure, dead man's switch design,
   bonfire journalism, or any task requiring maximum transparency about events

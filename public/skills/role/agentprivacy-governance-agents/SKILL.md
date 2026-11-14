@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-governance-agents
 description: >
-    Agent governance participation protocols for 0xagentprivacy. Activates
+  Agent governance participation protocols for 0xagentprivacy. Activates
   when discussing how AI agents participate in governance (voting, proposal,
   delegation), conviction voting, quadratic mechanisms, or the unique
   challenges of giving agents governance rights while maintaining human

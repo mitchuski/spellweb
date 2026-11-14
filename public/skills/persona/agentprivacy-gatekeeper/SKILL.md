@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-gatekeeper
 description: >
-    Personhood Verification Specialist for 0xagentprivacy. Activates when
+  Personhood Verification Specialist for 0xagentprivacy. Activates when
   verifying ∃! (one human, one credential), designing Sybil-resistant
   identity, binding biometric hashes to nullifiers, enforcing uniqueness
   without identification, or any task requiring proof that 'this is a real,

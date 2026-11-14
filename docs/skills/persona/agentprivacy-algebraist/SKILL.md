@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-algebraist
 description: >
-    Specialist persona for UOR ring algebra and lattice mathematics. Activates
+  Specialist persona for UOR ring algebra and lattice mathematics. Activates
   for ring operations, stratum calculations, algebraic transformations,
   the five strikes, or mathematical foundations of the forge.
 license: Apache-2.0

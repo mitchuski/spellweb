@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-guild-efficiency
 description: >
-    Guild efficiency and shared-parent coordination for 0xagentprivacy V5.
+  Guild efficiency and shared-parent coordination for 0xagentprivacy V5.
   Activates when discussing G(guilds) network term, O(1) vs O(N²) scaling,
   shared reasoning libraries, guild coordination economics, or why some
   networks scale gracefully while others collapse.

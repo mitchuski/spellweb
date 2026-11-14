@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-promise-theory
 description: >
-    Promise Theory foundations for 0xagentprivacy bilateral relationships.
+  Promise Theory foundations for 0xagentprivacy bilateral relationships.
   Activates when discussing polarity (±), cooperation semantics, conditional
   promises, VRC-as-promise architecture, or Jan Bergstra / Mark Burgess
   promise frameworks. Use when designing bilateral trust relationships or

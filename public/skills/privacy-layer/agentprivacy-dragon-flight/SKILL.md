@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-dragon-flight
 description: >
-    Threshold activation mechanics for the dragon metaphor. Activates when
+  Threshold activation mechanics for the dragon metaphor. Activates when
   discussing dragon anatomy completion (boundary, hide, brain, forge, ceremony),
   external validation triggers, phase transitions from drake to dragon, or
   flight achievement.

@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-trust-spanning
 description: >
-    Trust spanning and cross-boundary operations for 0xagentprivacy. Activates
+  Trust spanning and cross-boundary operations for 0xagentprivacy. Activates
   when discussing I(S;M|π) across trust domains, separation matrix maintenance
   during cross-boundary operations, TEE-to-TEE communication, or how trust
   extends without degrading privacy guarantees.

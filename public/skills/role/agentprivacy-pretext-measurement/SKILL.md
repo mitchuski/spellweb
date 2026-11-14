@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-pretext-measurement
 description: >
-    DOM-free text measurement technique for privacy-preserving browser interactions.
+  DOM-free text measurement technique for privacy-preserving browser interactions.
   Activates when discussing pretext discovery, shadow measurement, orb mechanics,
   text property extraction without DOM access, or browser-layer privacy.
 license: Apache-2.0

@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-constellation-method
 description: >
-    Constellation identity method for 0xagentprivacy. Activates when
+  Constellation identity method for 0xagentprivacy. Activates when
   discussing identity-as-constellation (different facets visible to different
   relationships), VRC constellation graphs, multi-guild identity resolution,
   or how privacy enables richer identity expression than surveillance-based

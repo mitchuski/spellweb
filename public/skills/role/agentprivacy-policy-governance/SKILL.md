@@ -1,10 +1,11 @@
 ---
 name: agentprivacy-policy-governance
 description: >
-    Standards and policy governance for 0xagentprivacy. Activates when
+  Standards and policy governance for 0xagentprivacy. Activates when
   discussing IEEE 7012, BGIN working groups, Internet Identity Workshop, Trust
   Over IP Foundation, W3C credentials, IETF standards, regulatory frameworks,
   or how privacy architecture interfaces with institutional governance.
+  V6 register note (2026-06-10): conjecture and version citations resolve to agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head: privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
   version: "4.0"
@@ -46,7 +47,7 @@ Current privacy regulation treats privacy as a compliance cost — something to 
 
 **Promise Theory.** PVM-V4 inherits from Bergstra & Burgess's Promise Theory the principle that agents are autonomous promise-making entities. Cooperation is voluntary, not imposed. The model's multiplicative structure enforces this: you cannot compensate for missing sovereignty in one dimension by excelling in another. Each dimension represents an independent promise that must be kept.
 
-**BGIN Identity & Key Management.** The reconstruction resistance proof — R_max = (C_S + C_M)/H(X) < 1 — provides a formal bound on what any adversary (including regulators) can learn from observing agent outputs. This gives identity governance frameworks a mathematical ceiling on surveillance capability under compliant architectures, enabling proportionate oversight without architectural compromise.
+**BGIN Identity & Key Management.** The reconstruction resistance proof — R_max = (C_S + C_M)/H(X) < 1 — provides a formal bound on what any adversary (including regulators) can learn from observing agent outputs. This gives identity governance frameworks a mathematical ceiling on surveillance capability under compliant architectures, enabling proportionate oversight without architectural compromise. V6: the ceiling is time-dependent, R(t) with shelf life t* (C82); the static result is Proven in the conditional regime.
 
 ## Policy implications
 

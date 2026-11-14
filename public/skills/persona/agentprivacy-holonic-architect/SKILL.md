@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-holonic-architect
 description: >
-    Builder of identity-independent data structures for 0xagentprivacy. Activates
+  Builder of identity-independent data structures for 0xagentprivacy. Activates
   for holonic multi-provider persistence, identity-independent data design, shared
   reasoning graph architecture, O(1) shared-parent collective structures, privacy-
   aware HyperDrive configuration, three-layer identity model (data GUID / VRC /
@@ -197,6 +197,10 @@ The Holonic Architect makes V(π,t) durable at the data layer:
 **Meta (1):** drake_dragon_duality
 
 **Total: 25 skills (broadest specialist in the roster)**
+
+## BRAID as a service (2026-09-12)
+
+SERV Reasoning caches the generated reasoning prompt per organisation, keyed on the source prompt and its version, and never returns the graph to the caller. That cache is not a holon: no GUID, no `ProviderUniqueStorageKey`, no shared-parent library, no guild validation, and a prompt version bump replaces it silently. The reasoning-graph library design in `holonic_reasoning` and `braid_reasoning` is therefore the sovereign alternative, not a duplicate: a graph you hold as an immutable holon can be replayed, forked and audited by you; a graph held in a vendor cache can only be reported on. Door, not a claim: if the API ever returns the generated graph, it becomes a candidate child of a library holon with the vendor's console report as one attestation among several.
 
 ---
 

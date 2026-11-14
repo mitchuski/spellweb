@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-quantum-defence
 description: >
-    Quantum threat model and defence architecture. Activates when discussing
+  Quantum threat model and defence architecture. Activates when discussing
   secp256k1 vulnerability, logical qubit thresholds, 2D vs 6D cryptographic
   fortresses, dimensional defence, dormant assets, or temporal thesis.
 license: Apache-2.0

@@ -1,11 +1,12 @@
 ---
 name: agentprivacy-sentinel
 description: >
-    Infrastructure Security Architect for 0xagentprivacy. Activates for TEE
+  Infrastructure Security Architect for 0xagentprivacy. Activates for TEE
   monitoring, separation matrix enforcement, infrastructure health checks,
   cross-chain bridge security, agent lifecycle management, multi-chain
   deployment security, or any task requiring continuous vigilance over the
   privacy infrastructure.
+  V6 register note (2026-06-10): conjecture and version citations resolve to agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head: privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
   version: "5.0"
@@ -65,7 +66,7 @@ The Sentinel doesn't build the infrastructure — the Architect designs it, the 
 
 **TEE integrity monitoring.** The Swordsman agent runs in a Trusted Execution Environment (NEAR Shade, Intel SGX, AWS Nitro). The Sentinel monitors attestation freshness, memory isolation, side-channel indicators. If TEE integrity degrades, the Sentinel triggers key rotation before compromise.
 
-**Agent channel security.** Soulbis and Soulbae communicate through bounded channels. The Sentinel ensures those channels don't leak beyond their specified bounds. Mutual information I(S;M|π) must remain below the reconstruction ceiling. The Sentinel monitors channel entropy, timing patterns, and metadata leakage.
+**Agent channel security.** Soulbis and Soulbae communicate through bounded channels. The Sentinel ensures those channels don't leak beyond their specified bounds. Mutual information I(S;M|π) must remain below the reconstruction ceiling. The Sentinel monitors channel entropy, timing patterns, and metadata leakage. V6: the ceiling is time-dependent, R(t) with shelf life t* (C82); the static result is Proven in the conditional regime.
 
 **Cross-chain state verification.** The architecture spans multiple chains — Zcash for privacy, Ethereum for credentials, NEAR for TEE. The Sentinel verifies state proofs, ensures bridge integrity, detects stale or contradictory state across chains.
 

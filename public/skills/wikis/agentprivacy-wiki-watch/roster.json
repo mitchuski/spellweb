@@ -1,0 +1,26 @@
+{
+  "_comment": "External FedWiki sites to observe. owner: 'self' = your own sites (tracked, but de-emphasised in the digest); 'external' = other people's wikis (the ones you actually want alerts on). Add/remove freely. url is the site base (no trailing path). Verified live 2026-07-13.",
+  "sites": [
+    { "name": "timeline-roster",   "url": "https://timeline.ide.earth",              "group": "ide.earth", "owner": "self" },
+    { "name": "agm",               "url": "https://agm.timeline.ide.earth",          "group": "ide.earth", "owner": "self" },
+    { "name": "launch",            "url": "https://launch.timeline.ide.earth",       "group": "ide.earth", "owner": "self" },
+    { "name": "deep",              "url": "https://deep.timeline.ide.earth",         "group": "ide.earth", "owner": "self" },
+    { "name": "panic",             "url": "https://panic.timeline.ide.earth",        "group": "ide.earth", "owner": "self" },
+    { "name": "tour",              "url": "https://tour.timeline.ide.earth",         "group": "ide.earth", "owner": "self" },
+    { "name": "gamejam",           "url": "https://gamejam.timeline.ide.earth",      "group": "ide.earth", "owner": "self" },
+    { "name": "groundhog",         "url": "https://groundhog.timeline.ide.earth",    "group": "ide.earth", "owner": "self" },
+    { "name": "sovereign",         "url": "https://sovereign.timeline.ide.earth",    "group": "ide.earth", "owner": "self" },
+    { "name": "building",          "url": "https://building.timeline.ide.earth",     "group": "ide.earth", "owner": "self" },
+    { "name": "unsingularity",     "url": "https://unsingularity.timeline.ide.earth","group": "ide.earth", "owner": "self" },
+    { "name": "web",               "url": "https://web.timeline.ide.earth",          "group": "ide.earth", "owner": "self" },
+    { "name": "myspace",           "url": "https://myspace.timeline.ide.earth",      "group": "ide.earth", "owner": "self" },
+    { "name": "mitch.vision",      "url": "https://mitch.vision.ide.earth",          "group": "ide.earth", "owner": "self" },
+    { "name": "david.vision",      "url": "https://david.vision.ide.earth",          "group": "ide.earth", "owner": "external" },
+    { "name": "max.vision",        "url": "https://max.vision.ide.earth",            "group": "ide.earth", "owner": "external" },
+    { "name": "henry.vision",      "url": "https://henry.vision.ide.earth",          "group": "ide.earth", "owner": "external" },
+    { "name": "mitch.self.fish",   "url": "https://mitch.self.fish",                 "group": "self.fish", "owner": "self" },
+    { "name": "david.self.fish",   "url": "https://david.self.fish",                 "group": "self.fish", "owner": "external" },
+    { "name": "skill.fedwiki.club","url": "https://skill.fedwiki.club",              "group": "fedwiki.club", "owner": "external" },
+    { "name": "radio.myth.garden", "url": "https://radio.myth.garden",               "group": "myth.garden", "owner": "external" }
+  ]
+}

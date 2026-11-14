@@ -1,12 +1,12 @@
 ---
 name: agentprivacy-hexagram-convergence
 description: >
-    I Ching mapping for blade configurations in the spellweb forge. Activates when
+  I Ching mapping for blade configurations in the spellweb forge. Activates when
   discussing hexagram encoding, binary threshold mapping, 64 hexagrams as sovereignty
   classification, Pascal's row tier strata, or ancient/modern convergence.
 license: Apache-2.0
 metadata:
-  version: "5.3.1"
+  version: "5.3.2"
   category: "role"
   origin: "0xagentprivacy"
   author: "Mitchell Travers"
@@ -99,24 +99,35 @@ The 20 states with exactly three 1s represent balanced sovereignty postures. Exa
 | 21 | 010101 | d2,d4,d6 | Verification (prove, revoke, delegate) |
 | 42 | 101010 | d1,d3,d5 | Resilience (hide, share, recover) |
 
-## Pascal's Row Tiers
+## Pascal's Row Tiers and Moon Phases
 
-The 64 hexagrams distribute across Pascal's triangle row 6:
+The 64 hexagrams distribute across Pascal's triangle row 6. Each tier maps to a **moon phase** — the visibility ratio encoding:
 
 ```
 Row 6: 1  6  15  20  15  6  1
 
 Tier:  Null | Light | Medium | Heavy | Dragon
 Count:  1   |  21   |   20   |  21   |   1
+Phase:  🌑  | 🌒🌓  |   🌔   | 🌖🌗  |   🌕
 ```
 
-| Tier | 1-count | Count | Characteristic |
-|------|---------|-------|----------------|
-| Null | 0 | 1 | No active dimensions |
-| Light | 1-2 | 21 | Few protections, high exposure |
-| Medium | 3 | 20 | Balanced trade-offs |
-| Heavy | 4-5 | 21 | Strong protection, limited flexibility |
-| Dragon | 6 | 1 | Full sovereignty, full responsibility |
+| Tier | 1-count | Count | Moon Phase | Sovereignty Meaning |
+|------|---------|-------|------------|---------------------|
+| Null | 0 | 1 | 🌑 New Moon | No active dimensions, total darkness |
+| Light | 1-2 | 21 | 🌒🌓 Waxing | Few protections, high exposure |
+| Medium | 3 | 20 | 🌔 Waxing Gibbous | Balanced trade-offs, half sovereignty |
+| Heavy | 4-5 | 21 | 🌖🌗 Waning | Strong protection, limited flexibility |
+| Dragon | 6 | 1 | 🌕 Full Moon | Full sovereignty, all dimensions reflected |
+
+### Moon Phase as Visibility Ratio
+
+The moon is the whole information space. The lit portion is what the Swordsman's boundary allows to be reflected. The dark portion remains private.
+
+- **🌑 New Moon** — The ceremony position. Total, dark, the whole before any reflection.
+- **🌕 Full Moon** — The Universe Blade (Hex 3F). All six dimensions active.
+- **🌗 Last Quarter** — Five dimensions reflected, one held dark (like Hex 3E, Value dormant).
+
+*The phase shows the sovereignty posture without revealing the content. ZK protects the HOW.*
 
 ## Semantic Mappings
 
@@ -155,15 +166,28 @@ Hexagram convergence operates at different confidence levels:
 
 **Current operational confidence: 50%** — Mathematical and structural mappings are verified; semantic mappings are exploratory.
 
+## PRISM Triadic Coordinates
+
+The hexagram convergence completes with PRISM — the triadic coordinate system for sovereignty:
+
+| Coordinate | Constraint | Hexagram Mapping |
+|------------|------------|------------------|
+| **Datum** | Identity | The hex value itself (0-63) |
+| **Stratum** | Magnitude | Pascal tier / Hamming weight (0-6) |
+| **Spectrum** | Structure | Which lines are yang — the sovereignty posture |
+
+**GPS for sovereignty:** Three coordinates fix any blade. The hexagram encodes the datum. The tier encodes the stratum. The active dimensions encode the spectrum.
+
 ## Mapping to PVM-V5.2
 
 | Hexagram Concept | PVM Term |
 |------------------|----------|
 | 64 hexagrams | 64 sovereignty vertices |
-| Binary encoding | Threshold classification |
+| Binary encoding | Threshold classification (datum) |
 | Trigrams (upper/lower) | Agent/Data axis separation |
 | Changing lines | Blade evolution paths |
-| Pascal tiers | Privacy value strata |
+| Pascal tiers | Privacy value strata (stratum) |
+| Active dimensions | Sovereignty posture (spectrum) |
 
 ## Proverb
 

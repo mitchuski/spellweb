@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-mesh-architecture
 description: >
-    Mesh network architecture for 0xagentprivacy. Activates when discussing
+  Mesh network architecture for 0xagentprivacy. Activates when discussing
   control plane vs data plane separation, Tailscale/WireGuard mesh networks,
   the Dragon's Hide metaphor, NAT traversal, DERP relays, sovereign overlay
   networks (tailnets), or how network-layer separation enforces privacy without

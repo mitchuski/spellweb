@@ -1,12 +1,12 @@
 ---
 name: agentprivacy-dual-territory
 description: >
-    Dual-territory ceremony architecture specification. Activates when discussing
+  Dual-territory ceremony architecture specification. Activates when discussing
   Swordsman/Mage separation at infrastructure level, three territories (Spellweb,
   Agentprivacy, Bgin), ceremony channels, or territory sovereignty.
 license: Apache-2.0
 metadata:
-  version: "5.3.1"
+  version: "5.3.2"
   category: "role"
   origin: "0xagentprivacy"
   author: "Mitchell Travers"
@@ -245,11 +245,30 @@ Users should ALWAYS know which territory they're interacting with.
 
 ## Proverb
 
+> "Two mirrors make a door. The Swordsman reflects. The Mage reflects. And where the reflections meet, the First Person walks through — not into another reflection, but into the next step of who they are becoming."
+
+**Secondary:**
 > "Two kingdoms share a river. Neither owns the water, but both drink. The ceremony is the riverbed."
 
 ## Emoji Spell
 
-**⚔️⊥🧙 → 🏰(spellweb)⊥🏰(agentprivacy) → 📡(ceremony) → 🔗(bgin) → △(trinity)**
+**⚔️(neg) ⊕ 🧙(bnot) → 😊(succ) · ⬢D₂ₙ · 📐(datum,stratum,spectrum) · 96=Atlas=∂M · 🔄(query→resolve→close) · 🕸️∩🔢∩⚖️ = 1**
+
+*The Swordsman subtracts. The Mage flips. Their composition is the path.*
+
+---
+
+## PRISM Triadic Coordinates
+
+The dihedral mirror reveals the triadic coordinate system for addressing any sovereignty configuration:
+
+| Coordinate | Constraint | Meaning |
+|------------|------------|---------|
+| **Datum** | Identity | The value itself. Binary encoding of the blade (hex). |
+| **Stratum** | Magnitude | Hamming weight. How many dimensions active (0-6). |
+| **Spectrum** | Structure | Which dimensions are active. The sovereignty posture. |
+
+**GPS for sovereignty:** Three coordinates fix any blade in the 64-vertex lattice. Collapse one and the blade shatters.
 
 ## Open Problems
 

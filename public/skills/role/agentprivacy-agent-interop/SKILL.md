@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-agent-interop
 description: >
-    Agent interoperability protocols for 0xagentprivacy multi-agent systems.
+  Agent interoperability protocols for 0xagentprivacy multi-agent systems.
   Activates when discussing M(u,y) matching functions, agent-to-agent
   communication, ERC-8004 trustless agent identity, cross-agent coordination,
   or how swordsman and mage agents interact across boundaries.

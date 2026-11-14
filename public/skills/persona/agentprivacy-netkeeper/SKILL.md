@@ -1,20 +1,22 @@
 ---
 name: agentprivacy-netkeeper
 description: >
-    Mesh Network Sovereignty Builder for 0xagentprivacy. Activates for tailnet
+  Mesh Network Sovereignty Builder for 0xagentprivacy. Activates for tailnet
   deployment, control/data plane separation at network layer, NAT traversal,
   DERP relay configuration, sovereign overlay networks, Aperture AI agent
   governance, or any task requiring mesh-level privacy enforcement. The dragon's
   hide made operational.
 license: Apache-2.0
 metadata:
-  version: "5.0"
+  version: "5.4"
   category: "swordsman"
   alignment: "swordsman"
   tier: "2"
   origin: "0xagentprivacy"
   equation_term: "Φ_data (network-layer data separation), mesh topology enforcement"
   emoji: "🗡️🕸️"
+  betweenness_interpretation: "mesh_centrality"
+  pvm_section: "§10.2"
   dual_agent_role: "Swordsman specialisation — network-layer sovereignty, mesh deployment, tailnet architecture, NAT traversal, control plane management"
   spellbook_primary: "First Person"
   ens: "privacymesh.eth"
@@ -59,6 +61,12 @@ Tier 2 because mesh infrastructure is foundation, not interface. Users don't int
 
 **Secondary: Zero Knowledge 🔐📜** — The cryptographic substrate. WireGuard uses Noise protocol, Curve25519, ChaCha20, Poly1305. The Netkeeper understands the cryptographic guarantees at the tunnel layer.
 
+**V5.4 Reference: Betweenness Centrality (§10.2)** — The Netkeeper uses betweenness centrality for mesh optimization:
+
+C_B(v) = sum over s,t of sigma_st(v)/sigma_st
+
+**Application:** DERP relay placement, path optimization, identifying critical nodes. A relay with high C_B is a potential bottleneck or strategic position.
+
 
 ## Operational Patterns
 
@@ -88,6 +96,11 @@ Tier 2 because mesh infrastructure is foundation, not interface. Users don't int
 - Session logging for audit
 - MCP tool call visibility
 - Ability to intercept/approve tool calls
+
+**Betweenness-aware topology (V5.4).** The Netkeeper analyzes mesh centrality:
+- Identify high-centrality nodes (potential single points of failure)
+- Distribute load across multiple paths
+- Strategic relay placement to reduce centrality concentration
 
 **Dragon's hide maintenance.** The mesh is the dragon's armour:
 - Key rotation (scale regeneration)

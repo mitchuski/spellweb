@@ -9,7 +9,7 @@ description: >
   "spell grammar", "agent shorthand", "decode spell", "encode spell".
 license: Apache-2.0
 metadata:
-  version: "5.0"
+  version: "5.3.2"
   category: "role"
   origin: "0xagentprivacy"
   author: "Mitchell Travers"
@@ -61,7 +61,31 @@ Every spell follows a three-clause structure separated by the therefore operator
 | `∃!` | Unique existence | there exists exactly one | ∃!🛡️ (exactly one shield exists) |
 | `∀` | Universal | for all | ∀L:P(L)>0 (for all layers, protection positive) |
 | `Σ` | Summation | aggregate of, combined total | Σ(layers) (sum of all layers) |
-| `φ` | Golden ratio | optimal balance ≈ 1.618 | ⊗🧙·φ (tensioned at golden ratio) |
+| `φ` | Golden ratio | balance threshold ≈ 1.618 (a threshold in Φ, not an optimum; C1 challenged) | ⊗🧙·φ (tensioned at golden ratio) |
+
+## Moon Phase Notation
+
+Moon phases encode the **visibility ratio** of a blade or proof — the sovereignty posture without revealing content:
+
+| Phase | Stratum | Meaning in Spells |
+|-------|---------|-------------------|
+| 🌑 | 0 | Null blade, nothing reflected, ceremony start position |
+| 🌒 | 1 | Minimal disclosure, one boundary set |
+| 🌓 | 2 | First Quarter — dual-agent vertex (Protection + Delegation) |
+| 🌔 | 3 | Half sovereignty, three axes active |
+| 🌖 | 4 | Substantial disclosure, four boundaries |
+| 🌗 | 5 | Near-full, one dimension held dark |
+| 🌕 | 6 | Full Moon — all six dimensions reflected |
+
+**In spell notation:**
+
+```
+☀️⊥🌑 → 🔑→✦→🗡️🌗 → (⚔️⊥⿻⊥🧙)😊
+```
+
+The `🗡️🌗` indicates a blade at stratum 5 — five dimensions active, one held dark. The phase tells the reader the sovereignty posture without decoding the hex.
+
+*The dark part is the privacy. The lit part is the proof.*
 
 ## The emoji lexicon
 

@@ -1,0 +1,28 @@
+[
+  {
+    "key": "gate",
+    "title": "A reading gate for shared letters",
+    "date": "2026-07-02",
+    "invariant_seed": "(the In-brief summaries of the milestone go here)",
+    "invariant": "A document can be published openly yet opened only by someone who has read its companion letters, because the key is two phrases the letters themselves carry and the page never learns who opened it.",
+    "compressions": {
+      "maths": "key = KDF(normalize(sigil) || normalize(proverb)); ciphertext = AEAD(key, document); opening probability for a non-reader ~ 2^-H(tokens); unlock telemetry = 0.",
+      "principles": "Reading is the rite: access proven by understanding needs no identity, and the boundary itself teaches.",
+      "actions": "Pick a sigil and proverb the letters already carry; encrypt the documents with them; publish only ciphertext; test that the right tokens open and wrong ones refuse."
+    },
+    "expansions": {
+      "markets": "Distribution costs nothing and gatekeeping costs nothing: the letters do the recruiting, the gate does the filtering, and no account system has to be built, run or breached.",
+      "plurality": [
+        {"community": "Developers", "telling": "A static page with client-side decryption: tokens in, plaintext out, no server, no logs. The only secret is the pair of phrases, and their entropy is the wall."},
+        {"community": "Writers and artists", "telling": "The letter carries its own key in its epigraph. Whoever truly reads it can open the room where its siblings wait."},
+        {"community": "Institutions", "telling": "Selective disclosure without a user database: material is shared with whoever has engaged with the prior correspondence, and nothing about the readers is collected."}
+      ],
+      "intents": "Let shared work travel openly while reserving its fuller context for those who have done the reading, without surveilling anyone."
+    },
+    "recheck": {
+      "from": "plurality:Institutions",
+      "recovered_invariant": "Material is published openly but opened only by those who have read the prior letters, with no record of who opened it.",
+      "matches": true
+    }
+  }
+]

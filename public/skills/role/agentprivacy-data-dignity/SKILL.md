@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-data-dignity
 description: >
-    Data dignity and the 7th capital thesis for 0xagentprivacy. Activates when
+  Data dignity and the 7th capital thesis for 0xagentprivacy. Activates when
   discussing V(π,t) as wealth, behavioural data as the 7th form of capital,
   Jaron Lanier / RadicalxChange lineage, data ownership vs data access, or the
   economic case that privacy creates rather than constrains value.

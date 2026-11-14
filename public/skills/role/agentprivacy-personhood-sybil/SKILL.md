@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-personhood-sybil
 description: >
-    Personhood verification and Sybil resistance for 0xagentprivacy. Activates
+  Personhood verification and Sybil resistance for 0xagentprivacy. Activates
   when discussing ∃! (unique existence) binding, proof-of-personhood without
   identity disclosure, Sybil attack prevention, biometric hash binding, or how
   to prove 'one human, one credential' without surveillance.

@@ -1,0 +1,5 @@
+PROVERB: "The architecture that only discovers weaknesses when attackers find them has already been breached in every way that matters."
+
+SPELL: 🗡️🔴→👁️(attack) ∴ 👁️→🛡️(fix) ∴ ¬🔴→💀(surprise)
+
+TAGLINE: "Know the dark side to defend against it."

@@ -1,13 +1,13 @@
 ---
 name: agentprivacy-selective-disclosure
 description: >
-    Selective disclosure and Privacy Pool mechanics for 0xagentprivacy.
+  Selective disclosure and Privacy Pool mechanics for 0xagentprivacy.
   Activates when discussing R(d) minimum disclosure, stratum-weighted
   anonymity, pool entry/exit, disclosure set calculation, or how to prove
   properties without revealing underlying data.
 license: Apache-2.0
 metadata:
-  version: "4.0"
+  version: "5.3.2"
   category: "role"
   origin: "0xagentprivacy"
   author: "Mitchell Travers"
@@ -65,6 +65,22 @@ On the sovereignty lattice, each disclosure corresponds to revealing one or more
 **Stratum-aware disclosure.** An agent at stratum 4 (four active dimensions) may need to prove it is "at least stratum 3" to qualify for a guild. The minimum disclosure: prove Hamming weight ≥ 3 without revealing which specific dimensions are active or the exact count. This is a natural ZKP application — prove a property of the lattice position without revealing the position itself.
 
 **The 64-vertex proof space.** Sovereignty-class proofs attest to membership in subsets of the 64 vertices. "I am at one of the 20 vertices in stratum 3" reveals stratum but not position. "I am at one of the 35 vertices in stratum 3 or higher" reveals a lower bound. The proof's anonymity set size is the subset cardinality.
+
+### Moon Phase as Visibility Ratio
+
+The moon phase notation encodes stratum as a visual indicator of the sovereignty posture:
+
+| Phase | Stratum | Disclosure Level |
+|-------|---------|------------------|
+| 🌑 | 0 | Nothing disclosed — total darkness |
+| 🌒🌓 | 1-2 | Minimal disclosure — sliver of visibility |
+| 🌔 | 3 | Balanced disclosure — half sovereignty |
+| 🌖🌗 | 4-5 | Substantial disclosure — near-full |
+| 🌕 | 6 | Full sovereignty posture — all dimensions visible |
+
+The moon is the whole information space. The lit portion is what the Swordsman's boundary allows to be reflected. The dark portion remains private.
+
+**The ZK distinction:** The phase shows the sovereignty POSTURE (which dimensions are active) but NOT the CONTENT (what was discussed within those dimensions). A 🌗 blade proves "five dimensions active" without revealing which nodes activated them.
 
 ## Disclosure protocols
 

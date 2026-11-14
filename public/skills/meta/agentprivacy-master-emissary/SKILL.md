@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-master-emissary
 description: >
-    Deep philosophical framework for 0xagentprivacy dual-agent architecture.
+  Deep philosophical framework for 0xagentprivacy dual-agent architecture.
   Activates when discussing McGilchrist's Master/Emissary theory, Nietzsche's
   fable, hemispheric usurpation, the right→left→right return cycle, why
   metaphors came first, why music came first, why trust is embodied, or the

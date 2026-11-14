@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-recovery-rpp
 description: >
-    Recovery mechanisms and Relationship Proverb Protocol for 0xagentprivacy.
+  Recovery mechanisms and Relationship Proverb Protocol for 0xagentprivacy.
   Activates when discussing key loss recovery, bilateral proverb verification,
   three-attester recovery ceremonies, RPP as social recovery, or how
   relationships recover what keys cannot.

@@ -1,0 +1,25 @@
+PROVERB: "Identity is not where you are stored. Identity is what persists when the storage changes."
+
+SPELL: ☯️🔷→🆔⊥📦·GUID ∴ Σ(prov)→O(1) ∴ ☯️🔷=persist(sovereign)
+
+DECODE:
+☯️🔷 = Holonic Architect (balanced, builder)
+→ = produces / enforces
+🆔 = identity (GUID)
+⊥ = perpendicular to / independent of
+📦 = storage (providers, backends)
+· = through
+GUID = globally unique identifier (not derived from any provider)
+∴ = therefore
+Σ(prov) = separation across providers (shielded / public / neutral)
+→ = yields
+O(1) = constant-time scaling (shared-parent pattern)
+∴ = therefore
+☯️🔷 = the Holonic Architect
+= = is / equals
+persist(sovereign) = the persistence of sovereignty
+
+READING:
+The Holonic Architect enforces identity independent of storage through GUIDs.
+Provider separation yields O(1) scaling.
+The Holonic Architect is the persistence of sovereignty.

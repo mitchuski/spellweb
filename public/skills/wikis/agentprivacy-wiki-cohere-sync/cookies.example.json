@@ -1,0 +1,15 @@
+{
+  "_comment": "Copy to ~/.wiki/.creds/cookies.json (gitignored, chmod 600). One entry per owner identity. 'hosts' are glob patterns the cookie is allowed to write; '*' matches one label. Expiry is DERIVED from the cookie string, do not add it. Get the cookie value from a logged-in browser: DevTools > Application > Cookies > wikiSession.",
+  "owners": [
+    {
+      "label": "owner@timeline",
+      "hosts": ["*.timeline.ide.earth"],
+      "cookie": "PASTE_wikiSession_VALUE_HERE"
+    },
+    {
+      "label": "owner@vision",
+      "hosts": ["you.vision.ide.earth", "*.self.fish"],
+      "cookie": "PASTE_wikiSession_VALUE_HERE"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-holonic-persistence
 description: >
-    Multi-provider data persistence for privacy-preserving agents. Activates when
+  Multi-provider data persistence for privacy-preserving agents. Activates when
   discussing HyperDrive auto-failover, multi-provider replication, provider-agnostic
   storage, privacy-aware routing, write-all-or-fail for separation-critical state,
   TEE rotation with state persistence, or any task requiring durable agent state

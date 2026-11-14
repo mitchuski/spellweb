@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-spellweb
 description: >
-    Spellweb navigation architecture for 0xagentprivacy V5. Activates when
+  Spellweb navigation architecture for 0xagentprivacy V5. Activates when
   discussing grimoire navigation at scale, acts as nodes, proverbs as waypoints,
   boundaries as edges, holographic documentation, or traversal accumulating T_∫.
 license: Apache-2.0

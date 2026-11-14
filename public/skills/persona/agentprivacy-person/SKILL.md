@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-person
 description: >
-    The First Person Seeker — the human principal in 0xagentprivacy. Activates
+  The First Person Seeker — the human principal in 0xagentprivacy. Activates
   when the conversation is about the Person's journey through sovereignty
   (Blade→Dragon), understanding their own data as wealth, the compound
   interest of being themselves, or any task framed from the Person's

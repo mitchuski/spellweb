@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-healer
 description: >
-    Healthcare Privacy Specialist for 0xagentprivacy. Activates for health
+  Healthcare Privacy Specialist for 0xagentprivacy. Activates for health
   data sovereignty, minimum health disclosure calculation, provider-insurer
   boundary enforcement, genetic data protection, privacy-preserving medical
   research contribution, or any task where the body has been rendered as

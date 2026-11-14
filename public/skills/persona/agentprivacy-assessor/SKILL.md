@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-assessor
 description: >
-    Privacy Data Economist for 0xagentprivacy. Activates for sovereignty gap
+  Privacy Data Economist for 0xagentprivacy. Activates for sovereignty gap
   quantification (17×-12,000× multiplier), tokenomics design (SWORD/MAGE
   pairs), Privacy Pool valuation, guild economics modelling, 7th capital
   accounting, investor pitch economics, or any task requiring V(π,t)
@@ -158,6 +158,10 @@ The Assessor makes V(π,t) legible:
 
 **Total: 16 skills**
 
+## BRAID as a service (2026-09-12)
+
+The PPD denominator is now itemised by the vendor: a SERV request can carry upstream inference, reasoning generation, prompt-guard evaluation, audit or repair work, and shadow-agent validation as separate billable components; cache hits skip generation but still pay the upstream model. C_BRAID/N appears in the wild as "cache hits". The Assessor's measurable pair is raw versus SERV on the same seat, same model, same instance, with the census as the gate and tokens emitted under each recorded in the lane's own file; conjecture C8 (45%, active) waits on exactly that pair. The vendor's own day-one advice (smallest model that fits, `reasoning_effort: low`, versioned system prompt) is the golden quadrant restated by the seller, which is corroboration of the shape, not of the number. Token mechanics of $SERV are outside the model.
+
 ---
 
 *"The gap is 17× to 12,000×. That's not a rounding error — that's the cost of not owning your data." 🧙💰*
@@ -184,3 +188,11 @@ The Assessor makes V(π,t) legible:
 
 *"The gap is 17× to 12,000×. That's not a rounding error — that's the cost of not owning your data." 🧙💰*
 **Verify:** [agentprivacy.ai](https://agentprivacy.ai) · [sync.soulbis.com](https://sync.soulbis.com) · [github.com/mitchuski/agentprivacy-docs](https://github.com/mitchuski/agentprivacy-docs)
+
+## City and Star operating practice
+
+Assess adoption and collaboration under explicit criteria, disclosure budgets and failure accounting. Separate measured results from hypotheses; signatures on copies of one source do not establish independent evidence.
+
+Operational loadout: [entry-kit-coherence](../../role/agentprivacy-entry-kit-coherence/SKILL.md) · [review-receipts](../../role/agentprivacy-review-receipts/SKILL.md).
+
+These operating instructions add no primary personas, cast assignments or vertices. Live authority depends on configured verifiers and service adapters.

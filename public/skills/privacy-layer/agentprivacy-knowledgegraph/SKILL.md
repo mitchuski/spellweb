@@ -1,11 +1,12 @@
 ---
 name: agentprivacy-knowledgegraph
 description: >
-    Complete entity-relationship knowledge graph for 0xagentprivacy. Activates
+  Complete entity-relationship knowledge graph for 0xagentprivacy. Activates
   when needing the full map of entities (persons, agents, VRCs, guilds, pools,
   ceremonies), their relationships, and query surfaces. Use as the canonical
   reference for how all system components connect. Contains the comprehensive
   entity registry.
+  V6 register note (2026-06-10): conjecture and version citations resolve to agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head: privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
   version: "4.0"
@@ -128,6 +129,7 @@ ENTITY: Reconstruction_Resistance_R(d)
   DOMAIN: (0,1)
   BOUND: R_max = (C_S + C_M) / H(X) < 1
   PROOF_STATUS: proven (under dual-agent conditional independence)
+  V6_NOTE: V6: the ceiling is time-dependent, R(t) with shelf life t* (C82); the static result is Proven in the conditional regime.
   VERSION_INTRODUCED: V3
 
 ENTITY: Sovereignty_Duality_Φ(Σ)

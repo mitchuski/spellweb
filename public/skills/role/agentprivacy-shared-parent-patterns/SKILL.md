@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-shared-parent-patterns
 description: >
-    O(1) collective data structures that avoid N-squared coupling for guilds, pools,
+  O(1) collective data structures that avoid N-squared coupling for guilds, pools,
   and agent swarms. Activates when discussing shared-parent holon architecture,
   LoadHolonsForParentAsync patterns, guild memory, Intel Pool holons, scalable
   collective intelligence, or any design requiring many-to-one data relationships

@@ -10,6 +10,7 @@ description: >
   Triggers: "separation", "dual-agent boundary", "swordsman mage split",
   "Phi Sigma", "det Sigma", "signing viewing separation", "orthogonality",
   "information-theoretic bound", "separation violation", "gap enforcement".
+  V6 register note (2026-06-10): conjecture and version citations resolve to agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md (head C89); model head: privacy_value_v6_formal_specification.md.
 license: Apache-2.0
 metadata:
   version: "5.0"
@@ -167,9 +168,13 @@ Each axis strengthens the others. Agent separation is cheaper when inference sep
 
 **Φ(Σ) — the separation matrix.** This skill IS the Φ(Σ) term. Every other term in the equation assumes Φ(Σ) holds. If det(Σ) = 0, the entire equation collapses: P becomes meaningless (protection without separation is surveillance with extra steps), C becomes unverifiable (what was computed by whom?), R reaches 1 (full reconstruction becomes possible).
 
-**R<1 — reconstruction ceiling.** The reconstruction ceiling is a direct consequence of separation. R<1 holds precisely because no single observation set contains enough information to reconstruct the Person's complete behavioural model. R = (C_S + C_M) / H(X) < 1 only if C_S and C_M are genuinely independent channels, not a single channel wearing two masks.
+**R<1 — reconstruction ceiling.** The reconstruction ceiling is a direct consequence of separation. R<1 holds precisely because no single observation set contains enough information to reconstruct the Person's complete behavioural model. R = (C_S + C_M) / H(X) < 1 only if C_S and C_M are genuinely independent channels, not a single channel wearing two masks. V6: the ceiling is time-dependent, R(t) with shelf life t* (C82); the static result is Proven in the conditional regime.
 
 **V(π,t) — privacy value.** The 31,000× privacy value premium over surveillance depends entirely on det(Σ) ≠ 0. In a surveillance architecture (det(Σ) = 0), V collapses to V_surv. In the privacy architecture (det(Σ) ≠ 0), V compounds superlinearly through all terms. The separation is not a feature — it is the difference between the two architectures.
+
+### 2026-09-12 · BRAID as a service
+
+The inference-layer row above gains a caveat now that BRAID ships as an API (SERV Reasoning). Generator ⊥ Solver behind one provider is a separation of models, not of observers: the intermediary that generates the graph also forwards the solver's prompt and reads both. `I(G;S|task) ≤ δ` must be evaluated over who can read, not over which model id answered. In the dual-agent harness this is the rule "SERV may hold one seat, never both, never the default"; `phiInference` in `run.json` is honest only when the two seats are on different observers.
 
 ---
 

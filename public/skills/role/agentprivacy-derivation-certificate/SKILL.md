@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-derivation-certificate
 description: >
-    VRC as content-addressed derivation chain. Activates when discussing forging
+  VRC as content-addressed derivation chain. Activates when discussing forging
   history, derivation paths, bilateral witness certificates, path-as-witness,
   content-addressed proofs of traversal, or how VRCs bind forging history to blade identity.
 license: Apache-2.0

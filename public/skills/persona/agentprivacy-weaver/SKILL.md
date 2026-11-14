@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-weaver
 description: >
-    Plural Technology Researcher (⿻) for 0xagentprivacy. Activates for
+  Plural Technology Researcher (⿻) for 0xagentprivacy. Activates for
   quadratic mechanism design, intersectional identity resolution,
   cross-difference collaboration, plurality-privacy synthesis, or any task
   exploring how privacy preserves the difference that plurality requires.

@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-cross-chain
 description: >
-    Cross-chain operations for 0xagentprivacy multi-chain architecture.
+  Cross-chain operations for 0xagentprivacy multi-chain architecture.
   Activates when discussing T(π) across chains, NEAR/Zcash/Ethereum interop,
   bridge-compatible proofs, chain signatures, cross-chain VRC portability, or
   multi-chain sovereignty transitions.

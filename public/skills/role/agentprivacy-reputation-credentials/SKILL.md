@@ -1,7 +1,7 @@
 ---
 name: agentprivacy-reputation-credentials
 description: >
-    Reputation and credential evolution (SBT→VRC) for 0xagentprivacy.
+  Reputation and credential evolution (SBT→VRC) for 0xagentprivacy.
   Activates when discussing soulbound tokens, verifiable credentials,
   credential lifecycle, reputation staking, progressive credential trust, or
   the evolution from static credentials to living relationship records.
