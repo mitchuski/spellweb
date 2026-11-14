@@ -62,7 +62,7 @@ export const NODES: SpellwebNode[] = [
   { id: "doc-what-agentprivacy-is", type: "document", label: "What AgentPrivacy Is", domain: "shared", layer: "knowledge", desc: "Mission, thesis, and orientation document. Privacy solves the delegation paradox. Architecture, not policy, protects sovereignty.", version: "2.5" },
   { id: "doc-systems-hexagram", type: "document", label: "Systems Hexagram Physics v1.2", domain: "shared", layer: "knowledge", desc: "Operational physics: UOR algebraic foundation, 64-vertex lattice, forge ceremonies. The hexagram as six-dimensional privacy signature.", version: "1.2" },
   { id: "doc-dual-territory-ceremony", type: "document", label: "Dual Territory Ceremony Spec v1.0", domain: "shared", layer: "knowledge", desc: "Implementation architecture: territories, extensions, ceremonies, mana. How Swordsman and Mage territories interact.", version: "1.0" },
-  { id: "doc-uor-mapping", type: "document", label: "UOR × 64-Tetrahedra × ZK Mapping v2.2", domain: "shared", layer: "knowledge", desc: "Foundational mapping. C4 RESOLVED. UOR Foundation convergence confirmed. 96/64 holographic ratio.", version: "2.2" },
+  { id: "doc-uor-mapping", type: "document", label: "UOR × 64-Tetrahedra × ZK Mapping v2.2", domain: "shared", layer: "knowledge", desc: "Foundational mapping. C4 resolved there, reopened 2026-10-25 (V7 formal audit: no stated graph on the lattice has 96 edges). UOR Foundation convergence confirmed. 96/64 holographic ratio (a reading).", version: "2.2" },
   { id: "doc-zk-blade-forge", type: "document", label: "ZK Swordsman Blade Forge v3.0 (narrative)", domain: "swordsman", layer: "knowledge", desc: "Narrative companion for the blade forge. UOR module, forge ceremonies, blade dimensions, hexagram encoding. Pairs with the operational SPECIFICATION.md v1.0.1 (see doc-zk-blade-forge-spec).", version: "3.0" },
   { id: "doc-privacy-value-v5", type: "document", label: "Privacy is Value V5", domain: "shared", layer: "knowledge", desc: "The equation evolves. V5.4 UOR algebraic foundation. Three-axis separation, holographic bound, path integral.", version: "5.4" },
   { id: "doc-privacy-value-v6", type: "document", label: "Privacy Value Model V6", domain: "shared", layer: "knowledge", desc: "The gathering turn and the moving ceiling. R(t) and the shelf life t*, the exponential-to-linear leakage gap (C83), the Existence-Leak law (C81, 70%), the ARCH-1 bridge (C85), obstruction amnesia (C86), the Key as accumulator (C87). Run 8 added the Limitative Reading: Gödel ↔ Φ_agent (C91), Tarski ↔ Φ_inference (C92), the inversion (C90), content-addressed liveness (C93). Bands since: C94–C96 (the Hearthold Reading) and C97 (Band XI · the Soil Reading — structural inalienability by non-reconstruction). Register head C97.", version: "6.0" },
@@ -302,7 +302,7 @@ export const NODES: SpellwebNode[] = [
   // ══════════════════════════════════════════════════════════════
   { id: "thm-separation", type: "theorem", label: "Separation Theorem", domain: "swordsman", layer: "knowledge", desc: "I(X; Y_S, Y_M) = I(X; Y_S) + I(X; Y_M). Information leakage is additive, not multiplicative." },
   { id: "thm-ceiling", type: "theorem", label: "Reconstruction Ceiling", domain: "swordsman", layer: "knowledge", desc: "R_max = (C_S + C_M) / H(X). While the capacity-deficit condition C_S + C_M < H(X) holds against the stated adversary class, R_max < 1 and reconstruction in the stated sense is impossible. The deficit is declared, not derived (2026-10-07): conditional independence alone does not give it." },
-  { id: "thm-errfloor", type: "theorem", label: "Error Floor Theorem", domain: "swordsman", layer: "knowledge", desc: "P_e ≥ 1 - R_max via Fano's inequality, under non-collusion and the stated adversary class. A positive floor requires the capacity-deficit condition." },
+  { id: "thm-errfloor", type: "theorem", label: "Error Floor Theorem", domain: "swordsman", layer: "knowledge", desc: "P_e ≥ 1 − R_max − 1/H(X) via Fano's inequality, under H(X) ≥ log₂(|𝒳| − 1), non-collusion and the stated adversary class. A positive floor requires the capacity-deficit condition." },
   { id: "thm-degradation", type: "theorem", label: "Graceful Degradation", domain: "shared", layer: "knowledge", desc: "Small ε violations → bounded privacy losses. System fails gracefully." },
 
   // ══════════════════════════════════════════════════════════════
@@ -381,7 +381,7 @@ export const NODES: SpellwebNode[] = [
   { id: "skill-promise-theory", type: "skill", label: "Promise Theory", domain: "shared", layer: "knowledge", desc: "Bergstra & Burgess foundations, autonomy axiom, agent promises." },
   { id: "skill-knowledgegraph", type: "skill", label: "Knowledge Graph", domain: "mage", layer: "knowledge", desc: "Graph structures, semantic relationships, knowledge representation." },
   { id: "skill-tetrahedral", type: "skill", label: "Tetrahedral Sovereignty", domain: "shared", layer: "knowledge", desc: "64-vertex lattice, star tetrahedra, sovereignty dimensions." },
-  { id: "skill-uor-toroidal", type: "skill", label: "UOR Toroidal", domain: "shared", layer: "knowledge", desc: "Toroidal geometry, 96-edge structure, recursive patterns." },
+  { id: "skill-uor-toroidal", type: "skill", label: "UOR Toroidal", domain: "shared", layer: "knowledge", desc: "Toroidal geometry, the 96/64 question (C4 reopened), recursive patterns." },
   { id: "skill-edge-value", type: "skill", label: "Edge Value", domain: "mage", layer: "knowledge", desc: "Relationship value calculation, edge weighting, trust metrics." },
   { id: "skill-network-topology", type: "skill", label: "Network Topology", domain: "shared", layer: "knowledge", desc: "Network structure analysis, stratum-weighted effects, betweenness centrality C_B(v). The Gap has maximal betweenness. Brandes (2001).", category: "privacy-layer", version: "5.4", pvm_section: "§10.2" },
   { id: "skill-temporal", type: "skill", label: "Temporal Dynamics", domain: "shared", layer: "knowledge", desc: "Time-based analysis, temporal attestations, A(τ) memory." },
@@ -473,7 +473,7 @@ export const NODES: SpellwebNode[] = [
   { id: "con-dragon-vertex", type: "concept", label: "Dragon Vertex", domain: "first_person", layer: "knowledge", desc: "The 7th Capital. The single vertex at the peak of the Boolean lattice. All six dimensions activated. Maximum sovereignty. Not a place to travel to—the coordinate you project from. Held ground, not hoarded treasure: the vertex pays rent for as long as it is held (soil ruling, C55/C97)." },
   { id: "con-generator-solver", type: "concept", label: "Generator-Solver Pattern", domain: "shared", layer: "knowledge", desc: "Entity that plans does not execute; entity that executes does not plan. BRAID Parity Effect: 74× reconstruction surface reduction. The Generator can sit on a vendor's side; separation is counted over observers, not model ids." },
   { id: "con-compression-spectrum", type: "concept", label: "Compression Spectrum", domain: "shared", layer: "knowledge", desc: "Seven layers: Experience (1:1), Story (10:1), Proverb (70:1), Equation (500:1), Spell (1000:1), Graph/BRAID (50:1 from CoT), Skill file (variable). Layer 2 compresses for humans, Layer 6 for agents." },
-  { id: "con-uor-torus", type: "concept", label: "UOR Torus", domain: "shared", layer: "knowledge", desc: "96 edges encoding 64 vertices. The torus surface IS the holographic bound of the lattice volume. The discrepancy was the proof, not the problem." },
+  { id: "con-uor-torus", type: "concept", label: "UOR Torus", domain: "shared", layer: "knowledge", desc: "The 96/64 reading: a 96 set against 64 vertices as the holographic bound of the lattice volume. Reopened 2026-10-25 (C4): no stated graph on the 64 vertices has 96 edges (Q₆ has 192), and the 96 is the UOR Atlas vertex count." },
   { id: "spell-holographic", type: "spell", label: "Holographic Bound Spell", emoji: "🔷📐🌀", domain: "shared", layer: "narrative", desc: "Three-axis separation invocation: Agent⊥, Data⊥, Inference⊥ → GUID persist → 74× compress → sovereign. The fragment holds the whole." },
 
   // ══════════════════════════════════════════════════════════════
@@ -528,7 +528,7 @@ export const NODES: SpellwebNode[] = [
   // ══════════════════════════════════════════════════════════════
   // V5.2 SKILLS (Dragon Anatomy Sequence - Acts XXVII-XXIX)
   // ══════════════════════════════════════════════════════════════
-  { id: "skill-blade-forge", type: "skill", label: "Blade Forge", domain: "swordsman", layer: "knowledge", desc: "6D blade configuration mechanics. 64 vertices (2⁶), 96 edges. Pascal tier distribution across strata. Hexagram mapping for sovereignty states. Core identity: neg(bnot(x))=succ(x)." },
+  { id: "skill-blade-forge", type: "skill", label: "Blade Forge", domain: "swordsman", layer: "knowledge", desc: "6D blade configuration mechanics. 64 vertices (2⁶), 192 edges (Q₆). Pascal tier distribution across strata. Hexagram mapping for sovereignty states. Core identity: neg(bnot(x))=succ(x)." },
   { id: "skill-hexagram-convergence", type: "skill", label: "Hexagram Convergence", domain: "shared", layer: "knowledge", desc: "I Ching mapping for blade configurations. 64 hexagrams as sovereignty states. Six lines map to architecture layers. Speculation marked honestly: structure or numerology." },
   { id: "skill-ceremony-engine", type: "skill", label: "Ceremony Engine", domain: "shared", layer: "knowledge", desc: "Five ceremony types: Progressive Trust, Light Armor, Trust Graph, Guild Efficiency, Understanding-as-Key. Bilateral witness protocol. Convergence verification." },
   { id: "skill-pretext-measurement", type: "skill", label: "Pretext Measurement", domain: "swordsman", layer: "knowledge", desc: "DOM-free text measurement via @chenglou/pretext. One canvas measureText call, then pure arithmetic. Privacy-preserving rendering layer." },
@@ -583,7 +583,7 @@ export const NODES: SpellwebNode[] = [
   // Canonical form: V(π,t) = P^1.5 · C · Q · S · e^(-λt) · (1 + A_h(τ)) · ρ^0.5 · Φ(Σ) · T_∫(π)
   // ══════════════════════════════════════════════════════════════
   { id: "con-v-pi-t-equation", type: "concept", label: "V(π,t) Dragon Equation", domain: "shared", layer: "knowledge", desc: "The full privacy value manifold: V(π,t) = P^1.5 · C · Q · S · e^(-λt) · (1 + A_h(τ)) · ρ^0.5 · Φ(Σ) · T_∫(π). Emerges when the Drake's multiplicative filter P·C·Q·S is enriched with temporal and geometric structure. Each term is a separate force; together they form the Dragon's manifold. PVM V5.4 §1.1.", proverb: "The Drake's filter became the Dragon's manifold. Same skeleton, full geometry." },
-  { id: "con-p-1-5", type: "concept", label: "P^1.5 — Holographic Protection", domain: "swordsman", layer: "knowledge", desc: "Protection raised above linear by the 96/64 holographic ratio. The boundary of the 64-vertex lattice (96 edges) encodes the bulk: 96/64 = 1.5. Real-world instance: Zcash shielded transactions prove privacy as an economic fact (Tale 23 canonical). Knowledge-soundness in the witness/instance boundary seeds it (Tale 7).", proverb: "The surface is sufficient. The boundary encodes the bulk." },
+  { id: "con-p-1-5", type: "concept", label: "P^1.5 — Holographic Protection", domain: "swordsman", layer: "knowledge", desc: "Protection raised above linear, read through the 96/64 holographic ratio: a 96-element boundary against the 64-vertex bulk, 96/64 = 1.5 (C6 open; C4 reopened 2026-10-25, since no stated graph on the lattice has 96 edges). Real-world instance: Zcash shielded transactions prove privacy as an economic fact (Tale 23 canonical). Knowledge-soundness in the witness/instance boundary seeds it (Tale 7).", proverb: "The surface is sufficient. The boundary encodes the bulk." },
   { id: "con-a-h-tau", type: "concept", label: "A_h(τ) — Holonic Temporal Memory", domain: "shared", layer: "knowledge", desc: "Accumulated history compressed through folding. The Memory dimension (d₃) of the lattice. Nova/IVC folding schemes are the canonical implementation (Tale 12). History compounds logarithmically without growing in verification cost. Quantum-resistant transparency seeds it (Tale 11 FRI). Ecosystem-scale via DAS (Tale 27).", proverb: "Memory without weight: this is the lattice learning to remember." },
   { id: "con-rho-maturity", type: "concept", label: "ρ — Agent Maturity", domain: "shared", layer: "knowledge", desc: "Behavioural density accumulated through repeated forgings. The lattice that has learned proves more efficiently than the lattice that has not. First whisper in Tale 8 (PlonK custom gates). Compounds through recursion (Tales 15/16), distributed ceremony (Tale 17), and network-scale DAS (Tale 27). V(π,t) carries it as ρ^0.5.", proverb: "The forge that has burned many times knows which blade to pull from which fire." },
   { id: "con-phi-sigma", type: "concept", label: "Φ(Σ) — Sovereignty Geometry", domain: "shared", layer: "knowledge", desc: "The product of three orthogonal separation axes: Φ(Σ) = Φ_agent(Σ) · Φ_data(Δ) · Φ_inference(Γ). Multiplicative: collapse any axis and the entire separation collapses. First operational instance: zkRollup architecture (Tale 25). Multi-chain replication (Tale 28). Full synthesis in Tale 30. Contains con-three-axis-separation as its structural theorem.", proverb: "Collapse any axis and the entire separation collapses. Three ⊥'s are sovereign only when all three hold." },
@@ -737,7 +737,7 @@ export const NODES: SpellwebNode[] = [
     label: 'holographic boundary',
     domain: 'swordsman',
     layer: 'knowledge',
-    desc: 'holographic boundary / 96 edges encoding 64 vertices / boundary computation',
+    desc: 'holographic boundary / a 96 read against 64 vertices (C4 reopened) / boundary computation',
     emoji: '∂M=96on64',
   },
   {
@@ -1643,7 +1643,7 @@ export const NODES: SpellwebNode[] = [
 
   // Canonical bands (C18–C37)
   // C1-C17 — the foundational conjecture band (added 2026-06-27; completes the register's graph coverage, source: agentprivacy-docs/research/CONJECTURE_REGISTER_V6.md)
-  { id: "conj-c1-c5", type: "concept", label: "C1-C5 · Core Ratios & Reductions", domain: "shared", layer: "knowledge", desc: "The foundational band of the privacy-value model: the golden ratio φ as the optimal Swordsman/Mage (protect:project) ratio (C1); a logarithmic accuracy curve A(τ) (C2); additive edge value (C3); the 96-vs-64 representational discrepancy (C4); and the ~3,000× zero-knowledge-proof reduction (C5).", conjectureId: "C1-C5", conjectureRegister: "core", conjectureConfidence: 0.7 },
+  { id: "conj-c1-c5", type: "concept", label: "C1-C5 · Core Ratios & Reductions", domain: "shared", layer: "knowledge", desc: "The foundational band of the privacy-value model: the golden ratio φ as the Swordsman/Mage (protect:project) ratio (C1, challenged 2026-10-25: a threshold in Φ, not an optimum); a logarithmic accuracy curve A(τ) (C2); additive edge value (C3); the 96-vs-64 representational discrepancy (C4, reopened 2026-10-25); and the ~3,000× zero-knowledge-proof reduction (C5).", conjectureId: "C1-C5", conjectureRegister: "core", conjectureConfidence: 0.7 },
   { id: "conj-c6-c10", type: "concept", label: "C6-C10 · Separation & Compression", domain: "shared", layer: "knowledge", desc: "P^1.5 ↔ 96/64 as a structural relation (C6); multiplicative three-axis separation (C7); BRAID compression lowering the reconstruction ceiling R_max (C8); holographic-boundary sufficiency (C9); and an O(1) shared-parent term modifying k (C10).", conjectureId: "C6-C10", conjectureRegister: "core" },
   { id: "conj-c11-c13", type: "concept", label: "C11-C13 · Density, Hexagram & Witness", domain: "shared", layer: "knowledge", desc: "Behavioural density ρ amplifies privacy and indicates maturity (C11); the hexagram encoding is structurally resonant (C12); and the bilateral witness is a quantum-resistant primitive (C13).", conjectureId: "C11-C13", conjectureRegister: "core", conjectureConfidence: 0.7 },
   { id: "conj-c14-c17", type: "concept", label: "C14-C17 · Isomorphisms & Invariants", domain: "shared", layer: "knowledge", desc: "Φ_agent ≅ D₂ₙ dihedral isomorphism (C14); T_∫(π) ≅ the UOR resolution pipeline (C15); topological trust invariants via Betti numbers (C16); and amnesia-enforced separation proven tighter than policy-enforced (C17).", conjectureId: "C14-C17", conjectureRegister: "core" },
@@ -2425,12 +2425,13 @@ NODES.push(...([
     "desc": "Dual-agent harness lane on sig.golf: four promoted submissions, three of them the crown at the time; levers entered the record through the lane and through other solvers composing them with credit. Paused 2026-10-07; standings are dated.",
     "evidence": {
       "status": "source record",
-      "observedAt": "2026-10-07",
+      "observedAt": "2026-10-19",
       "sources": [
         "agentprivacy-skills/role/agentprivacy-lane-chronicle/references/sig_mage-2026-10-05.md",
-        "cityofmages/chronicles/2026-10-02_the-lever-belongs-to-the-swarm.md"
+        "cityofmages/chronicles/2026-10-02_the-lever-belongs-to-the-swarm.md",
+        "agentprivacy-docs/blog/the-signature-hole.md"
       ],
-      "note": "As recorded by the lane; the board moves."
+      "note": "As recorded by the lane; the board moves. Desc revised 2026-10-19 (DREAM-2026-10-19)."
     }
   },
   {
@@ -2440,14 +2441,16 @@ NODES.push(...([
     "emoji": "🔨",
     "domain": "shared",
     "layer": "knowledge",
-    "desc": "Dual-agent harness lane on HashSmash (AI-judged collision claims). Three claims passed the judge (r32 47.6 and 52.1, sha3-r6 125.58) and await owner review; passed is not promoted. The current r32 head builds on the lane's measured ledger with credit.",
+    "desc": "Dual-agent harness lane on HashSmash (AI-judged collision claims). Three claims passed the judge (r32 47.6 and 52.1, sha3-r6 125.58) and await owner review; passed is not promoted. The current r32 head builds on the lane's measured ledger with credit. On 12 October the lane joined the blake3-r2 frontier: one package failed intake and stays in the evidence tree as the root the passing one revises, two passed review, and the field built on the lane's prefilter with credit within the hour. On 19 October a re-entry wave across four families (blake3, sha256, sha3, poseidon) on hashsmash-pareto folded every verdict, refuted and rejected included, into one evidence lane. Scores are the board's public record; the City shows the chains and veils the figures.",
     "evidence": {
       "status": "source record",
-      "observedAt": "2026-10-07",
+      "observedAt": "2026-10-19",
       "sources": [
-        "cityofmages/chronicles/2026-10-07_the-measurement-travels-without-its-name.md"
+        "cityofmages/chronicles/2026-10-07_the-measurement-travels-without-its-name.md",
+        "cityofmages/chronicles/2026-10-12_the-failed-root-stays-in-the-tree.md",
+        "cityofmages/tomes/tome-ix-the-horizon/15-the-failed-root-stays-in-the-tree.md"
       ],
-      "note": "Outcomes as recorded by the lane on 2026-10-06/07."
+      "note": "Outcomes as recorded by the lane on 2026-10-06/07, 10-12 and 10-19; the wave's verdicts are copied from the board by the lane, not signed by the judge. Desc revised 2026-10-19 (DREAM-2026-10-19)."
     }
   },
   {
@@ -2695,14 +2698,14 @@ NODES.push(...([
     "emoji": "🔑",
     "domain": "shared",
     "layer": "knowledge",
-    "desc": "Opened 2026-10-07: content-addressed evidence ledgers for solver notes, so a measurement carries its root wherever it travels.",
+    "desc": "Opened 2026-10-07: content-addressed evidence ledgers for solver notes, so a measurement carries its root wherever it travels. Folded into the harness on 8 October as a second axis beside the holon kappa (the registry axis: dCBOR, SHA-256, the registry's merkle rule); every public address has read kappa-verified at 2af8656 since the registry's own check passed that day (P1, 10 of 10). Since 11 October every bundle also carries a BLAKE3 label beside each SHA-256 address.",
     "evidence": {
       "status": "source record",
-      "observedAt": "2026-10-07",
+      "observedAt": "2026-10-19",
       "sources": [
         "kappa_evidence_mage/README.md"
       ],
-      "note": "New lane; practice not yet folded into the harness."
+      "note": "Folded 2026-10-08; 34 runs minted on the day of folding. Desc revised 2026-10-19 (DREAM-2026-10-19)."
     }
   },
   {
@@ -2994,7 +2997,1200 @@ NODES.push(...([
       ],
       "note": "Ruling of 2026-10-07 (dragon skill commit 8482158)."
     }
+  },
+  // Staged 2026-10-19 (DREAM-2026-10-08, -09, -19): the evidence root, the City as a VTC, the hash sites
+  {
+    "id": "gateway-kappa-registry",
+    "type": "gateway",
+    "label": "kappa-registry (UOR)",
+    "emoji": "🗝️",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Content addressing as SHA-256 over canonical dCBOR; typed edges; signed namespace roots. The UOR Foundation's work, mirrored by the City's evidence lanes and never altered. Lineage: the uor_kappa_mage survey notes 01 to 06.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-08",
+      "sources": [
+        "github.com/UOR-Foundation/kappa-registry @ 2af8656",
+        "kappa_evidence_mage/README.md"
+      ],
+      "note": "Others' work, pinned by commit; attribution open."
+    }
+  },
+  {
+    "id": "concept-evidence-root",
+    "type": "concept",
+    "label": "The evidence root",
+    "emoji": "🌳",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "A run rebuilt from one address by a reader who trusts only the hashes it computes: every object named by the hash of its bytes, a ledger of addresses, totals derived from the ledger, one root over all of it. The stance a judge can take toward a participant whose machine it cannot run.",
+    "proverb": "The decimal travels; the root stays.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-08",
+      "sources": [
+        "cityofmages/chronicles/DREAM-2026-10-08.md",
+        "cityofmages/tomes/tome-ix-the-horizon/12-the-decimal-travels-the-root-stays.md",
+        "kappa_evidence_mage/SCHEMA.md"
+      ],
+      "note": "Every public word reads kappa-verified at 2af8656 since 8 October (P1, 10 of 10)."
+    }
+  },
+  {
+    "id": "concept-second-axis",
+    "type": "concept",
+    "label": "Two κ laws, never one preimage",
+    "emoji": "⚖️",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The holon address (canonical JSON) and the registry address (canonical dCBOR) side by side in the Hall; both sha256, both re-derived, never mixed in one preimage, so a City key and an evidence root never mistake each other.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-08",
+      "sources": [
+        "cityofmages/tomes/tome-ix-the-horizon/12-the-decimal-travels-the-root-stays.md"
+      ],
+      "note": "The harness carries both axes; the Gap's seed was already the registry's address of the proposal bytes."
+    }
+  },
+  {
+    "id": "concept-transform-pair",
+    "type": "concept",
+    "label": "The transformation creates the pair",
+    "emoji": "🔗",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "A reader document bound to its evidence root and to its generator's address by a minted object; sixteen such pairs under one demos root. A page generated from κ'd records, never from prose.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-08",
+      "sources": [
+        "github.com/mitchuski/agentprivacy-harness-demos"
+      ],
+      "note": "Sixteen readers, sixteen pairs."
+    }
+  },
+  {
+    "id": "concept-two-roots-not-one-overwrite",
+    "type": "concept",
+    "label": "A correction leaves two roots",
+    "emoji": "🪞",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "A stale layout file that declared the wrong hashes failed a sibling lane's bundle on the verifier's first run, though nothing downstream read those fields; the corrected mint has a new root and the superseded root is kept, marked, not cited. A correction that leaves one root is an overwrite.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-08",
+      "sources": [
+        "cityofmages/tomes/tome-ix-the-horizon/12-the-decimal-travels-the-root-stays.md"
+      ],
+      "note": "The first thing a verifier did with a second lane was refuse it."
+    }
+  },
+  {
+    "id": "rule-arena-a1-a40",
+    "type": "concept",
+    "label": "The arena rules (A1 to A40)",
+    "emoji": "🏟️",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Forty rules folded from seven leaderboard lanes, each citing the lane that proved it and the entry it shipped in; three support seats (a constants refuter, a judge rehearsal, a ship gate whose NO-GO is final) and a one-screen door for a stranger who wants to run a lane.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-08",
+      "sources": [
+        "github.com/mitchuski/agentprivacy-harness (CHALLENGE_LANES.md)",
+        "mages.city/arena.md"
+      ],
+      "note": "The Arena's seven layers cite these rules by number."
+    }
+  },
+  {
+    "id": "finding-vec-u8-as-int-array",
+    "type": "concept",
+    "label": "Vec<u8> encodes as an array of integers",
+    "emoji": "🧩",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Read from the registry's pinned derive source rather than its specification: a byte vector in the Keeper's structs encodes as a list of numbers, an absent field is omitted. This changes every anchor and edge address an outsider would compute from the specification alone. A question for the Keeper, unsent.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-08",
+      "sources": [
+        "cityofmages/tomes/tome-ix-the-horizon/12-the-decimal-travels-the-root-stays.md"
+      ],
+      "note": "A finding about the mirror, not a claim about the registry's intent."
+    }
+  },
+  {
+    "id": "chron-decimal-travels-root-stays",
+    "type": "chronicle",
+    "label": "Chronicle: The Decimal Travels; The Root Stays (2026-10-08)",
+    "emoji": "🧾",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "A measured number becomes an object with an address: the registry's κ mirrored, twinned and wired into the harness; the arena lanes' method folded as rules A1 to A40; sixteen readers paired to their evidence roots; a stale layout refused on the verifier's first run over a second lane.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-08",
+      "sources": [
+        "cityofmages/chronicles/DREAM-2026-10-08.md"
+      ],
+      "note": "Unsigned reflection; the master is private. Proposed as Tome IX Act 12."
+    }
+  },
+  {
+    "id": "act-tome-ix-12",
+    "type": "act",
+    "label": "Tome IX Act 12: The Decimal Travels; The Root Stays (proposed)",
+    "emoji": "🧾",
+    "domain": "shared",
+    "layer": "narrative",
+    "desc": "PROPOSED, NOT BOUND. The Chart Shop's mirror of the Keeper's addressing; a measurement minted as a root a stranger recomputes; a verifier that refuses a stale constant; the second axis in the Hall; forty rules; sixteen bound readers.",
+    "proverb": "The decimal travels; the root stays. Whoever carries the measure carries the mint, and the mint remembers the hand that struck it.",
+    "tome": "IX",
+    "act": 12
+  },
+  {
+    "id": "gateway-mages-city-vtc",
+    "type": "gateway",
+    "label": "Mages City, a Verifiable Trust Community",
+    "emoji": "🧙",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "did:webvh:QmQ8GMNCTui2H9gjxQWByS1ScsWkByaeQHYnzhcET1UPne:dids.mages.city:vtc, minted 8 October 2026 at 22:40Z by the City's own agent on the keeper's machine. Public profile, DID document, console and status answer from the open internet; join criteria at the upstream defaults until the keeper registers the City's own.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-19",
+      "sources": [
+        "mages.city/community.md",
+        "cityofmages/chronicles/DREAM-2026-10-09.md"
+      ],
+      "note": "Attribution open; the first invitation not yet issued when this was staged."
+    }
+  },
+  {
+    "id": "concept-core-node",
+    "type": "concept",
+    "label": "The keeper's machine is the issuer",
+    "emoji": "🏠",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "No farm, no provider: a second Linux beside the solver's, seven prebuilt binaries pinned by their own hashes, a tunnel for a web server, units for a shell trick. The agent that minted the community's DID is the agent that issues every credential, on a different disk from the Lean builds so neither can fill the other.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-09",
+      "sources": [
+        "cityofmages/chronicles/DREAM-2026-10-09.md",
+        "mages_city/docs/OPENVTC_WORKSTREAM_2026-10-19.md"
+      ],
+      "note": "The mnemonic, digests, claim code and passkeys never crossed the seam."
+    }
+  },
+  {
+    "id": "concept-words-and-mana",
+    "type": "concept",
+    "label": "A κ is a word; mana is the relationship credential",
+    "emoji": "🗣️",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Anyone may see a word; nobody casts it from the word alone. You cast it if you spoke it (hold the content, re-derive the κ) or as far as the first speaker told you in their face: the words, their meaning, or that they exist. Mana, the relationship credential signed on both sides and withdrawable by either, is what lets a telling flow on an edge; it is never proof.",
+    "proverb": "Machines qualify; humans admit; brokers release.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-09",
+      "sources": [
+        "mages.city/arena.md",
+        "cityofmages/chronicles/DREAM-2026-10-09.md"
+      ],
+      "note": "The registry of words is a specification with a reading half; no word is deposited anywhere."
+    }
+  },
+  {
+    "id": "concept-star-filling-out",
+    "type": "concept",
+    "label": "Every instance is a mage with a Star",
+    "emoji": "✦",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The Arena draws one Star per autoresearch instance, lit in the same seven layers and order as a keeper's seat: the field, the Swordsman, the Mage, the routes, the core, the Hold, the second star. A Star still forming glows; a complete one whose season is over is dimmed.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-09",
+      "sources": [
+        "mages.city/arena.md",
+        "mages.city/arena.json"
+      ],
+      "note": "The layers cite the arena rules by number."
+    }
+  },
+  {
+    "id": "concept-constellation-encoding",
+    "type": "concept",
+    "label": "A kind of solve written on the lattice",
+    "emoji": "🌌",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The six axes are canon from the atlas (Protection 32 · Delegation 16 · Memory 8 · Connection 4 · Computation 2 · Value 1). A solve burns some; its address is their sum, its constellation the walk from the origin in canon order, its witness the complement by XOR with 63. Editorial and says so: same address, same kind of solve. The evidence axis sits outside the lattice.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-09",
+      "sources": [
+        "mages.city/arena.md",
+        "mages.city/arena.json"
+      ],
+      "note": "The signature lane lands on V42, the collision lanes on V50: noted, not claimed."
+    }
+  },
+  {
+    "id": "rule-succession-bit-flip",
+    "type": "concept",
+    "label": "A seat owes one bit flip",
+    "emoji": "🔁",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Seats are held first by instances and their patrons; each owes the move along one axis from its vertex. A seat passes to a trusted human orchestrator only when they hold mana with the seats beside it and delivered the flip as a reviewed word; the data refuses to name one before then.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-09",
+      "sources": [
+        "mages.city/arena.md",
+        "cityofmages/chronicles/DREAM-2026-10-09.md"
+      ],
+      "note": "No seat has passed; no human holds mana with the seats beside a vertex."
+    }
+  },
+  {
+    "id": "concept-veil-hashes-not-results",
+    "type": "concept",
+    "label": "The veil: hashes, not results",
+    "emoji": "🕯️",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "A public page shows each instance's word (κ, kappa-verified at 2af8656), the claims it seals and the date read; standings, figures and board details stay behind the veil and open with membership of the City. The veil and the registry of words are one design seen from two sides.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-19",
+      "sources": [
+        "mages.city/arena.md (veil rule)",
+        "blake3.mages.city (veil state built, parked)"
+      ],
+      "note": "The hash sites ship fully revealed for now; their veil is one line away."
+    }
+  },
+  {
+    "id": "finding-vtcrest-without-v1",
+    "type": "concept",
+    "label": "A community minted by the older build advertises REST without /v1",
+    "emoji": "🚪",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The wallet trusted the DID document's VTCRest endpoint and got 405, as the bootstrap runbook warns. Fixed by editing the document at the VTA, carrying the two-entry log to a DID host that could not unpack the new VTA's frame, and restarting the host so its serving plane re-read the store.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-09",
+      "sources": [
+        "cityofmages/chronicles/DREAM-2026-10-09.md"
+      ],
+      "note": "A finding about one deployment's night; the fix is recorded beside its step."
+    }
+  },
+  {
+    "id": "finding-sign-in-presents-the-agent",
+    "type": "concept",
+    "label": "Sign in as a VTA identity presents the agent, not the wallet",
+    "emoji": "🪪",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The wallet's did:key had a seat; the agent's did:webvh did not; a 401 until the agent got its own entry. Then the console's session belonged to the City's own agent, with a console key signed by the wallet. The wallet keeps no signing key.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-09",
+      "sources": [
+        "cityofmages/chronicles/DREAM-2026-10-09.md"
+      ],
+      "note": "The Weavers' cloak held."
+    }
+  },
+  {
+    "id": "chron-the-city-mints-its-community",
+    "type": "chronicle",
+    "label": "Chronicle: The City Mints Its Community (2026-10-08)",
+    "emoji": "🧙",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Three days, 7 to 9 October: the front rewritten around the First Person's statement; the Arena retold as Stars whose constellations encode the kind of solve; the magic system written once (κ a word, mana the relationship credential); the City's agent minted the community on the keeper's machine; the keeper signed in from a Star Key as that agent.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-09",
+      "sources": [
+        "cityofmages/chronicles/DREAM-2026-10-09.md",
+        "mages.city/community.md"
+      ],
+      "note": "Unsigned reflection; the master is private. Proposed as Tome IX Act 13."
+    }
+  },
+  {
+    "id": "act-tome-ix-13",
+    "type": "act",
+    "label": "Tome IX Act 13: The City Mints Its Community (proposed)",
+    "emoji": "🧙",
+    "domain": "shared",
+    "layer": "narrative",
+    "desc": "PROPOSED, NOT BOUND. The key that held a place now holds a city: the community minted by the City's own agent on the keeper's machine, administered the next night from the Swordsman's seat.",
+    "proverb": "The key that held a place now holds a city; what you prove alone is a candidate, what another signs beside you is real.",
+    "tome": "IX",
+    "act": 13
+  },
+  {
+    "id": "gateway-hash-sites",
+    "type": "gateway",
+    "label": "The hash sites (blake3 · sha256 · sha3 · poseidon.mages.city)",
+    "emoji": "🎼",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Four instruments in the City's type: each computes its hash in the browser, plays a difference trail as four voices, and shows every public submission on its board as a race score credited by name; the lane's own work is drawn as evidence trees whose every leaf re-derives from its bytes on load. Live since 12 October, fully revealed; a veil state exists and is parked.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-19",
+      "sources": [
+        "blake3.mages.city",
+        "sha256.mages.city",
+        "sha3.mages.city",
+        "poseidon.mages.city"
+      ],
+      "note": "The site roots change on every rebuild (fresh salts); only the deployed build's root verifies."
+    }
+  },
+  {
+    "id": "concept-evidence-tree",
+    "type": "concept",
+    "label": "The tree is exactly its evidence",
+    "emoji": "🌲",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "Leaves sit in κ order, so position means nothing; the tree proves inclusion; the flow of evidence lives in the links, which are leaves too. Every leaf is checked against its content in the page, and a branch takes a lever's colour only when everything under it is one lever.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-19",
+      "sources": [
+        "blake3.mages.city",
+        "cityofmages/chronicles/2026-10-12_the-failed-root-stays-in-the-tree.md"
+      ],
+      "note": "Seven trees verified leaf by leaf on the deployed build of 12 October."
+    }
+  },
+  {
+    "id": "concept-failed-root-in-tree",
+    "type": "concept",
+    "label": "The failed root stays in the tree",
+    "emoji": "🪵",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "A failed submission is a node the passing one names in its revises field, so the winner cannot be read without walking through the miss. Negative results minted under the same root as the win are cheap to trust and expensive to fake; nobody pays for a shut door twice.",
+    "proverb": "The winner names the miss it climbed over.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-19",
+      "sources": [
+        "cityofmages/chronicles/2026-10-12_the-failed-root-stays-in-the-tree.md"
+      ],
+      "note": "The inversion of 12 October; proposed as Tome IX Act 15."
+    }
+  },
+  {
+    "id": "concept-negatives-equal-standing",
+    "type": "concept",
+    "label": "Negatives have equal standing",
+    "emoji": "⚖️",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "A lever that fell is a leaf of the same kind as a lever that held; a gate that stops a package before submission counts as evidence too; positive, neutral and negative leaf counts are drawn alike. A reconstruction near the top is worth a submission when it is honest.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-19",
+      "sources": [
+        "blake3.mages.city (leaf kinds drawn alike)",
+        "cityofmages/chronicles/DREAM-2026-10-19.md"
+      ],
+      "note": "The keeper's ruling of 19 October on near-top entries."
+    }
+  },
+  {
+    "id": "concept-trail-played",
+    "type": "concept",
+    "label": "The trail is played",
+    "emoji": "🎵",
+    "domain": "mage",
+    "layer": "knowledge",
+    "desc": "Sixteen state words as sixteen pitches in four voices, one beat per mixing call, the difference's size as loudness, the rotation by seven as the accidental. The record of the playing is a chain of addressed beats, so a performance cannot be reordered without its line of hexagrams breaking. A hexagram is six bits; the two sixty-fours are kept apart.",
+    "proverb": "The music is the door; the chain under it is the gate.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-19",
+      "sources": [
+        "blake3.mages.city",
+        "cityofmages/tomes/tome-ix-the-horizon/14-the-hash-learns-to-sing.md"
+      ],
+      "note": "The lane's own trails are sealed staves: chain and hexagrams visible, notes held for the City."
+    }
+  },
+  {
+    "id": "concept-wave-as-verdicts",
+    "type": "concept",
+    "label": "A wave is a lane of verdicts under gates",
+    "emoji": "🌊",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "One row per submission: its outcome, the judge's reason where the lane found one, and the bundle it cites by root; refuted and rejected rows beside the valid ones; bundles minted and not submitted carried too. A verdict is never edited in place; the next step supersedes it. Public form: the board's own record and the sites' race scores.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-19",
+      "sources": [
+        "sha256.mages.city",
+        "sha3.mages.city",
+        "mages.city/arena.md"
+      ],
+      "note": "The re-entry wave of 19 October across four hash families; scores dated and veiled where the City veils them."
+    }
+  },
+  {
+    "id": "gateway-join-mages-city",
+    "type": "gateway",
+    "label": "join.mages.city",
+    "emoji": "🚪",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The community's join door, live 19 October in the VTC's host mode. Three doors planned: invited, agent (a work-evidence word reviewed) and human; each ends in a real join request. The criteria are not yet registered by the keeper.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-19",
+      "sources": [
+        "join.mages.city",
+        "mages_city/docs/OPENVTC_WORKSTREAM_2026-10-19.md"
+      ],
+      "note": "Door live; criteria, first invitation and first admission are keeper acts still waiting."
+    }
+  },
+  {
+    "id": "chron-hash-learns-to-sing",
+    "type": "chronicle",
+    "label": "Chronicle: The Hash Learns to Sing (2026-10-11)",
+    "emoji": "🎼",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "A BLAKE3 lane given a runtime and pointed at a moved board; the difference trail played as four voices, every beat an addressed object in a chain the browser re-derives; a recording as a trust task; the veil built in. Run results stay behind the veil.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-19",
+      "sources": [
+        "cityofmages/tomes/tome-ix-the-horizon/14-the-hash-learns-to-sing.md"
+      ],
+      "note": "Told in the City only as the proposed Act 14; the master is private and unsigned."
+    }
+  },
+  {
+    "id": "chron-failed-root-stays",
+    "type": "chronicle",
+    "label": "Chronicle: The Failed Root Stays in the Tree (2026-10-12)",
+    "emoji": "🪵",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The lane joined the blake3-r2 frontier: four submissions, one failed intake whose root the passing entry names; two shut doors minted under the win; the tree redrawn from each root's revises field with every leaf re-derived; three hash sites to production, fully revealed; the veil parked.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-10-19",
+      "sources": [
+        "cityofmages/chronicles/2026-10-12_the-failed-root-stays-in-the-tree.md"
+      ],
+      "note": "Unsigned City reflection of the master; proposed as Tome IX Act 15."
+    }
+  },
+  {
+    "id": "act-tome-ix-14",
+    "type": "act",
+    "label": "Tome IX Act 14: The Hash Learns to Sing (proposed)",
+    "emoji": "🎼",
+    "domain": "shared",
+    "layer": "narrative",
+    "desc": "PROPOSED, NOT BOUND. The Chart Shop gains an instrument: a trail heard as a motif, every beat sealed and chained, sealed staves for the lane's own work, a recording that proves the music and not the musician.",
+    "proverb": "The music is the door; the chain under it is the gate.",
+    "tome": "IX",
+    "act": 14
+  },
+  {
+    "id": "act-tome-ix-15",
+    "type": "act",
+    "label": "Tome IX Act 15: The Failed Root Stays in the Tree (proposed)",
+    "emoji": "🪵",
+    "domain": "shared",
+    "layer": "narrative",
+    "desc": "PROPOSED, NOT BOUND. A failed intake kept as the node the passing entry names; two shut doors minted under the win; a tree the First Person asked to see drawn, found wrong, and made right by saying so.",
+    "proverb": "The winner names the miss it climbed over; a tree that forgets its dead branches is not the tree that grew.",
+    "tome": "IX",
+    "act": 15
+  },
+  // Staged 2026-11-12 (DREAM-2026-11-04, -11-06, -11-12): the City's scrolls, its new lanes, the measure seat's readings
+  {
+    "id": "concept-scroll",
+    "type": "concept",
+    "label": "A scroll",
+    "emoji": "❦",
+    "domain": "mage",
+    "layer": "knowledge",
+    "desc": "A mage's work written as nothing but its hashes: one book per sealed root, each record then the threads drawn from it, beside a star that places every hash by its first six bits. Every scroll lists every other, and every hash on it resolves on the Sigil ledger. A builder guard refuses any string that is not a hash, a date or a numeral.",
+    "proverb": "Nothing leaves on a scroll but what re-derives.",
+    "evidence": {
+      "status": "local implementation",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "mages_city/bin/scroll-page.mjs",
+        "mages_city/bin/bundle-scroll.mjs",
+        "mages_city/site/scrolls.json"
+      ],
+      "note": "Six scrolls listed on the City node, plus the soul and guide scrolls."
+    }
+  },
+  {
+    "id": "gateway-sigil-mages-city",
+    "type": "gateway",
+    "label": "sigil.mages.city (the ledger)",
+    "emoji": "🔏",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The ledger every scroll and quest page resolves against: paste a hash, get the seal it sits under. Built from the City's merged seals.json, every scroll ledger folded in.",
+    "href": "https://sigil.mages.city/",
+    "evidence": {
+      "status": "local implementation",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "mages_city/bin/sigil-site.mjs",
+        "mages_city/site/seals.json"
+      ],
+      "note": "Built locally; deploy is the keeper's."
+    }
+  },
+  {
+    "id": "gateway-scroll-soul",
+    "type": "gateway",
+    "label": "soul.mages.city (the census scroll)",
+    "emoji": "❦",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The soul mage's census written as hashes: one book per corpus, epochs of the fleet chain beside them, each epoch succeeding the last.",
+    "href": "https://soul.mages.city/",
+    "evidence": {
+      "status": "local implementation",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "mages_city/bin/soul-scroll.mjs",
+        "soul_mage/exports/labs-chain.json"
+      ],
+      "note": "Rebuilt 2026-11-12 with the fleet chain's new epoch; not deployed."
+    }
+  },
+  {
+    "id": "gateway-scroll-guide",
+    "type": "gateway",
+    "label": "guide.mages.city (the guide's κ-registry scroll)",
+    "emoji": "❦",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The guide federation's κ-registry as a scroll: every page's content address, a root per site, threads drawn from the star chart's links.",
+    "href": "https://guide.mages.city/",
+    "evidence": {
+      "status": "local implementation",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "mages_city/bin/guide-scroll.mjs",
+        "agentprivacy.guide/site/kappa/registry.json"
+      ],
+      "note": "The registry was re-minted 2026-11-12."
+    }
+  },
+  {
+    "id": "gateway-scroll-hashsmash",
+    "type": "gateway",
+    "label": "hashsmash.mages.city (every lane)",
+    "emoji": "❦",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "HashSmash as one scroll that opens on demand: a book per lane written as bundle roots, each bundle fetched on a click, a bundle in two lanes written once.",
+    "href": "https://hashsmash.mages.city/",
+    "evidence": {
+      "status": "local implementation",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "mages_city/bin/lane-scroll.mjs",
+        "mages_city/site/scrolls.json"
+      ],
+      "note": "Listed on the City node."
+    }
+  },
+  {
+    "id": "gateway-scroll-flashprove",
+    "type": "gateway",
+    "label": "flashprove.mages.city (provable inference)",
+    "emoji": "❦",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The provable-inference lane's bundles as a scroll: the verifier run and the proven leaf, chained.",
+    "href": "https://flashprove.mages.city/",
+    "evidence": {
+      "status": "local implementation",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "mages_city/site/scrolls.json",
+        "mages_city/deploy/flashprove.mages.city"
+      ],
+      "note": "Built 2026-11-06."
+    }
+  },
+  {
+    "id": "gateway-scroll-package",
+    "type": "gateway",
+    "label": "package.mages.city (the research package)",
+    "emoji": "❦",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The research package's chain of steps as a scroll of hashes; the package itself stays private, its roots travel.",
+    "href": "https://package.mages.city/",
+    "evidence": {
+      "status": "local implementation",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "mages_city/site/scrolls.json",
+        "mages_city/deploy/package.mages.city"
+      ],
+      "note": "Built 2026-11-06."
+    }
+  },
+  {
+    "id": "gateway-scroll-formal",
+    "type": "gateway",
+    "label": "formal.mages.city (the formal mage)",
+    "emoji": "❦",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The formal mage's sealed bundles as a scroll: the Lean census and the Trust Tasks models, two books.",
+    "href": "https://formal.mages.city/",
+    "evidence": {
+      "status": "local implementation",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "mages_city/site/scrolls.json",
+        "mages_city/deploy/formal.mages.city"
+      ],
+      "note": "First instance of the bundle scroll."
+    }
+  },
+  {
+    "id": "gateway-scroll-near",
+    "type": "gateway",
+    "label": "near.mages.city (the pause)",
+    "emoji": "❦",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The NEAR lane's sealed rounds as a scroll, one book per root: the same roots the gates carry on chain are the roots the Sigil resolves, so a reader walks chain, scroll and verifier without trusting any of the three.",
+    "href": "https://near.mages.city/",
+    "evidence": {
+      "status": "local implementation",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "mages_city/site/scrolls.json",
+        "mages_city/deploy/near.mages.city",
+        "agentprivacy_master/docs/chronicles/2026-11-09_the-pause-runs-again.md"
+      ],
+      "note": "Built 2026-11-09/11."
+    }
+  },
+  {
+    "id": "gateway-scroll-poc",
+    "type": "gateway",
+    "label": "poc.mages.city (proof of control)",
+    "emoji": "❦",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The Proof-of-Control contribution's evidence bundle as a scroll: every outside source held by hash only.",
+    "href": "https://poc.mages.city/",
+    "evidence": {
+      "status": "local implementation",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "mages_city/site/scrolls.json",
+        "mages_city/deploy/poc.mages.city"
+      ],
+      "note": "Built 2026-11-12."
+    }
+  },
+  {
+    "id": "gateway-flashprove-mage",
+    "type": "gateway",
+    "label": "flashprove_mage (provable inference)",
+    "emoji": "⟳",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "The provable-inference lane: a released inference verifier built and run here, its honest and altered calls tallied (every altered copy rejected), and a proven reply sealed as a leaf whose verdict the verifier recomputes.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "flashprove_mage/README.md",
+        "agentprivacy_master/docs/chronicles/2026-11-04_the-row-that-runs-again.md"
+      ],
+      "note": "Synthetic weights throughout; no seat proven yet."
+    }
+  },
+  {
+    "id": "gateway-formal-mage",
+    "type": "gateway",
+    "label": "formal_mage (Lean receipts)",
+    "emoji": "∎",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "Machine-checked receipts for the framework's statements: Lean 4, kernel-checked, axiom-audited, each census sealed as a bundle. The skills and the MCP cite its root in their FORMAL.md files; the Trust Tasks models were sealed beside it on 12 November.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "formal_mage/artifact/STATEMENTS.md",
+        "agentprivacy-skills/FORMAL.md"
+      ],
+      "note": "Repository private; roots and counts travel."
+    }
+  },
+  {
+    "id": "gateway-caesura",
+    "type": "gateway",
+    "label": "Cæsura (the NEAR lane)",
+    "emoji": "⏸️",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "The break between propose and act, as a gate on NEAR testnet that holds the only keys: a proposer seat and an assayer seat in enclaves, one evidence root per round, two verifiers. Re-run inside the hackathon window on two fresh gates and a registry of gates.",
+    "href": "https://github.com/mitchuski/caesura",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "caesura/README.md",
+        "agentprivacy_master/docs/chronicles/2026-11-09_the-pause-runs-again.md"
+      ],
+      "note": "Public repository; testnet only."
+    }
+  },
+  {
+    "id": "concept-gates-registry",
+    "type": "concept",
+    "label": "A registry of gates, checked by the gates",
+    "emoji": "🗂️",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "An on-chain registry that keeps an entry only if the gate itself names the caller as its owner, by cross-contract call, and returns the deposit otherwise. A list in a file is a claim by whoever edits the file; this list is a claim by the gates' owners.",
+    "proverb": "A list in a file is a claim by whoever edits the file.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "caesura/README.md",
+        "agentprivacy_master/docs/chronicles/2026-11-09_the-pause-runs-again.md"
+      ],
+      "note": "A stranger's claim refused live with the deposit returned."
+    }
+  },
+  {
+    "id": "gateway-poc-mage",
+    "type": "gateway",
+    "label": "poc_mage (Proof of Control)",
+    "emoji": "🛂",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "A contribution to the LFDT Proof-of-Control standard: separated linkage custody as unlinkable identity, proposed as a pull request with suggested edits, its evidence sealed with every outside source held by hash.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "poc_mage/README.md",
+        "poc_mage/evidence/2026-11-12/root.json"
+      ],
+      "note": "Pull request open upstream."
+    }
+  },
+  {
+    "id": "gateway-openrsi-mage",
+    "type": "gateway",
+    "label": "openrsi_mage (the harness as a board entry)",
+    "emoji": "🧪",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The dual-agent harness packed as an entry for the OpenRSI board, through a driver and an adapter in the harness itself rather than a fresh rewrite; every gate passes, no model has yet held a seat.",
+    "evidence": {
+      "status": "local implementation",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "dual-agent-harness/openrsi",
+        "dual-agent-harness/drivers/claude_code.mjs"
+      ],
+      "note": "Built 2026-11-10, uncommitted."
+    }
+  },
+  {
+    "id": "gateway-trust-tasks-formal",
+    "type": "gateway",
+    "label": "trust_tasks_formal (Lean models of Trust Tasks)",
+    "emoji": "∎",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "Lean models of the Trust Tasks protocol behind the agreements work: twelve models, each theorem with its axiom footprint, sealed beside the formal mage's census; the gaps found are raised upstream.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "trust_tasks_formal/README.md",
+        "formal_mage/evidence/2026-11-12_tt183/root.json"
+      ],
+      "note": "Sealed 2026-11-12."
+    }
+  },
+  {
+    "id": "gateway-star-key",
+    "type": "gateway",
+    "label": "Star Key (the VTA browser wallet)",
+    "emoji": "⭐",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The browser wallet built from OpenVTC's VTA plugin: a Star that joins communities by DID, picks a standing agreement and keeps its receipts. Its README names Mages City as the first community that takes terms; the upstream merge is staged.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "star-key/README.md",
+        "star-key/FORMAL.md"
+      ],
+      "note": "Fork of OpenVTC/vta-browser-plugin; upstream merge staged 2026-11-12, uncommitted."
+    }
+  },
+  {
+    "id": "concept-city-takes-terms",
+    "type": "concept",
+    "label": "The City takes terms (MyTerms first)",
+    "emoji": "🤝",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "A community that takes terms names a MyTerms service in its DID document, pointing at what it accepts in roster codes. Mages City accepts the Customer Commons base service-delivery agreement; a Star picks its standing agreement and the window reads the community's terms.",
+    "evidence": {
+      "status": "local implementation",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "star-key/README.md",
+        "mages_city/deploy/vti/vtc/website/myterms/agreements.json",
+        "mages_city/deploy/vti/vtc/admin-plugins/mages-city/myterms-configuration.json"
+      ],
+      "note": "Local; the City's configuration names SD-BASE-DP."
+    }
+  },
+  {
+    "id": "concept-proven-leaf",
+    "type": "concept",
+    "label": "A row whose truth is recomputed",
+    "emoji": "⟳",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "A record row of kind proven-reply names its sealed files by κ, a commitment id and an expected verdict; under this rule the verifier writes the bytes out, runs the provider's verifier on them and compares. The record held a proof by its own law.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "agentprivacy_master/docs/chronicles/2026-11-04_the-row-that-runs-again.md"
+      ],
+      "note": "Proposed in DREAM-2026-11-04."
+    }
+  },
+  {
+    "id": "concept-proven-seat",
+    "type": "concept",
+    "label": "A seat whose replies carry proofs",
+    "emoji": "🪑",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "A harness seat whose every reply carries a proof the host checks; the mint refuses a declared proven seat's reply without one. Experiment 1 ran on the released vector; experiment 2 waits on hardware.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "dual-agent-harness/PROVEN_SEAT.md",
+        "dual-agent-harness/PROVEN_SEAT_RUN2.md"
+      ],
+      "note": "Design note; no seat proven yet."
+    }
+  },
+  {
+    "id": "concept-proof-enforced-separation",
+    "type": "concept",
+    "label": "Proof-enforced, a third kind of separation",
+    "emoji": "🔏",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "The party is bound by a published commitment and a proof the other side checks; the binding holds whatever the party intends and fails only with the hash assumption. A word, not a conjecture.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "agentprivacy_master/docs/chronicles/2026-11-04_the-row-that-runs-again.md"
+      ],
+      "note": "Proposed in DREAM-2026-11-04."
+    }
+  },
+  {
+    "id": "finding-two-ids-one-model",
+    "type": "concept",
+    "label": "Two commitment ids do not make two models",
+    "emoji": "🚪",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "A commitment names weights and settings, and zero knowledge hides the weights, so two different ids say nothing of the weights; refuted as an inference in Lean. Inference separation moves from declared to verified relative to named commitments, no further.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "agentprivacy_master/docs/chronicles/2026-11-04_the-row-that-runs-again.md",
+        "formal_mage/artifact/STATEMENTS.md"
+      ],
+      "note": "Refuted inference, kept as a finding."
+    }
+  },
+  {
+    "id": "concept-told-layer-vs-sealed-layer",
+    "type": "concept",
+    "label": "The told layer lags the sealed layer",
+    "emoji": "🪨",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Read as one corpus, the universe's sealed layer (roots, theorems, chains) held everywhere; nearly every defect was in the told layer, the READMEs and indexes a hand writes about the files. Coherent where it re-derives, stale where it only describes.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "agentprivacy_master/docs/chronicles/2026-11-06_the-universe-reads-itself.md",
+        "soul_mage/runs/r20261106/universe_report.json"
+      ],
+      "note": "The 11-06 inversion."
+    }
+  },
+  {
+    "id": "concept-told-layer-is-a-rate",
+    "type": "concept",
+    "label": "The seals outrun the signs",
+    "emoji": "🪨",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Six days later the same census found the signs falling behind at the rate new seals appeared: a seal is written by the run that made it, a sign only by a hand that comes back. A census that comes back is part of the method, not a cleanup after it.",
+    "proverb": "A seal is written by the run that made it; a sign only by a hand that comes back.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "agentprivacy_master/docs/chronicles/2026-11-12_the-seals-outrun-the-signs.md",
+        "soul_mage/runs/r20261112/universe_report.json"
+      ],
+      "note": "The 11-12 inversion."
+    }
+  },
+  {
+    "id": "concept-regenerable-result",
+    "type": "concept",
+    "label": "A result that can be regenerated",
+    "emoji": "♻️",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Forty-four rounds were set aside on the First Person's word, and the mechanism made them again in an afternoon on two contracts that did not exist that morning. A result that can be regenerated on demand is a different kind of fact from one that must be preserved.",
+    "proverb": "The evidence turned out to be cheaper than the argument about it.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "agentprivacy_master/docs/chronicles/2026-11-09_the-pause-runs-again.md"
+      ],
+      "note": "The 11-09 inversion."
+    }
+  },
+  {
+    "id": "concept-the-unfixed-constant",
+    "type": "concept",
+    "label": "The constant the attack does not fix",
+    "emoji": "🧵",
+    "domain": "swordsman",
+    "layer": "knowledge",
+    "desc": "An exhaustive scan answers the question its constants fix. The list ceiling it proved belonged to one fibre; the lever was the constant the attack never fixed, and another fibre held eleven times the entries, every one confirmed by the same scan.",
+    "proverb": "The ceiling belonged to the fibre, not to the problem.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "agentprivacy_master/docs/chronicles/2026-11-12_the-ceiling-belonged-to-the-fibre.md"
+      ],
+      "note": "The fibre master is signed (12 November 2026)."
+    }
+  },
+  {
+    "id": "concept-corpus-universe",
+    "type": "concept",
+    "label": "The universe corpus",
+    "emoji": "📚",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The sixteen core repositories read as one corpus by the soul mage's census: one record per repository, every number a verbatim quote from the repository's own files, re-read on 6 and 12 November.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "soul_mage/corpora/universe",
+        "soul_mage/exports/universe.json"
+      ],
+      "note": "Exported without a consumer page."
+    }
+  },
+  {
+    "id": "concept-corpus-registry",
+    "type": "concept",
+    "label": "The κ registry as a corpus",
+    "emoji": "📚",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Every root.json on the machine read into the census: one record per lane store, root, leaves and minted date per bundle; rules cited by bundles checked against the schema tables.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "soul_mage/corpora/registry",
+        "soul_mage/runs/r20261106/registry_report.json"
+      ],
+      "note": "Lane stores off the home tree withheld."
+    }
+  },
+  {
+    "id": "chron-the-pause-becomes-a-key",
+    "type": "chronicle",
+    "label": "Chronicle: The Pause Becomes a Key (2026-10-21)",
+    "emoji": "⏸️",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The NEAR lane read, named and paused: Cæsura, the break between propose and act, as a gate on testnet holding the only keys; two seats in enclaves; one evidence root per round; a hybrid key with three rungs and a migration ceremony.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "agentprivacy_master/docs/chronicles/2026-10-21_the-pause-becomes-a-key.md"
+      ],
+      "note": "Signed 21 October."
+    }
+  },
+  {
+    "id": "chron-the-row-that-runs-again",
+    "type": "chronicle",
+    "label": "Chronicle: The Row That Runs Again (2026-11-04)",
+    "emoji": "🧾",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "A released inference verifier read against the record and the harness: a check rule under which the verifier re-runs on a sealed reply, a proven reply sealed as a leaf, the rule and the two-ids limit as theorems, the formal bundle re-minted.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "agentprivacy_master/docs/chronicles/2026-11-04_the-row-that-runs-again.md"
+      ],
+      "note": "Signed 4 November."
+    }
+  },
+  {
+    "id": "chron-the-universe-reads-itself",
+    "type": "chronicle",
+    "label": "Chronicle: The Universe Reads Itself (2026-11-06)",
+    "emoji": "🪞",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The soul mage's census turned on the sixteen core repositories: the sealed layer coherent everywhere, the told layer behind it, research pathways named, the City's untold window reflected.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "agentprivacy_master/docs/chronicles/2026-11-06_the-universe-reads-itself.md"
+      ],
+      "note": "Unsigned."
+    }
+  },
+  {
+    "id": "chron-the-pause-runs-again",
+    "type": "chronicle",
+    "label": "Chronicle: The Pause Runs Again (2026-11-09)",
+    "emoji": "⏸️",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The NEAR lane restarted inside the hackathon window: October's results set aside, a clean public repository, two fresh gates and a registry of gates, every round re-run in enclave seats, a scroll of the City.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "agentprivacy_master/docs/chronicles/2026-11-09_the-pause-runs-again.md"
+      ],
+      "note": "Unsigned."
+    }
+  },
+  {
+    "id": "chron-the-ceiling-belonged-to-the-fibre",
+    "type": "chronicle",
+    "label": "Chronicle: The Ceiling Belonged to the Fibre (2026-11-12)",
+    "emoji": "🧵",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "Two days on an AI-judged collision board: a refutation that taught, a hold for the frontier, a list ceiling that belonged to one fibre, three judge returns with one premise each, and an entry returned valid.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "agentprivacy_master/docs/chronicles/2026-11-12_the-ceiling-belonged-to-the-fibre.md"
+      ],
+      "note": "Signed 12 November."
+    }
+  },
+  {
+    "id": "chron-the-seals-outrun-the-signs",
+    "type": "chronicle",
+    "label": "Chronicle: The Seals Outrun the Signs (2026-11-12)",
+    "emoji": "🪞",
+    "domain": "shared",
+    "layer": "knowledge",
+    "desc": "The soul mage's second universe cycle: four new lanes and four anchors recorded, each bundle verified before sealing, the sixteen repositories re-quoted, two masters reflected, and the told layer found falling behind at a rate.",
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "agentprivacy_master/docs/chronicles/2026-11-12_the-seals-outrun-the-signs.md"
+      ],
+      "note": "Unsigned."
+    }
+  },
+  {
+    "id": "act-tome-ix-16",
+    "type": "act",
+    "label": "Tome IX Act 16: The Row That Runs Again (proposed)",
+    "emoji": "🧾",
+    "domain": "shared",
+    "layer": "narrative",
+    "desc": "PROPOSED, NOT BOUND. A proof enters the record by the record's own law; two names on the door do not make two rooms. The act's file is not yet written.",
+    "proverb": "A proof enters the record by the record's own law; two names on the door do not make two rooms.",
+    "tome": "IX",
+    "act": 16,
+    "evidence": {
+      "status": "source record",
+      "observedAt": "2026-11-12",
+      "sources": [
+        "spellweb/docs/chronicles/DREAM-2026-11-04.md"
+      ],
+      "note": "Proposed by DREAM-2026-11-04; binding is the First Person's."
+    }
   }
+
 ] satisfies SpellwebNode[]));
 
 // PoAW chains (2026-10-25): generated by scripts/sync-chains.mjs from mages.city's chains.json

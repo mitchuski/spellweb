@@ -3863,7 +3863,755 @@ EDGES.push(...([
     "source": "term-62-lap-theorem",
     "target": "concept-declared-deficit",
     "type": "references"
+  },
+  // Staged 2026-10-19
+  {
+    "source": "gateway-hashsmash",
+    "target": "concept-evidence-root",
+    "type": "measured_by"
+  },
+  {
+    "source": "gateway-sig-golf",
+    "target": "concept-two-roots-not-one-overwrite",
+    "type": "requires"
+  },
+  {
+    "source": "concept-evidence-root",
+    "target": "gateway-kappa-registry",
+    "type": "implements"
+  },
+  {
+    "source": "concept-second-axis",
+    "target": "key-city-key",
+    "type": "extends"
+  },
+  {
+    "source": "concept-transform-pair",
+    "target": "concept-evidence-root",
+    "type": "extends"
+  },
+  {
+    "source": "rule-arena-a1-a40",
+    "target": "gateway-sig-golf",
+    "type": "references"
+  },
+  {
+    "source": "rule-arena-a1-a40",
+    "target": "gateway-hashsmash",
+    "type": "references"
+  },
+  {
+    "source": "rule-arena-a1-a40",
+    "target": "skill-dual-agent-harness",
+    "type": "implements"
+  },
+  {
+    "source": "concept-carried-citation",
+    "target": "concept-evidence-root",
+    "type": "relates_to"
+  },
+  {
+    "source": "finding-vec-u8-as-int-array",
+    "target": "gateway-kappa-registry",
+    "type": "references"
+  },
+  {
+    "source": "act-tome-ix-12",
+    "target": "chron-decimal-travels-root-stays",
+    "type": "narrates"
+  },
+  {
+    "source": "skill-lane-chronicle",
+    "target": "concept-evidence-root",
+    "type": "references"
+  },
+  {
+    "source": "gateway-kappa-evidence-mage",
+    "target": "concept-evidence-root",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-kappa-evidence-mage",
+    "target": "gateway-kappa-registry",
+    "type": "implements"
+  },
+  {
+    "source": "chron-decimal-travels-root-stays",
+    "target": "gateway-kappa-evidence-mage",
+    "type": "narrates"
+  },
+  {
+    "source": "chron-decimal-travels-root-stays",
+    "target": "concept-two-roots-not-one-overwrite",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-decimal-travels-root-stays",
+    "target": "chron-measurement-travels",
+    "type": "follows"
+  },
+  {
+    "source": "concept-evidence-root",
+    "target": "conj-c95",
+    "type": "references"
+  },
+  {
+    "source": "concept-evidence-root",
+    "target": "conj-c97",
+    "type": "references"
+  },
+  {
+    "source": "concept-evidence-root",
+    "target": "conj-c81",
+    "type": "references"
+  },
+  {
+    "source": "gateway-mages-city-vtc",
+    "target": "concept-core-node",
+    "type": "requires"
+  },
+  {
+    "source": "gateway-mages-city-vtc",
+    "target": "concept-words-and-mana",
+    "type": "references"
+  },
+  {
+    "source": "civic-city-of-mages",
+    "target": "gateway-mages-city-vtc",
+    "type": "gateway_to"
+  },
+  {
+    "source": "gateway-mages-city-vtc",
+    "target": "concept-openvtc-vti",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-mages-city-vtc",
+    "target": "gateway-openvtc-two-seats",
+    "type": "references"
+  },
+  {
+    "source": "concept-words-and-mana",
+    "target": "key-city-key",
+    "type": "extends"
+  },
+  {
+    "source": "concept-words-and-mana",
+    "target": "concept-evidence-root",
+    "type": "references"
+  },
+  {
+    "source": "concept-star-filling-out",
+    "target": "concept-constellation-encoding",
+    "type": "references"
+  },
+  {
+    "source": "concept-star-filling-out",
+    "target": "gateway-soulbis-star",
+    "type": "references"
+  },
+  {
+    "source": "concept-star-filling-out",
+    "target": "concept-star-presentation",
+    "type": "extends"
+  },
+  {
+    "source": "concept-constellation-encoding",
+    "target": "skill-atlas-geometry",
+    "type": "references"
+  },
+  {
+    "source": "concept-constellation-encoding",
+    "target": "concept-sovereign-lattice",
+    "type": "references"
+  },
+  {
+    "source": "rule-succession-bit-flip",
+    "target": "concept-star-filling-out",
+    "type": "references"
+  },
+  {
+    "source": "rule-succession-bit-flip",
+    "target": "concept-words-and-mana",
+    "type": "requires"
+  },
+  {
+    "source": "concept-veil-hashes-not-results",
+    "target": "concept-evidence-root",
+    "type": "references"
+  },
+  {
+    "source": "concept-veil-hashes-not-results",
+    "target": "gateway-mages-city-vtc",
+    "type": "requires"
+  },
+  {
+    "source": "rule-arena-a1-a40",
+    "target": "concept-star-filling-out",
+    "type": "relates_to"
+  },
+  {
+    "source": "finding-vtcrest-without-v1",
+    "target": "gateway-mages-city-vtc",
+    "type": "references"
+  },
+  {
+    "source": "finding-sign-in-presents-the-agent",
+    "target": "gateway-mages-city-vtc",
+    "type": "references"
+  },
+  {
+    "source": "act-tome-ix-13",
+    "target": "chron-the-city-mints-its-community",
+    "type": "narrates"
+  },
+  {
+    "source": "chron-the-city-mints-its-community",
+    "target": "chron-decimal-travels-root-stays",
+    "type": "follows"
+  },
+  {
+    "source": "chron-the-city-mints-its-community",
+    "target": "gateway-mages-city-vtc",
+    "type": "narrates"
+  },
+  {
+    "source": "chron-the-city-mints-its-community",
+    "target": "concept-words-and-mana",
+    "type": "introduces"
+  },
+  {
+    "source": "act-tome-ix-13",
+    "target": "act-tome-ix-12",
+    "type": "follows"
+  },
+  {
+    "source": "gateway-hash-sites",
+    "target": "concept-evidence-tree",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-hash-sites",
+    "target": "concept-trail-played",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-hash-sites",
+    "target": "gateway-hashsmash",
+    "type": "references"
+  },
+  {
+    "source": "gateway-hash-sites",
+    "target": "gateway-kappa-evidence-mage",
+    "type": "references"
+  },
+  {
+    "source": "concept-evidence-tree",
+    "target": "concept-evidence-root",
+    "type": "extends"
+  },
+  {
+    "source": "concept-evidence-tree",
+    "target": "conj-c93",
+    "type": "references"
+  },
+  {
+    "source": "concept-failed-root-in-tree",
+    "target": "concept-evidence-tree",
+    "type": "extends"
+  },
+  {
+    "source": "concept-negatives-equal-standing",
+    "target": "concept-failed-root-in-tree",
+    "type": "extends"
+  },
+  {
+    "source": "concept-negatives-equal-standing",
+    "target": "concept-promotion-not-pass",
+    "type": "references"
+  },
+  {
+    "source": "concept-wave-as-verdicts",
+    "target": "concept-negatives-equal-standing",
+    "type": "implements"
+  },
+  {
+    "source": "concept-wave-as-verdicts",
+    "target": "gateway-hashsmash-mage",
+    "type": "references"
+  },
+  {
+    "source": "concept-trail-played",
+    "target": "concept-constellation-encoding",
+    "type": "references"
+  },
+  {
+    "source": "concept-trail-played",
+    "target": "shop-charthouse",
+    "type": "relates_to"
+  },
+  {
+    "source": "gateway-join-mages-city",
+    "target": "gateway-mages-city-vtc",
+    "type": "gateway_to"
+  },
+  {
+    "source": "gateway-join-mages-city",
+    "target": "concept-words-and-mana",
+    "type": "requires"
+  },
+  {
+    "source": "chron-hash-learns-to-sing",
+    "target": "gateway-hash-sites",
+    "type": "narrates"
+  },
+  {
+    "source": "chron-hash-learns-to-sing",
+    "target": "concept-trail-played",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-hash-learns-to-sing",
+    "target": "chron-the-city-mints-its-community",
+    "type": "follows"
+  },
+  {
+    "source": "chron-failed-root-stays",
+    "target": "gateway-hashsmash-mage",
+    "type": "narrates"
+  },
+  {
+    "source": "chron-failed-root-stays",
+    "target": "concept-failed-root-in-tree",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-failed-root-stays",
+    "target": "chron-hash-learns-to-sing",
+    "type": "follows"
+  },
+  {
+    "source": "act-tome-ix-14",
+    "target": "chron-hash-learns-to-sing",
+    "type": "narrates"
+  },
+  {
+    "source": "act-tome-ix-14",
+    "target": "act-tome-ix-13",
+    "type": "follows"
+  },
+  {
+    "source": "act-tome-ix-15",
+    "target": "chron-failed-root-stays",
+    "type": "narrates"
+  },
+  {
+    "source": "act-tome-ix-15",
+    "target": "act-tome-ix-14",
+    "type": "follows"
+  },
+  // Staged 2026-11-12 (DREAM-2026-11-04, -11-06, -11-12): the City's scrolls, its new lanes, the measure seat's readings
+  {
+    "source": "concept-scroll",
+    "target": "civic-city-of-mages",
+    "type": "founded_in"
+  },
+  {
+    "source": "concept-scroll",
+    "target": "concept-evidence-root",
+    "type": "implements"
+  },
+  {
+    "source": "concept-scroll",
+    "target": "gateway-sigil-mages-city",
+    "type": "requires"
+  },
+  {
+    "source": "gateway-sigil-mages-city",
+    "target": "civic-city-of-mages",
+    "type": "founded_in"
+  },
+  {
+    "source": "gateway-sigil-mages-city",
+    "target": "gateway-kappa-evidence-mage",
+    "type": "references"
+  },
+  {
+    "source": "gateway-scroll-soul",
+    "target": "concept-scroll",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-scroll-guide",
+    "target": "concept-scroll",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-scroll-hashsmash",
+    "target": "concept-scroll",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-scroll-flashprove",
+    "target": "concept-scroll",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-scroll-package",
+    "target": "concept-scroll",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-scroll-formal",
+    "target": "concept-scroll",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-scroll-near",
+    "target": "concept-scroll",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-scroll-poc",
+    "target": "concept-scroll",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-scroll-soul",
+    "target": "gateway-sigil-mages-city",
+    "type": "synced_with"
+  },
+  {
+    "source": "gateway-scroll-guide",
+    "target": "gateway-sigil-mages-city",
+    "type": "synced_with"
+  },
+  {
+    "source": "gateway-scroll-hashsmash",
+    "target": "gateway-sigil-mages-city",
+    "type": "synced_with"
+  },
+  {
+    "source": "gateway-scroll-near",
+    "target": "gateway-sigil-mages-city",
+    "type": "synced_with"
+  },
+  {
+    "source": "gateway-scroll-soul",
+    "target": "gateway-soul-mage",
+    "type": "references"
+  },
+  {
+    "source": "gateway-scroll-guide",
+    "target": "gateway-kappa-registry",
+    "type": "references"
+  },
+  {
+    "source": "gateway-scroll-hashsmash",
+    "target": "gateway-hashsmash-mage",
+    "type": "references"
+  },
+  {
+    "source": "gateway-scroll-hashsmash",
+    "target": "gateway-hash-sites",
+    "type": "sibling_of"
+  },
+  {
+    "source": "gateway-scroll-flashprove",
+    "target": "gateway-flashprove-mage",
+    "type": "references"
+  },
+  {
+    "source": "gateway-scroll-formal",
+    "target": "gateway-formal-mage",
+    "type": "references"
+  },
+  {
+    "source": "gateway-scroll-formal",
+    "target": "gateway-trust-tasks-formal",
+    "type": "references"
+  },
+  {
+    "source": "gateway-scroll-near",
+    "target": "gateway-caesura",
+    "type": "references"
+  },
+  {
+    "source": "gateway-scroll-poc",
+    "target": "gateway-poc-mage",
+    "type": "references"
+  },
+  {
+    "source": "gateway-flashprove-mage",
+    "target": "gateway-kappa-evidence-mage",
+    "type": "built_on"
+  },
+  {
+    "source": "gateway-flashprove-mage",
+    "target": "concept-proven-leaf",
+    "type": "introduces"
+  },
+  {
+    "source": "gateway-flashprove-mage",
+    "target": "concept-proven-seat",
+    "type": "introduces"
+  },
+  {
+    "source": "gateway-formal-mage",
+    "target": "finding-two-ids-one-model",
+    "type": "proves"
+  },
+  {
+    "source": "gateway-formal-mage",
+    "target": "gateway-kappa-evidence-mage",
+    "type": "built_on"
+  },
+  {
+    "source": "gateway-trust-tasks-formal",
+    "target": "gateway-formal-mage",
+    "type": "built_on"
+  },
+  {
+    "source": "gateway-trust-tasks-formal",
+    "target": "concept-city-takes-terms",
+    "type": "references"
+  },
+  {
+    "source": "gateway-caesura",
+    "target": "tech-near",
+    "type": "built_on"
+  },
+  {
+    "source": "gateway-caesura",
+    "target": "skill-dual-agent-harness",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-caesura",
+    "target": "concept-gates-registry",
+    "type": "introduces"
+  },
+  {
+    "source": "gateway-caesura",
+    "target": "concept-regenerable-result",
+    "type": "introduces"
+  },
+  {
+    "source": "gateway-caesura",
+    "target": "gateway-mages-city-vtc",
+    "type": "relates_to"
+  },
+  {
+    "source": "gateway-poc-mage",
+    "target": "gateway-kappa-evidence-mage",
+    "type": "built_on"
+  },
+  {
+    "source": "gateway-poc-mage",
+    "target": "civic-city-of-mages",
+    "type": "relates_to"
+  },
+  {
+    "source": "gateway-openrsi-mage",
+    "target": "skill-dual-agent-harness",
+    "type": "implements"
+  },
+  {
+    "source": "gateway-star-key",
+    "target": "concept-openvtc-vti",
+    "type": "built_on"
+  },
+  {
+    "source": "gateway-star-key",
+    "target": "gateway-mages-city-vtc",
+    "type": "gateway_to"
+  },
+  {
+    "source": "gateway-star-key",
+    "target": "concept-city-takes-terms",
+    "type": "implements"
+  },
+  {
+    "source": "concept-city-takes-terms",
+    "target": "con-myterms",
+    "type": "implements"
+  },
+  {
+    "source": "concept-city-takes-terms",
+    "target": "gateway-mages-city-vtc",
+    "type": "founded_in"
+  },
+  {
+    "source": "concept-city-takes-terms",
+    "target": "gateway-myterms",
+    "type": "references"
+  },
+  {
+    "source": "concept-proven-leaf",
+    "target": "concept-evidence-root",
+    "type": "extends"
+  },
+  {
+    "source": "concept-proven-seat",
+    "target": "skill-dual-agent-harness",
+    "type": "extends"
+  },
+  {
+    "source": "concept-proof-enforced-separation",
+    "target": "concept-proven-seat",
+    "type": "relates_to"
+  },
+  {
+    "source": "finding-two-ids-one-model",
+    "target": "concept-proven-seat",
+    "type": "contradicts"
+  },
+  {
+    "source": "concept-told-layer-is-a-rate",
+    "target": "concept-told-layer-vs-sealed-layer",
+    "type": "extends"
+  },
+  {
+    "source": "concept-told-layer-vs-sealed-layer",
+    "target": "gateway-soul-mage",
+    "type": "measured_by"
+  },
+  {
+    "source": "concept-corpus-universe",
+    "target": "gateway-soul-mage",
+    "type": "measured_by"
+  },
+  {
+    "source": "concept-corpus-registry",
+    "target": "gateway-soul-mage",
+    "type": "measured_by"
+  },
+  {
+    "source": "concept-corpus-registry",
+    "target": "gateway-kappa-registry",
+    "type": "references"
+  },
+  {
+    "source": "concept-the-unfixed-constant",
+    "target": "gateway-hashsmash-mage",
+    "type": "relates_to"
+  },
+  {
+    "source": "concept-the-unfixed-constant",
+    "target": "chain-hashsmash-sha256",
+    "type": "relates_to"
+  },
+  {
+    "source": "concept-regenerable-result",
+    "target": "concept-evidence-root",
+    "type": "relates_to"
+  },
+  {
+    "source": "chron-the-pause-becomes-a-key",
+    "target": "gateway-caesura",
+    "type": "narrates"
+  },
+  {
+    "source": "chron-the-row-that-runs-again",
+    "target": "gateway-flashprove-mage",
+    "type": "narrates"
+  },
+  {
+    "source": "chron-the-row-that-runs-again",
+    "target": "concept-proven-leaf",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-the-row-that-runs-again",
+    "target": "finding-two-ids-one-model",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-the-universe-reads-itself",
+    "target": "concept-corpus-universe",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-the-universe-reads-itself",
+    "target": "concept-corpus-registry",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-the-universe-reads-itself",
+    "target": "concept-told-layer-vs-sealed-layer",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-the-universe-reads-itself",
+    "target": "chron-the-row-that-runs-again",
+    "type": "follows"
+  },
+  {
+    "source": "chron-the-pause-runs-again",
+    "target": "chron-the-pause-becomes-a-key",
+    "type": "follows"
+  },
+  {
+    "source": "chron-the-pause-runs-again",
+    "target": "concept-regenerable-result",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-the-pause-runs-again",
+    "target": "concept-gates-registry",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-the-pause-runs-again",
+    "target": "gateway-scroll-near",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-the-ceiling-belonged-to-the-fibre",
+    "target": "gateway-hashsmash-mage",
+    "type": "narrates"
+  },
+  {
+    "source": "chron-the-ceiling-belonged-to-the-fibre",
+    "target": "concept-the-unfixed-constant",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-the-seals-outrun-the-signs",
+    "target": "chron-the-universe-reads-itself",
+    "type": "follows"
+  },
+  {
+    "source": "chron-the-seals-outrun-the-signs",
+    "target": "concept-told-layer-is-a-rate",
+    "type": "introduces"
+  },
+  {
+    "source": "chron-the-seals-outrun-the-signs",
+    "target": "concept-corpus-universe",
+    "type": "references"
+  },
+  {
+    "source": "chron-the-seals-outrun-the-signs",
+    "target": "chron-the-pause-runs-again",
+    "type": "references"
+  },
+  {
+    "source": "chron-the-seals-outrun-the-signs",
+    "target": "chron-the-ceiling-belonged-to-the-fibre",
+    "type": "references"
+  },
+  {
+    "source": "act-tome-ix-16",
+    "target": "chron-the-row-that-runs-again",
+    "type": "narrates"
+  },
+  {
+    "source": "act-tome-ix-16",
+    "target": "act-tome-ix-15",
+    "type": "follows"
   }
+
 ] satisfies SpellwebEdge[]));
 
 // PoAW chains (2026-10-25): generated by scripts/sync-chains.mjs from mages.city's chains.json

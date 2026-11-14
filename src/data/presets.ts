@@ -379,7 +379,7 @@ export const HOLON_BLADE_PRESET: PresetConstellation = {
   marks: [
     { nodeId: 'con-paradox', emoji: '⚖️', note: 'The paradox — composing wholes preserves what the parts could not.', emojiSpell: '⚖️(parts → whole)' },
     { nodeId: 'fp-act-24', emoji: '🪩', note: 'Act 24 — the Oasis Protocol canonical linking primitive (agentprivacy-canonical, predates cousin-blade).', emojiSpell: '🪩(holographic bound)' },
-    { nodeId: 'con-holographic-bound', emoji: '🔮', note: 'The holographic bound — 96-edge boundary encodes 64-vertex bulk. Vagari travels the boundary.', emojiSpell: '96/64 = 1.5' },
+    { nodeId: 'con-holographic-bound', emoji: '🔮', note: 'The holographic bound — a 96-element boundary read against the 64-vertex bulk (C4 reopened). Vagari travels the boundary.', emojiSpell: '96/64 = 1.5' },
     { nodeId: 'per-holonic-architect', emoji: '🧙🪩', note: 'The Holonic Architect — abstract role; Vagari 🌳 is the City-of-Mages instance who tends /holon.', emojiSpell: '🧙🪩 → 🌳' },
     { nodeId: 'con-three-axis-separation', emoji: '🔱', note: 'Three-axis separation composed across the holon. Each axis preserves through composition.', emojiSpell: '🔱(composed × n)' },
     { nodeId: 'zk-tale-30', emoji: '🌕', note: 'The Eternal Sovereignty — Blade 63 Creative; full V(π,t) synthesis. The whole Vagari composes.', emojiSpell: '(⚔️⊥⿻⊥🧙)·(📊⊥🔮)·(🧠⊥⚙️)' },

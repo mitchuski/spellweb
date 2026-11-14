@@ -10,7 +10,7 @@ Interactive knowledge graph explorer and **ZK Blade Forge** for the agentprivacy
 
 Spellweb is a D3.js-powered knowledge graph visualization that maps the entire agentprivacy conceptual framework, featuring a ceremonial proof-of-presence system where users forge cryptographic entities by tracing constellations through knowledge.
 
-- **834 nodes / 742 connected / 1,788 edges** (local census, 2026-09-08 · zero broken endpoints). The export-based audit reveals 92 existing isolates, including 90 glossary terms missed by the old text scanner; these require semantic reconciliation. The September ecosystem batch adds 17 connected nodes with source evidence and implementation status.
+- **981 nodes / 975 connected / 2,224 edges** (local census via `scripts/read-graph.mjs`, 2026-11-12 · zero broken endpoints · 6 isolates, five glossary terms and one spell). The 12 November staging adds the City's scrolls and Sigil ledger, its new lanes (provable inference, the formal mage, Cæsura and its registry of gates, Proof of Control, OpenRSI, the Trust Tasks models, Star Key and the terms the City takes), the measure seat's readings and six chronicles, from DREAM-2026-11-04, -11-06 and -11-12.
 - **Domain coloring**: Swordsman (red), Mage (violet), First Person (gold), Shared (cyan)
 - **Hexagram System**: 64-Tetrahedra Lattice mapped to I Ching six-line structure
 - **ZK Blade Forge**: Transform attention into cryptographic proof
@@ -140,7 +140,7 @@ src/
 │   ├── ReflowingText.tsx      # Wandering text overlay
 │   └── lattice-visuals/       # 12 per-workshop SVG lattice components + dispatcher
 ├── data/
-│   ├── nodes.ts               # Knowledge graph nodes (585 at v1.6.0)
+│   ├── nodes.ts               # Knowledge graph nodes (981 with the generated chains, 2026-11-12)
 │   ├── edges.ts               # Relationships · 7 EdgeTypes added in v1.6.0 (keeps · wields · sibling_of · district_of · fits_for · succeeded_by · releases_to)
 │   └── theme.ts               # Visual theme & colors · edge styles for new EdgeTypes
 ├── lib/
