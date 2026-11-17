@@ -410,6 +410,9 @@ export function SpellCeremony({
     : Math.min(windowSize.width - 32, WAITING_WIDTH);
   // On mobile with no constellation, show compact orb-only view
   const isEmptyMobile = isMobile && circuitNodes.length === 0;
+  // 2026-11-17 (Mitch: the panel UX "needs to be cleaned significantly"): at rest the stage folds away; it opens once a
+  // constellation is traced or the evoke runs. It stays mounted (hidden), so its animation loop and refs live on.
+  const stageAtRest = !isMobile && circuitNodes.length === 0 && !isCasting;
   const panelHeight = isCasting
     ? (isMobile ? Math.min(windowSize.height - 250, 400) : EVOKE_HEIGHT)
     : (isEmptyMobile ? WAITING_HEIGHT_MOBILE_EMPTY : WAITING_HEIGHT);
@@ -1059,8 +1062,9 @@ export function SpellCeremony({
       style={{
         position: 'fixed',
         bottom: 30,
-        left: '50%',
+        left: 'calc((100% - var(--sw-drawer, 0px)) / 2)',  // centred in the space left of the drawer
         transform: 'translateX(-50%)',
+        transition: 'left .2s ease',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -1354,6 +1358,17 @@ export function SpellCeremony({
         >
           <span style={{ fontSize: 10 }}>▼</span>
         </button>
+
+        {/* 🗝️ Your key (2026-11-17, Mitch: keys live in the ceremony panel) */}
+        {!isMobile && (
+          <button
+            onClick={() => window.dispatchEvent(new Event('spellweb:open-key'))}
+            title="Your key: bring, sync and carry your City Key"
+            style={{ padding: '8px 12px', borderRadius: 18, background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.14), rgba(255, 215, 0, 0.06))', border: '1px solid #ffd70066', color: '#ffd700', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: '"JetBrains Mono", monospace', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s' }}
+          >
+            <span style={{ fontSize: 14 }}>🗝️</span> Key
+          </button>
+        )}
 
         {/* Sword [s] - Open blades modal - DESKTOP ONLY */}
         {!isMobile && onOpenBladesModal && (
@@ -1803,7 +1818,7 @@ export function SpellCeremony({
       {/* Main ceremony panel — wrapper that frames the canvas with cube casings on either side.
           Cube strips live OUTSIDE the canvas, inside this `position: relative` wrapper, so they
           don't overlap the orbital animation underneath. */}
-      <div style={{ order: 1, position: 'relative', display: 'inline-block' }}>
+      <div style={{ order: 1, position: 'relative', display: stageAtRest ? 'none' : 'inline-block' }}>
         {!isMobile && !isCasting && (
           <div style={{
             position: 'absolute',

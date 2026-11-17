@@ -10,6 +10,7 @@
  * the desktop corpus; ceremony and forge retain their mobile interaction model.
  */
 
+import { swordsmanFromKey, openKey } from '../lib/keyIdentity';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import ItemLatticeView, { type LatticeMode, type LatticeForgedBlade } from './ItemLatticeView';
 import * as d3 from 'd3';
@@ -45,7 +46,6 @@ import {
   getSwordsmanLink,
   importMageKeyBackup,
   initializeMageIdentity,
-  saveSwordsmanLink,
   type MageIdentity,
   type MageKeyBackup,
   type SwordsmanLink,
@@ -383,6 +383,7 @@ function PickerScreen({
         <HubButton glyph="◇" label="Lattice" accent={MAGE} onTap={onOpenLattice} />
         <HubButton glyph="📚" label="Archive" accent={TEXT} onTap={onOpenArchive} />
         <HubButton glyph="👁️" label="Witness" accent={GOLD} onTap={() => fileRef.current?.click()} />
+        <HubButton glyph="🗝️" label="Key" accent={GOLD} onTap={openKey} />
       </div>
 
       <div
@@ -2662,7 +2663,6 @@ function SwordScreen({ onBack }: { onBack: () => void }) {
   const [forged, setForged] = useState<ForgedBlade[]>([]);
   const [equippedId, setEquippedId] = useState<string | null>(null);
   const [link, setLink] = useState<SwordsmanLink | null>(null);
-  const [showImport, setShowImport] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
   const refresh = () => {
@@ -2683,7 +2683,7 @@ function SwordScreen({ onBack }: { onBack: () => void }) {
     } catch {
       setEquippedId(null);
     }
-    setLink(getSwordsmanLink());
+    setLink(swordsmanFromKey() ?? getSwordsmanLink());
   };
 
   useEffect(() => {
@@ -2917,11 +2917,11 @@ function SwordScreen({ onBack }: { onBack: () => void }) {
                 borderRadius: 12,
               }}
             >
-              Not linked. Import a Swordsman from agentprivacy.ai.
+              Bring your City Key: it carries who you are.
             </div>
           )}
           <button
-            onClick={() => setShowImport(true)}
+            onClick={openKey}
             style={{
               marginTop: 10,
               width: '100%',
@@ -2956,169 +2956,9 @@ function SwordScreen({ onBack }: { onBack: () => void }) {
         )}
       </div>
 
-      {showImport && (
-        <SwordsmanImportSheet
-          onClose={() => setShowImport(false)}
-          onImported={(imported) => {
-            saveSwordsmanLink(imported);
-            setLink(imported);
-            setShowImport(false);
-            setStatusMsg(`Linked ${imported.displayName}.`);
-          }}
-        />
-      )}
     </>
   );
 }
-
-function SwordsmanImportSheet({
-  onClose,
-  onImported,
-}: {
-  onClose: () => void;
-  onImported: (link: SwordsmanLink) => void;
-}) {
-  const [input, setInput] = useState('');
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = () => {
-    setError(null);
-    try {
-      const parsed = JSON.parse(input);
-      if (!parsed.publicKeyHex || !/^[0-9a-f]{64}$/i.test(parsed.publicKeyHex)) {
-        throw new Error('Missing or invalid publicKeyHex (expected 64 hex chars)');
-      }
-      if (!parsed.participantId || !/^ap-[0-9a-f]{16}$/i.test(parsed.participantId)) {
-        throw new Error('Missing or invalid participantId (expected ap-{16hex})');
-      }
-      const link: SwordsmanLink = {
-        participantId: parsed.participantId,
-        displayName: parsed.displayName || 'Unknown Swordsman',
-        publicKeyHex: parsed.publicKeyHex,
-        trustTier: parsed.trustTier || 'blade',
-        constellationPath: parsed.constellationPath,
-        linkedAt: new Date().toISOString(),
-      };
-      onImported(link);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Invalid JSON');
-    }
-  };
-
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.75)',
-        zIndex: 100,
-        display: 'flex',
-        alignItems: 'flex-end',
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          width: '100%',
-          maxHeight: '85vh',
-          background: PANEL,
-          borderTop: `1px solid ${BORDER}`,
-          borderRadius: '16px 16px 0 0',
-          padding: '20px 18px 28px',
-          overflowY: 'auto',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: TEXT_BRIGHT, flex: 1 }}>
-            Link Swordsman
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="close"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: TEXT_DIM,
-              fontSize: 22,
-              cursor: 'pointer',
-              padding: 0,
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        <div style={{ fontSize: 13, color: TEXT_DIM, marginBottom: 12, lineHeight: 1.5 }}>
-          Paste your agentprivacy.ai swordsman export below.
-        </div>
-
-        <textarea
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          placeholder={`{
-  "publicKeyHex": "...",
-  "participantId": "ap-...",
-  "displayName": "..."
-}`}
-          style={{
-            width: '100%',
-            minHeight: 140,
-            padding: 12,
-            background: 'rgba(30, 30, 45, 0.8)',
-            border: `1px solid ${BORDER}`,
-            borderRadius: 10,
-            color: TEXT_BRIGHT,
-            fontSize: 12,
-            fontFamily: '"JetBrains Mono", monospace',
-            resize: 'vertical',
-            boxSizing: 'border-box',
-          }}
-        />
-
-        {error && (
-          <div
-            style={{
-              marginTop: 8,
-              padding: '8px 12px',
-              background: 'rgba(255, 100, 100, 0.08)',
-              border: '1px solid rgba(255, 100, 100, 0.3)',
-              borderRadius: 8,
-              color: '#ff6e6e',
-              fontSize: 12,
-            }}
-          >
-            {error}
-          </div>
-        )}
-
-        <button
-          onClick={handleSubmit}
-          disabled={!input.trim()}
-          style={{
-            width: '100%',
-            marginTop: 14,
-            padding: '14px 18px',
-            background: input.trim() ? `${SWORDSMAN}1a` : 'rgba(60, 60, 80, 0.2)',
-            border: `1px solid ${input.trim() ? `${SWORDSMAN}66` : BORDER}`,
-            borderRadius: 12,
-            color: input.trim() ? SWORDSMAN : TEXT_DIM,
-            fontSize: 15,
-            fontWeight: 600,
-            cursor: input.trim() ? 'pointer' : 'not-allowed',
-            fontFamily: 'inherit',
-          }}
-        >
-          ⚔️ Link Identity
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────
-// Shared bits: confirm dialog, section label, back header
-// ─────────────────────────────────────────────────────────────────
 
 function ConfirmDialog({
   icon,
@@ -3543,7 +3383,7 @@ function MobileInventory({ mode, onSwitchMode, onBack }: {
       dispatchReceipts: read<import('../types/graph').DispatchReceipt[]>(SPELLWEB_STORAGE_KEYS.dispatchReceipts, []),
     };
   });
-  const link = getSwordsmanLink();
+  const link = swordsmanFromKey() ?? getSwordsmanLink();
   return <ItemLatticeView open mode={mode} onClose={onBack} onSwitchMode={onSwitchMode}
     {...inventory} keyIdentity={{ bearerName: link?.displayName, swordsmanId: link?.participantId, mageId: getMageIdentity()?.mageId }} />;
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import KeyStar from './KeyStar';
 import { clearStarAppearance, receiveStarAppearance, useStarAppearance, type StarPalette } from '../lib/starAppearance';
 import { appearanceFromJSON } from '../lib/starProjection.mjs';
 import { loadKey, saveKey, importKeyJSON, exportKeyJSON, CITY_KEY_EVENT } from '../lib/cityKey';
@@ -8,12 +9,23 @@ import './StarConnection.css';
 import { useEquippedStar, setStarEquipped, syncStarLoadout } from '../lib/starLoadout';
 import { downloadJourney } from '../lib/journey-store';
 import { foldActiveJourney } from '../lib/cityKeyJourney';
+import { OPEN_KEY_EVENT } from '../lib/keyIdentity';
+
+// a soulbis /star snapshot carries the key in a PNG tEXt chunk named cityKey (base64 JSON)
+function keyFromPng(u: Uint8Array): string {
+ if(u.length<20||u[0]!==0x89||u[1]!==0x50||u[2]!==0x4e||u[3]!==0x47) throw Error('That is not a PNG.');
+ const lat=(b: Uint8Array)=>{let s='';for(const c of b)s+=String.fromCharCode(c);return s;};
+ for(let p=8;p+12<=u.length;){const len=((u[p]<<24)|(u[p+1]<<16)|(u[p+2]<<8)|u[p+3])>>>0,type=lat(u.subarray(p+4,p+8));
+  if(type==='tEXt'){const d=u.subarray(p+8,p+8+len),z=d.indexOf(0);if(z>0&&lat(d.subarray(0,z))==='cityKey'){const bin=atob(lat(d.subarray(z+1)));return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)));}}
+  if(type==='IEND')break;p+=12+len;}
+ throw Error('No City Key inside this PNG.');
+}
 const defaults = {cool:'#141a3d',warm:'#f0eee8',sword:'#e8523a',mage:'#4dd9e8'};
 type Preview = { text: string; palette: StarPalette; name: string; bundle: boolean };
-export default function StarConnection() {
+export default function StarConnection({ inline = false }: { inline?: boolean } = {}) {
  const appearance = useStarAppearance();
  const equipped = useEquippedStar();
- const [open, setOpen] = useState(false);
+ const [open, setOpen] = useState(inline);  // inline: lives in the drawer's Key tab, always shown
  const [preview, setPreview] = useState<Preview | null>(null);
  const [busy, setBusy] = useState(false);
  const [error, setError] = useState('');
@@ -22,13 +34,13 @@ export default function StarConnection() {
  const input = useRef<HTMLInputElement>(null);
  useEffect(() => {
   const show = () => setOpen(true);
-  window.addEventListener('spellweb:open-star', show);
+  window.addEventListener('spellweb:open-star', show); window.addEventListener(OPEN_KEY_EVENT, show);
   const receive = (event: Event) => { receiveStarAppearance((event as CustomEvent).detail); };
   const sync = () => { try { setKey(loadKey()); } catch { setError('Could not read the saved City Key.'); } };
   window.addEventListener('spellweb-star-appearance', receive);
   window.addEventListener(CITY_KEY_EVENT, sync);
   window.addEventListener('storage', sync);
-  return () => { window.removeEventListener('spellweb:open-star', show); window.removeEventListener('spellweb-star-appearance', receive); window.removeEventListener(CITY_KEY_EVENT, sync); window.removeEventListener('storage', sync); };
+  return () => { window.removeEventListener('spellweb:open-star', show); window.removeEventListener(OPEN_KEY_EVENT, show); window.removeEventListener('spellweb-star-appearance', receive); window.removeEventListener(CITY_KEY_EVENT, sync); window.removeEventListener('storage', sync); };
  }, []);
  useEffect(() => {
   if (!key) return;
@@ -43,8 +55,9 @@ export default function StarConnection() {
  async function read(file: File) {
   setBusy(true); setError(''); setPreview(null); setNotice('');
   try {
-   if(file.size > 2*1024*1024) throw Error('Choose a JSON file smaller than 2 MiB.');
-   const text = await file.text();
+   const isPng = file.type === 'image/png' || /\.png$/i.test(file.name);
+   if(file.size > (isPng ? 16 : 2)*1024*1024) throw Error(isPng ? 'Choose a PNG smaller than 16 MiB.' : 'Choose a JSON file smaller than 2 MiB.');
+   const text = isPng ? keyFromPng(new Uint8Array(await file.arrayBuffer())) : await file.text();
    const projected = await appearanceFromJSON(text);
    const value = JSON.parse(text);
    const bundle = value.kind === BUNDLE_KIND;
@@ -69,15 +82,15 @@ export default function StarConnection() {
   finally { setBusy(false); }
  }
  const palette = preview?.palette ?? appearance?.palette ?? defaults;
- return <div id="spellweb-star" className="sw-star" style={Object.fromEntries(Object.entries(palette).map(([k,v])=>['--'+k,v])) as CSSProperties}>
-  {open && <section className="sw-star-panel" aria-label="Your Star">
-   <header><span className="eyebrow">CITY OF MAGES</span><button aria-label="Close Star" onClick={()=>setOpen(false)}>×</button></header>
-   <h2>Your Star.</h2>
-    <svg viewBox="0 0 200 200" role="img" aria-label="Paired Soulbis Star tetrahedra in your City Key colours"><circle className="ring" cx="100" cy="100" r="87"/><ellipse className="orbit" cx="100" cy="100" rx="92" ry="32" transform="rotate(-32 100 100)"/><ellipse className="orbit" cx="100" cy="100" rx="92" ry="32" transform="rotate(48 100 100)"/><path className="sword" d="M159.13 135.53L114.18 79.88 M159.13 135.53L40.87 145.26 M159.13 135.53L85.82 39.33 M114.18 79.88L40.87 145.26 M114.18 79.88L85.82 39.33 M40.87 145.26L85.82 39.33"/><path className="mage" d="M40.87 64.47L85.82 120.12 M40.87 64.47L159.13 54.74 M40.87 64.47L114.18 160.67 M85.82 120.12L159.13 54.74 M85.82 120.12L114.18 160.67 M159.13 54.74L114.18 160.67"/><circle className="centre" cx="100" cy="100" r="3"/></svg>
+ return <div id="spellweb-star" className={`sw-star${inline ? ' sw-star-inline' : ''}`} style={Object.fromEntries(Object.entries(palette).map(([k,v])=>['--'+k,v])) as CSSProperties}>
+  {open && <section className={`sw-star-panel ${inline ? 'sw-key-inline' : 'sw-key-card'}`} aria-label="Your key">
+   {!inline && <header><span className="eyebrow">THE CEREMONY · YOUR KEY</span><button aria-label="Close your key" onClick={()=>setOpen(false)}>×</button></header>}
+   <h2>Your key.</h2>
+    <KeyStar palette={palette} name={key ? (key.bearerName ?? (typeof (key.payload as Record<string, unknown>)?.name === 'string' ? String((key.payload as Record<string, unknown>).name) : 'Your City Key')) : undefined} kappa={key?.kappa ?? null} />
    <p className="star-status" role="status">{preview ? `Preview · ${preview.name}` : notice || (key ? 'City Key loaded in this browser' : 'Bring your City Key')}</p>
-   <input ref={input} aria-label="Import Star JSON" type="file" accept=".json,application/json" disabled={busy} onChange={e=>{const f=e.target.files?.[0];if(f)void read(f);e.target.value='';}} />
-   <button className="star-primary" disabled={busy} onClick={()=>input.current?.click()}>{busy ? 'Reading…' : 'Import City Key JSON'}</button>
-   <p className="muted">City Key or private journey bundle · JSON</p>
+   <input ref={input} aria-label="Import Star JSON" type="file" accept=".json,application/json,.png,image/png" disabled={busy} onChange={e=>{const f=e.target.files?.[0];if(f)void read(f);e.target.value='';}} />
+   <button className="star-primary" disabled={busy} onClick={()=>input.current?.click()}>{busy ? 'Reading…' : 'Bring your City Key'}</button>
+   <p className="muted">City Key or private journey bundle (JSON), or a soulbis Star snapshot (PNG)</p>
    {preview && <div className="star-preview">
     <p>{preview.bundle ? 'Key and original journey evidence are ready to import.' : 'Key ready to import. Original journey evidence is only included in a bundle.'}</p>
     {key && <p>This replaces your current local City Key. Export it below first if you want to keep a copy.</p>}
@@ -98,9 +111,8 @@ export default function StarConnection() {
    {key && <button onClick={()=>{const url=URL.createObjectURL(new Blob([exportKeyJSON(key)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='city-key.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}}>Export City Key JSON</button>}
    <a className="star-customise" href="https://soulbis.com/star/" target="_blank" rel="noopener noreferrer">Customise on Star ↗</a>
    {appearance && <button onClick={()=>{clearStarAppearance();setNotice('Appearance reset. Your City Key is still saved.');}}>Reset colours</button>}
-   <p className="muted">{appearance?.expiresAt ? 'Extension colours · temporary. ' : ''}Local key · VTA signer not connected.</p>
+   <p className="muted">{appearance?.expiresAt ? 'Extension colours · temporary. ' : ''}Your orb unlocks your keys; the Swordsman Key says who you are, the City Key where you stand. The <a href="https://mages.city/star-key.html" target="_blank" rel="noopener noreferrer">Star Key ↗</a> (your VTA, in the browser) carries them and signs for you. Here the key lives in this browser.</p>
    <p role="alert" className="star-error">{error}</p>
   </section>}
-  <button className="sw-star-launch" aria-expanded={open} onClick={()=>setOpen(!open)}>✦ Star</button>
  </div>;
 }

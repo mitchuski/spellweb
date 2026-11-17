@@ -290,6 +290,14 @@ const V1_8_0_AND_KEY_EDGES: SpellwebEdge[] = [
   { source: "cast-dokime",       target: "shop-horizon", type: "keeps" },
   { source: "cast-poros",        target: "shop-horizon", type: "keeps" },
   { source: "shop-salvage-yard", target: "shop-horizon", type: "sibling_of" },  // dormant annex, gated on Horizon
+  // ── CÆSURA (2026-11-16) · a workshop of its own at V35, beside the Horizon keepers ──
+  { source: "cast-caesura",    target: "shop-caesura",          type: "keeps" },
+  { source: "shop-caesura",    target: "shop-horizon",          type: "sibling_of" },
+  { source: "shop-caesura",    target: "vertex-v35",            type: "inhabits" },
+  { source: "cast-caesura",    target: "vertex-v35",            type: "inhabits" },
+  { source: "gateway-caesura", target: "shop-caesura",          type: "kin_to" },      // its first artefact (on NEAR)
+  { source: "shop-caesura",    target: "gateway-swordsmans-key", type: "relates_to" },  // the dual key the Swordsman's Key now uses
+  { source: "shop-caesura",    target: "conj-c70",              type: "references" },  // crypto-agility: the composite suite
   { source: "act-tome-ix-1",     target: "shop-horizon", type: "founds" },
   { source: "act-tome-ix-1",     target: "cast-eos",     type: "introduces" },
   { source: "act-tome-ix-1",     target: "cast-dokime",  type: "introduces" },

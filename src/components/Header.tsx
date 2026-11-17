@@ -246,29 +246,6 @@ export function Header({ searchQuery, onSearchChange, nodeCount, edgeCount, spel
                   margin: "8px 0"
                 }} />
 
-                {/* Share button in dropdown */}
-                <a
-                  href="https://agentprivacy.ai/evoke"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    width: "100%",
-                    padding: "6px 10px",
-                    borderRadius: 4,
-                    background: "transparent",
-                    border: "1px solid transparent",
-                    color: THEME.textDim,
-                    fontSize: 11,
-                    textDecoration: "none",
-                    fontFamily: "'IBM Plex Sans', sans-serif",
-                  }}
-                >
-                  <span>🔮</span>
-                  <span>Share Knowledge</span>
-                </a>
               </div>
             )}
           </div>
@@ -354,39 +331,7 @@ export function Header({ searchQuery, onSearchChange, nodeCount, edgeCount, spel
           </div>
         )}
 
-        {/* Desktop: Share Knowledge Link */}
-        {!isMobile && (
-          <a
-            href="https://agentprivacy.ai/evoke"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              padding: "4px 8px",
-              borderRadius: 4,
-              background: "transparent",
-              border: `1px solid ${THEME.panelBorder}`,
-              color: THEME.textDim,
-              fontSize: 10,
-              textDecoration: "none",
-              fontFamily: "'JetBrains Mono', monospace",
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#7b68ee';
-              e.currentTarget.style.color = '#7b68ee';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = THEME.panelBorder;
-              e.currentTarget.style.color = THEME.textDim;
-            }}
-          >
-            <span>🔮</span>
-            <span>SHARE</span>
-          </a>
-        )}
+        {/* Share (→ agentprivacy.ai/evoke) removed 2026-11-17: the Key drawer carries your work out */}
 
         {/* Desktop: Focus mode toggle */}
         {!isMobile && onToggleFocus && (

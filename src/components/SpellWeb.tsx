@@ -1,4 +1,10 @@
 import { foldActiveJourney } from '../lib/cityKeyJourney';
+import DrawerTabs, { DrawerShell, DRAWER_W, type DrawerTab } from './DrawerTabs';
+import StarConnection from './StarConnection';
+import { OPEN_KEY_EVENT } from '../lib/keyIdentity';
+import { presentArtefact, type BladeLike } from '../lib/artefactTask';
+import { CITY_KEY_EVENT } from '../lib/cityKey';
+import { swordsmanFromKey, openKey } from '../lib/keyIdentity';
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import * as d3 from "d3";
 import type { SpellwebNode, SpellwebEdge, FilterState, TypeFilterState, SpellbookFilterState } from '../types/graph';
@@ -21,7 +27,6 @@ import { crossValidateEntity } from '../lib/v160-cross-validate';
 import { getWorkshopForgeContext, buildArtefactFilename, getArtefactEmojiPalette } from '../lib/workshop-artefact';
 import WorkshopLatticeVisual from './lattice-visuals/WorkshopLatticeVisual';
 import { WanderingOrbs } from './WanderingOrbs';
-import { SwordsmanImport } from './SwordsmanImport';
 
 import {
   hasMageIdentity,
@@ -29,7 +34,6 @@ import {
   signBlade,
   getMageIdentity,
   getSwordsmanLink,
-  saveSwordsmanLink,
   exportMageKeyBackup,
   type SwordsmanLink,
 } from '../lib/mageIdentity';
@@ -229,12 +233,35 @@ export default function SpellWeb() {
   const [showBladesModal, setShowBladesModal] = useState(false); // Unified Blades modal (ZK + Witness)
   const [showRunecraftModal, setShowRunecraftModal] = useState(false); // Runecraft modal for Swordsman linking
   const [runecraftBlade, setRunecraftBlade] = useState<ForgedBlade | null>(null); // Blade being runecrafted
-  const [swordsmanLink, setSwordsmanLink] = useState<SwordsmanLink | null>(() => getSwordsmanLink());
-  const [showSwordsmanImport, setShowSwordsmanImport] = useState(false); // Swordsman identity import modal
+  const [swordsmanLink, setSwordsmanLink] = useState<SwordsmanLink | null>(() => swordsmanFromKey() ?? getSwordsmanLink());
+  // 2026-11-17: the Swordsman identity rides in the City Key; follow it when the key changes
+  useEffect(() => { const r = () => setSwordsmanLink(swordsmanFromKey() ?? getSwordsmanLink()); window.addEventListener(CITY_KEY_EVENT, r); return () => window.removeEventListener(CITY_KEY_EVENT, r); }, []);
   const [showMageMenu, setShowMageMenu] = useState(false); // Mage spell menu (M key)
   // v1.6.0 lattice overlay state · the lattice is the unified items page (ArtefactPanel retired 2026-05-15)
   const [latticeOpen, setLatticeOpen] = useState(false);
   const [latticeMode, setLatticeMode] = useState<'items' | 'lattice'>('items');
+  // 2026-11-17 · one side drawer: Key · Sword · Mage · Items share the right-hand drawer; one open at a time
+  const [keyOpen, setKeyOpen] = useState(false);
+  const [layersOpen, setLayersOpen] = useState(false);  // ☰ layers + legend, folded by default
+  const drawer: DrawerTab | null = keyOpen ? 'key' : showBladesModal ? 'sword' : showMageMenu ? 'mage' : latticeOpen ? 'items' : null;
+  const pickDrawer = useCallback((t: DrawerTab | null) => {
+    setKeyOpen(t === 'key'); setShowBladesModal(t === 'sword'); setShowMageMenu(t === 'mage'); setLatticeOpen(t === 'items');
+    if (t) setSelectedNode(null);
+  }, []);
+  // whichever way a panel was opened (button, hotkey, event), the others close
+  useEffect(() => { if (keyOpen) { setShowBladesModal(false); setShowMageMenu(false); setLatticeOpen(false); setSelectedNode(null); } }, [keyOpen]);
+  useEffect(() => { if (showBladesModal) { setKeyOpen(false); setShowMageMenu(false); setLatticeOpen(false); setSelectedNode(null); } }, [showBladesModal]);
+  useEffect(() => { if (showMageMenu) { setKeyOpen(false); setShowBladesModal(false); setLatticeOpen(false); setSelectedNode(null); } }, [showMageMenu]);
+  useEffect(() => { if (latticeOpen) { setKeyOpen(false); setShowBladesModal(false); setShowMageMenu(false); setSelectedNode(null); } }, [latticeOpen]);
+  useEffect(() => {
+    const k = () => pickDrawer('key');
+    const d = (e: Event) => pickDrawer((e as CustomEvent<DrawerTab | null>).detail ?? null);
+    window.addEventListener(OPEN_KEY_EVENT, k); window.addEventListener('spellweb:drawer', d);
+    return () => { window.removeEventListener(OPEN_KEY_EVENT, k); window.removeEventListener('spellweb:drawer', d); };
+  }, [pickDrawer]);
+  // the ceremony bar re-centres in the space left of the drawer (or of the node inspector)
+  useEffect(() => { document.documentElement.style.setProperty('--sw-drawer', drawer || selectedNode ? `${DRAWER_W}px` : '0px'); }, [drawer, selectedNode]);
+  useEffect(() => { if (!drawer) return; const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') pickDrawer(null); }; window.addEventListener('keydown', esc); return () => window.removeEventListener('keydown', esc); }, [drawer, pickDrawer]);
   const [activeCeremonyAudio, setActiveCeremonyAudio] = useState<'sun' | 'moon' | 'aether' | null>(null);
   const [witnessedShops, setWitnessedShops] = useState<Record<string, string>>(() => {
     try { return JSON.parse(localStorage.getItem('spellweb:witnessed-shops') || '{}'); }
@@ -2744,6 +2771,8 @@ export default function SpellWeb() {
           if (prev.some(b => b.proof.signature === proof.signature)) return prev;
           return [...prev, witnessBlade];
         });
+        // a witnessed artefact is a Trust Task too (2026-11-17)
+        void presentArtefact(witnessBlade as unknown as BladeLike).catch(e => console.warn('[artefact/present]', e));
       }
 
       // Load constellation for tracing
@@ -2809,11 +2838,11 @@ export default function SpellWeb() {
       {showMageMenu && (
         <div
           style={{
-            position: "absolute",
-            top: 0,
+            position: "fixed",
+            top: 56,
             right: 0,
-            width: 480,
-            height: "100%",
+            width: DRAWER_W,
+            bottom: 0,
             background: THEME.panelBg,
             borderLeft: `1px solid #9b59b655`,
             zIndex: 110,
@@ -2823,6 +2852,7 @@ export default function SpellWeb() {
             boxShadow: "-12px 0 32px rgba(0,0,0,0.4)",
           }}
         >
+          <DrawerTabs active="mage" onPick={pickDrawer} onClose={() => pickDrawer(null)} />
           <div
             style={{
               padding: 24,
@@ -3358,6 +3388,8 @@ export default function SpellWeb() {
 
       {!isFocusMode && (
         <GraphFilters
+          shown={layersOpen}
+          onShow={setLayersOpen}
           filters={filters}
           typeFilters={typeFilters}
           onToggleLayer={toggleLayer}
@@ -3387,6 +3419,8 @@ export default function SpellWeb() {
       <ItemLatticeView
         open={latticeOpen}
         mode={latticeMode}
+        docked
+        drawerHeader={<DrawerTabs active="items" onPick={pickDrawer} onClose={() => pickDrawer(null)} />}
         onClose={() => setLatticeOpen(false)}
         onSwitchMode={(m) => setLatticeMode(m)}
         witnessedShops={witnessedShops}
@@ -3484,7 +3518,7 @@ export default function SpellWeb() {
         {mobileFiltersOpen ? '✕' : '☰'}
       </button>
 
-      {!isFocusMode && <Legend hasSelectedNode={!!selectedNode} />}
+      {!isFocusMode && layersOpen && !drawer && <Legend hasSelectedNode={!!selectedNode} />}
 
       {/* HoverTooltip removed — the bottom-right node-detail card / ceremony hover slot already
           shows hovered-node info. The mid-screen floating tooltip was redundant. */}
@@ -5220,6 +5254,13 @@ export default function SpellWeb() {
 
       </div>
 
+      {/* Key tab of the drawer (2026-11-17) */}
+      {keyOpen && (
+        <DrawerShell active="key" onPick={pickDrawer} onClose={() => pickDrawer(null)}>
+          <StarConnection inline />
+        </DrawerShell>
+      )}
+
       {/* Node Inspector */}
       {selectedNode && !isFocusMode && (
         <NodeInspector
@@ -5607,62 +5648,18 @@ export default function SpellWeb() {
               </div>
             </div>
 
-            {/* Swordsman Link Status */}
+            {/* Swordsman identity: from your City Key (2026-11-17; the paste-a-link step is gone) */}
             {!swordsmanLink ? (
               <div style={{ marginBottom: 16 }}>
-                <div style={{
-                  color: '#f59e0b',
-                  fontSize: 11,
-                  fontFamily: "'JetBrains Mono', monospace",
-                  marginBottom: 12,
-                  textAlign: 'center',
-                }}>
-                  ⚠️ No Swordsman linked
-                </div>
-                <div style={{
-                  color: '#888',
-                  fontSize: 10,
-                  fontFamily: "'JetBrains Mono', monospace",
-                  marginBottom: 12,
-                  textAlign: 'center',
-                }}>
-                  Import your Swordsman identity from agentprivacy to enable runecraft.
-                  Paste the JSON export below:
-                </div>
-                <textarea
-                  placeholder='{"participantId":"ap-...","displayName":"...","publicKeyHex":"..."}'
-                  style={{
-                    width: '100%',
-                    height: 80,
-                    background: 'rgba(0,0,0,0.3)',
-                    border: '1px solid #444',
-                    borderRadius: 6,
-                    color: '#fff',
-                    fontSize: 10,
-                    fontFamily: "'JetBrains Mono', monospace",
-                    padding: 8,
-                    resize: 'none',
-                  }}
-                  onChange={(e) => {
-                    try {
-                      const data = JSON.parse(e.target.value);
-                      if (data.participantId && data.publicKeyHex) {
-                        const link = {
-                          participantId: data.participantId,
-                          displayName: data.displayName || 'Swordsman',
-                          publicKeyHex: data.publicKeyHex,
-                          trustTier: data.trustTier || 'blade',
-                          constellationPath: data.constellationPath,
-                          linkedAt: new Date().toISOString(),
-                        };
-                        saveSwordsmanLink(link);
-                        setSwordsmanLink(link);
-                      }
-                    } catch {
-                      // Invalid JSON, ignore
-                    }
-                  }}
-                />
+                <p style={{ color: '#f59e0b', fontSize: 11, fontFamily: "'JetBrains Mono', monospace", marginBottom: 10 }}>
+                  Bring your City Key to inscribe runes: it carries who you are.
+                </p>
+                <button
+                  onClick={openKey}
+                  style={{ padding: '10px 16px', borderRadius: 6, background: 'linear-gradient(135deg, #ffd70028, #e8523a18)', border: '1px solid #ffd700aa', color: '#ffd700', fontSize: 12, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", display: 'flex', alignItems: 'center', gap: 8 }}
+                >
+                  <span>🗝️</span> Bring your City Key
+                </button>
               </div>
             ) : (
               <div style={{ marginBottom: 16 }}>
@@ -5782,11 +5779,11 @@ export default function SpellWeb() {
       {showBladesModal && (
         <div
           style={{
-            position: "absolute",
-            top: 0,
+            position: "fixed",
+            top: 56,
             right: 0,
-            width: 480,
-            height: "100%",
+            width: DRAWER_W,
+            bottom: 0,
             background: THEME.panelBg,
             borderLeft: `1px solid #e9456055`,
             zIndex: 110,
@@ -5796,6 +5793,7 @@ export default function SpellWeb() {
             boxShadow: "-12px 0 32px rgba(0,0,0,0.4)",
           }}
         >
+          <DrawerTabs active="sword" onPick={pickDrawer} onClose={() => pickDrawer(null)} />
           <div
             style={{
               padding: 24,
@@ -5869,7 +5867,7 @@ export default function SpellWeb() {
                 )}
                 {/* Holonic City Key — standalone content-addressed JSON (κ stamped) */}
                 <button
-                  onClick={handleExportCityKeyJSON}
+                  onClick={openKey}
                   style={{
                     padding: "6px 12px",
                     borderRadius: 6,
@@ -5883,9 +5881,9 @@ export default function SpellWeb() {
                     alignItems: 'center',
                     gap: 6,
                   }}
-                  title="Export your holonic City Key as content-addressed JSON (κ stamped) — round-trips to /star, /lattice, agentprivacy"
+                  title="Your key: bring, sync, export and carry your City Key (in the ceremony panel)"
                 >
-                  <span>🗝️</span> City Key.json
+                  <span>🗝️</span> Your key
                 </button>
                 <button
                   onClick={() => setShowBladesModal(false)}
@@ -5902,111 +5900,22 @@ export default function SpellWeb() {
 
             {/* Forge ceremony is reached from SpellCeremony's main forge button when proof ready. */}
 
-            {/* Swordsman Link Section - Import from agentprivacy */}
-            <div style={{
-              padding: 16,
-              background: swordsmanLink ? 'rgba(233, 69, 96, 0.05)' : '#e9456008',
-              borderRadius: 8,
-              border: `1px solid ${swordsmanLink ? 'rgba(233, 69, 96, 0.3)' : '#e9456030'}`,
-              marginBottom: 16,
-            }}>
-              <div style={{
-                fontSize: 11,
-                color: '#e94560',
-                fontFamily: "'JetBrains Mono', monospace",
-                letterSpacing: 1,
-                marginBottom: 12,
-              }}>
-                ⚔️ SWORDSMAN LINK
-              </div>
+            {/* Your key (2026-11-17): the Swordsman identity comes with your City Key; keys live in the ceremony panel */}
+            <div style={{ padding: 16, background: 'rgba(255, 215, 0, 0.04)', borderRadius: 8, border: '1px solid #ffd70030', marginBottom: 16 }}>
+              <div style={{ fontSize: 11, color: '#ffd700', fontFamily: "'JetBrains Mono', monospace", marginBottom: 8, letterSpacing: '0.1em' }}>🗝️ YOUR KEY</div>
               {swordsmanLink ? (
-                <div>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    marginBottom: 12,
-                  }}>
-                    <span style={{ fontSize: 20 }}>⚔️</span>
-                    <div>
-                      <div style={{ color: '#e94560', fontWeight: 600, fontSize: 13 }}>
-                        {swordsmanLink.displayName}
-                      </div>
-                      <div style={{
-                        fontSize: 10,
-                        fontFamily: "'JetBrains Mono', monospace",
-                        color: '#666',
-                      }}>
-                        {swordsmanLink.participantId}
-                      </div>
-                      {swordsmanLink.constellationPath && (
-                        <div style={{ fontSize: 12, marginTop: 4 }}>
-                          {swordsmanLink.constellationPath}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button
-                      onClick={() => setShowSwordsmanImport(true)}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: 6,
-                        background: 'rgba(233, 69, 96, 0.1)',
-                        border: '1px solid rgba(233, 69, 96, 0.3)',
-                        color: '#e94560',
-                        fontSize: 11,
-                        cursor: 'pointer',
-                        fontFamily: "'JetBrains Mono', monospace",
-                      }}
-                    >
-                      Update Link
-                    </button>
-                    <button
-                      onClick={() => {
-                        localStorage.removeItem('spellweb-swordsman-link');
-                        setSwordsmanLink(null);
-                      }}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: 6,
-                        background: 'rgba(255, 100, 100, 0.1)',
-                        border: '1px solid rgba(255, 100, 100, 0.3)',
-                        color: '#ff6666',
-                        fontSize: 11,
-                        cursor: 'pointer',
-                        fontFamily: "'JetBrains Mono', monospace",
-                      }}
-                    >
-                      Unlink
-                    </button>
-                  </div>
-                </div>
+                <p style={{ fontSize: 12, color: THEME.text, margin: '0 0 10px' }}>
+                  ⚔️ {swordsmanLink.displayName} <span style={{ color: THEME.textDim, fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>{swordsmanLink.participantId}</span>
+                </p>
               ) : (
-                <div>
-                  <p style={{ fontSize: 11, color: THEME.textDim, marginBottom: 12 }}>
-                    Link your agentprivacy.ai Swordsman identity to inscribe blades with runes.
-                  </p>
-                  <button
-                    onClick={() => setShowSwordsmanImport(true)}
-                    style={{
-                      padding: '10px 16px',
-                      borderRadius: 6,
-                      background: 'linear-gradient(135deg, rgba(233, 69, 96, 0.2), rgba(233, 69, 96, 0.1))',
-                      border: '1px solid #e94560',
-                      color: '#e94560',
-                      fontSize: 12,
-                      cursor: 'pointer',
-                      fontFamily: "'JetBrains Mono', monospace",
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                    }}
-                  >
-                    <span>⚔️</span> Link Swordsman
-                  </button>
-                </div>
+                <p style={{ fontSize: 11, color: THEME.textDim, margin: '0 0 10px' }}>Your City Key carries who you are: bring it to inscribe blades with runes.</p>
               )}
+              <button
+                  onClick={openKey}
+                  style={{ padding: '10px 16px', borderRadius: 6, background: 'linear-gradient(135deg, #ffd70028, #e8523a18)', border: '1px solid #ffd700aa', color: '#ffd700', fontSize: 12, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", display: 'flex', alignItems: 'center', gap: 8 }}
+                >
+                  <span>🗝️</span> {swordsmanLink ? 'Your key →' : 'Bring your City Key'}
+                </button>
             </div>
 
             {/* Witness Blades Section - Upload/Import */}
@@ -6376,7 +6285,7 @@ export default function SpellWeb() {
                               ? `Runecrafted with ${blade.proof.swordsmanId}`
                               : swordsmanLink
                                 ? 'Runecraft with Swordsman key'
-                                : 'Link Swordsman to enable runecraft'}
+                                : 'Bring your City Key to enable runecraft'}
                             style={{
                               padding: '2px 5px',
                               borderRadius: 3,
@@ -6456,35 +6365,6 @@ export default function SpellWeb() {
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Swordsman Import Modal */}
-      {showSwordsmanImport && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.85)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 350,
-          }}
-          onClick={() => setShowSwordsmanImport(false)}
-        >
-          <div onClick={(e) => e.stopPropagation()}>
-            <SwordsmanImport
-              onImportComplete={(link) => {
-                setSwordsmanLink(link);
-                setShowSwordsmanImport(false);
-              }}
-              onClose={() => setShowSwordsmanImport(false)}
-            />
           </div>
         </div>
       )}
@@ -6920,6 +6800,8 @@ export default function SpellWeb() {
                       } : {}),
                     };
                     setForgedBlades(prev => [...prev, newBlade]);
+                    // the artefact as a Trust Task, carried in the City Key's journey (2026-11-17)
+                    void presentArtefact(newBlade as unknown as BladeLike).catch(e => console.warn('[artefact/present]', e));
                     setForgePhase('manifesting');
                     // Capture the signature this manifest just consumed. The 10s
                     // close-timer clears latestProof ONLY if it still matches the

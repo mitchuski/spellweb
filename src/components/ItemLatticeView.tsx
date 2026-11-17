@@ -13,6 +13,7 @@
  */
 
 import { BUNDLE_KIND, validateBundle } from '../lib/journey-core';
+import ItemStar from './ItemStar';
 import { adoptJourney, downloadJourney } from '../lib/journey-store';
 import { foldActiveJourney } from '../lib/cityKeyJourney';
 import { ingestPacketsPayload } from '../lib/proofPackets';
@@ -230,7 +231,9 @@ export default function ItemLatticeView({
   boundFamiliars = [],
   dispatchReceipts = [],
   onSetTrueNameConsent,
-}: ItemLatticeViewProps) {
+  docked = false,
+  drawerHeader,
+}: ItemLatticeViewProps & { docked?: boolean; drawerHeader?: React.ReactNode }) {
   const [selectionQuery, setSelectionQuery] = useState('');
   const detailRef = useRef<HTMLElement>(null);
   const selectNode = (node: SpellwebNode) => {
@@ -391,69 +394,8 @@ export default function ItemLatticeView({
   const totalArtefacts = Array.from(inhabitants.values()).reduce((acc, ns) => acc + ns.length, 0);
   const totalEmpty = 64 - inhabitants.size;
 
-  return (
-    <div
-      className="item-lattice"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(6, 6, 14, 0.94)',
-        backdropFilter: 'blur(8px)',
-        zIndex: 300,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: focusMode && mode === 'lattice' ? 0 : 20,
-      }}
-      role="dialog"
-      aria-label={`${mode === 'items' ? 'Items grid' : 'Spatial lattice'} view`}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: focusMode && mode === 'lattice' ? '100%' : 1280,
-          height: '100%',
-          maxHeight: focusMode && mode === 'lattice' ? '100%' : 760,
-          background: 'linear-gradient(180deg, rgba(10, 10, 20, 0.95), rgba(6, 6, 14, 0.95))',
-          border: focusMode && mode === 'lattice' ? 'none' : '1px solid rgba(212, 175, 55, 0.35)',
-          borderRadius: focusMode && mode === 'lattice' ? 0 : 12,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid rgba(212, 175, 55, 0.18)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <h2 style={{ margin: 0, fontSize: 16, fontFamily: "'Cormorant Garamond', serif", fontWeight: 600, color: THEME.textBright, letterSpacing: 0.5 }}>
-              {mode === 'items' ? '⚒️ Items' : '🗺️ Lattice'}
-            </h2>
-            <div style={{ display: 'flex', gap: 4 }}>
-              {(['items', 'lattice'] as LatticeMode[]).map(m => (
-                <button
-                  key={m}
-                  aria-pressed={mode === m}
-                  onClick={() => { onSwitchMode(m); detailRef.current?.parentElement?.scrollTo({ top: 0 }); }}
-                  style={{
-                    padding: '4px 10px',
-                    fontSize: 10.5,
-                    background: mode === m ? 'rgba(212, 175, 55, 0.15)' : 'transparent',
-                    border: `1px solid ${mode === m ? '#d4af37' : 'rgba(212, 175, 55, 0.25)'}`,
-                    color: mode === m ? THEME.textBright : THEME.textDim,
-                    borderRadius: 4,
-                    cursor: 'pointer',
-                    fontFamily: "'IBM Plex Sans', sans-serif",
-                    letterSpacing: 0.3,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+  // ── shared parts (2026-11-17): the pop-up and the docked drawer show the same pieces ──
+  const actionsJsx = (<>
             {/* Post-import Evoke CTA · only when a constellation is loaded on the canvas */}
             {hasConstellation && onBeginEvoke && (
               <button
@@ -521,60 +463,8 @@ export default function ItemLatticeView({
                 />
               </label>
             )}
-            {/* ⛶ Focus mode toggle · only meaningful on the spatial Lattice tab */}
-            {mode === 'lattice' && (
-              <button
-                onClick={() => setFocusMode(f => !f)}
-                aria-label={focusMode ? 'Exit focus mode' : 'Enter focus mode'}
-                title={focusMode ? 'Exit focus mode · restore side columns' : 'Focus mode · hide side columns + fill the viewport'}
-                style={{
-                  background: focusMode ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
-                  border: `1px solid ${focusMode ? '#d4af37' : 'rgba(212, 175, 55, 0.3)'}`,
-                  color: focusMode ? '#ffd700' : THEME.textDim,
-                  padding: '4px 10px',
-                  borderRadius: 4,
-                  cursor: 'pointer',
-                  fontSize: 14,
-                  lineHeight: 1,
-                }}
-              >
-                ⛶
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              aria-label="Close lattice view"
-              style={{
-                background: 'transparent',
-                border: '1px solid rgba(212, 175, 55, 0.3)',
-                color: THEME.textDim,
-                padding: '4px 10px',
-                borderRadius: 4,
-                cursor: 'pointer',
-                fontSize: 14,
-                lineHeight: 1,
-              }}
-            >
-              ×
-            </button>
-          </div>
-        </div>
-
-        {/* Three-column body · side columns collapse in focus mode (Lattice tab only) */}
-        <div className="item-lattice-body" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-          {/* Left · hover info */}
-          {!(focusMode && mode === 'lattice') && (
-          <aside className="item-lattice-info" style={{ width: 280, padding: 14, overflow: 'auto', borderRight: '1px solid rgba(212, 175, 55, 0.12)', background: 'rgba(212, 175, 55, 0.02)' }}>
-            {activeNode ? (
-              <ActiveNodeInfo node={activeNode} />
-            ) : (
-              <EmptyHoverInfo totalLit={totalLit} totalArtefacts={totalArtefacts} totalEmpty={totalEmpty} mode={mode} />
-            )}
-          </aside>
-          )}
-
-          {/* Centre · the canvas (Items grid OR spatial lattice) */}
-          <main className="item-lattice-main" style={{ minWidth: 0, flex: 1, padding: 16, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+  </>);
+  const summaryJsx = (<>
             {/* Summary line · forged · witnessed · workshops unlocked · migrated from retired ArtefactPanel header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 10, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace" }}>
               <span>
@@ -587,32 +477,8 @@ export default function ItemLatticeView({
                 <span style={{ color: '#ffd700' }}>{equipped.size}</span> equipped
               </span>
             </div>
-
-            <button className="inspect-item" onClick={() => detailRef.current?.querySelector('[data-city-key]')?.scrollIntoView({ block: 'start', behavior: 'smooth' })}>
-              City Key &amp; signing routes
-            </button>
-
-            {/* Items mode · flat emoji grid grouped by identity slot */}
-            {mode === 'items' && (
-              <ItemsGrid
-                itemsBySlot={itemsBySlot}
-                forgedBlades={forgedBlades}
-                forgedBySlot={forgedBySlot}
-                heldConstellations={heldConstellations}
-                boundFamiliars={boundFamiliars}
-                dispatchReceipts={dispatchReceipts}
-                onSetTrueNameConsent={onSetTrueNameConsent}
-                equipped={equipped}
-                provenSet={provenSet}
-                onToggle={toggleEquipped}
-                onPinNode={selectNode}
-                onExportCatalogue={onExportCatalogue}
-                onExportArtefact={onExportArtefact}
-                activeNodeId={activeNode?.id ?? null}
-              />
-            )}
-
-            {mode === 'lattice' && (
+  </>);
+  const selectorJsx = (
               <div className="lattice-selector">
                 <label htmlFor="lattice-search">Find an item or vertex</label>
                 <input id="lattice-search" type="search" value={selectionQuery}
@@ -627,11 +493,8 @@ export default function ItemLatticeView({
                   `${n.label} ${n.artefactName ?? ''} V${n.vertex}`.toLowerCase().includes(selectionQuery.trim().toLowerCase())
                 ) && <p role="status">No items match. Try a name or vertex such as V59.</p>}
               </div>
-            )}
-
-            {/* Spatial Lattice mode · 64-vertex Pascal's-row geometry */}
-            {mode === 'lattice' && (
-            <>
+  );
+  const latticeJsx = (<>
             <div style={{ fontSize: 10, color: THEME.textDim, fontFamily: "'JetBrains Mono', monospace" }}>
               1 · 6 · 15 · 20 · 15 · 6 · 1 = 64 vertices · <span style={{ color: '#d4af37' }}>{totalLit}</span> lit · <span style={{ color: THEME.textDim }}>{totalEmpty}</span> empty
             </div>
@@ -821,13 +684,8 @@ export default function ItemLatticeView({
                 });
               })}
             </svg>
-            </>
-            )}
-          </main>
-
-          {/* Right · identity-slots + equip toggle + equipped roster + forged inventory · hidden in focus mode */}
-          {!(focusMode && mode === 'lattice') && (
-          <aside ref={detailRef} className="item-lattice-details" style={{ width: 360, padding: 14, overflow: 'auto', borderLeft: '1px solid rgba(212, 175, 55, 0.12)', background: 'rgba(94, 234, 212, 0.02)' }}>
+  </>);
+  const selectionJsx = (<>
             {pinnedVertex !== null && <div className="lattice-selection">
               <button onClick={() => { setPinnedVertex(null); setHoveredVertex(null); }}>Clear selection</button>
               <label htmlFor="vertex-occupant">Items at V{pinnedVertex}</label>
@@ -845,6 +703,186 @@ export default function ItemLatticeView({
               provenSet={provenSet}
             />
             <ForgedInventory forgedBlades={forgedBlades} />
+  </>);
+
+  // 2026-11-17 (Mitch: "the items page is too popup detailed you cant even see the lattice"): docked, the lattice fills
+  // the main area and a slim list + the picked item's detail live in the one side drawer.
+  if (docked) return (
+    <>
+      <div className="item-lattice item-lattice-docked" role="region" aria-label="Items on the lattice"
+        style={{ position: 'fixed', top: 56, left: 0, right: 420, bottom: 0, background: 'rgba(6, 6, 14, 0.97)', zIndex: 95, overflow: 'hidden', padding: '18px 20px 130px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* the Privacy Star (2026-11-17): artefacts at their vertices, lighting up as they are brought back */}
+        <ItemStar inhabitants={inhabitants} provenSet={provenSet} equipped={equipped}
+          activeVertex={hoveredVertex} pinnedVertex={pinnedVertex}
+          onHover={v => { setHoveredVertex(v); setHoveredOccupantIdx(0); }} onPick={selectNode} />
+      </div>
+      <aside ref={detailRef} aria-label="Items drawer"
+        style={{ position: 'fixed', top: 56, right: 0, bottom: 0, width: 420, maxWidth: '100vw', background: 'rgba(10, 10, 20, 0.98)', borderLeft: '1px solid rgba(212, 175, 55, 0.25)', boxShadow: '-12px 0 32px rgba(0,0,0,0.4)', zIndex: 120, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {drawerHeader}
+        <div className="item-lattice-docked-body" style={{ flex: 1, overflow: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {summaryJsx}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{actionsJsx}</div>
+          {pinnedVertex === null && activeNode && <ActiveNodeInfo node={activeNode} />}
+          {pinnedVertex !== null ? selectionJsx : selectorJsx}
+        </div>
+      </aside>
+    </>
+  );
+
+  return (
+    <div
+      className="item-lattice"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(6, 6, 14, 0.94)',
+        backdropFilter: 'blur(8px)',
+        zIndex: 300,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: focusMode && mode === 'lattice' ? 0 : 20,
+      }}
+      role="dialog"
+      aria-label={`${mode === 'items' ? 'Items grid' : 'Spatial lattice'} view`}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: focusMode && mode === 'lattice' ? '100%' : 1280,
+          height: '100%',
+          maxHeight: focusMode && mode === 'lattice' ? '100%' : 760,
+          background: 'linear-gradient(180deg, rgba(10, 10, 20, 0.95), rgba(6, 6, 14, 0.95))',
+          border: focusMode && mode === 'lattice' ? 'none' : '1px solid rgba(212, 175, 55, 0.35)',
+          borderRadius: focusMode && mode === 'lattice' ? 0 : 12,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid rgba(212, 175, 55, 0.18)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <h2 style={{ margin: 0, fontSize: 16, fontFamily: "'Cormorant Garamond', serif", fontWeight: 600, color: THEME.textBright, letterSpacing: 0.5 }}>
+              {mode === 'items' ? '⚒️ Items' : '🗺️ Lattice'}
+            </h2>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {(['items', 'lattice'] as LatticeMode[]).map(m => (
+                <button
+                  key={m}
+                  aria-pressed={mode === m}
+                  onClick={() => { onSwitchMode(m); detailRef.current?.parentElement?.scrollTo({ top: 0 }); }}
+                  style={{
+                    padding: '4px 10px',
+                    fontSize: 10.5,
+                    background: mode === m ? 'rgba(212, 175, 55, 0.15)' : 'transparent',
+                    border: `1px solid ${mode === m ? '#d4af37' : 'rgba(212, 175, 55, 0.25)'}`,
+                    color: mode === m ? THEME.textBright : THEME.textDim,
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    fontFamily: "'IBM Plex Sans', sans-serif",
+                    letterSpacing: 0.3,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+{actionsJsx}
+            {/* ⛶ Focus mode toggle · only meaningful on the spatial Lattice tab */}
+            {mode === 'lattice' && (
+              <button
+                onClick={() => setFocusMode(f => !f)}
+                aria-label={focusMode ? 'Exit focus mode' : 'Enter focus mode'}
+                title={focusMode ? 'Exit focus mode · restore side columns' : 'Focus mode · hide side columns + fill the viewport'}
+                style={{
+                  background: focusMode ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
+                  border: `1px solid ${focusMode ? '#d4af37' : 'rgba(212, 175, 55, 0.3)'}`,
+                  color: focusMode ? '#ffd700' : THEME.textDim,
+                  padding: '4px 10px',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  lineHeight: 1,
+                }}
+              >
+                ⛶
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              aria-label="Close lattice view"
+              style={{
+                background: 'transparent',
+                border: '1px solid rgba(212, 175, 55, 0.3)',
+                color: THEME.textDim,
+                padding: '4px 10px',
+                borderRadius: 4,
+                cursor: 'pointer',
+                fontSize: 14,
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        {/* Three-column body · side columns collapse in focus mode (Lattice tab only) */}
+        <div className="item-lattice-body" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          {/* Left · hover info */}
+          {!(focusMode && mode === 'lattice') && (
+          <aside className="item-lattice-info" style={{ width: 280, padding: 14, overflow: 'auto', borderRight: '1px solid rgba(212, 175, 55, 0.12)', background: 'rgba(212, 175, 55, 0.02)' }}>
+            {activeNode ? (
+              <ActiveNodeInfo node={activeNode} />
+            ) : (
+              <EmptyHoverInfo totalLit={totalLit} totalArtefacts={totalArtefacts} totalEmpty={totalEmpty} mode={mode} />
+            )}
+          </aside>
+          )}
+
+          {/* Centre · the canvas (Items grid OR spatial lattice) */}
+          <main className="item-lattice-main" style={{ minWidth: 0, flex: 1, padding: 16, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+{summaryJsx}
+
+            <button className="inspect-item" onClick={() => window.dispatchEvent(new Event('spellweb:open-key'))}>
+              🗝️ Your key
+            </button>
+
+            {/* Items mode · flat emoji grid grouped by identity slot */}
+            {mode === 'items' && (
+              <ItemsGrid
+                itemsBySlot={itemsBySlot}
+                forgedBlades={forgedBlades}
+                forgedBySlot={forgedBySlot}
+                heldConstellations={heldConstellations}
+                boundFamiliars={boundFamiliars}
+                dispatchReceipts={dispatchReceipts}
+                onSetTrueNameConsent={onSetTrueNameConsent}
+                equipped={equipped}
+                provenSet={provenSet}
+                onToggle={toggleEquipped}
+                onPinNode={selectNode}
+                onExportCatalogue={onExportCatalogue}
+                onExportArtefact={onExportArtefact}
+                activeNodeId={activeNode?.id ?? null}
+              />
+            )}
+
+{mode === 'lattice' && selectorJsx}
+
+            {/* Spatial Lattice mode · 64-vertex Pascal's-row geometry */}
+            {mode === 'lattice' && latticeJsx}
+          </main>
+
+          {/* Right · identity-slots + equip toggle + equipped roster + forged inventory · hidden in focus mode */}
+          {!(focusMode && mode === 'lattice') && (
+          <aside ref={detailRef} className="item-lattice-details" style={{ width: 360, padding: 14, overflow: 'auto', borderLeft: '1px solid rgba(212, 175, 55, 0.12)', background: 'rgba(94, 234, 212, 0.02)' }}>
+{selectionJsx}
             <SwordsmanCityKeyPanel
               activeNode={pinnedVertex !== null ? activeNode : null}
               keyIdentity={keyIdentity}
@@ -1237,7 +1275,7 @@ const PRECINCT_BY_SHOP: Record<string, string> = {
   'shop-wellpool': 'the Waters',
   'shop-charthouse': 'the Navigation District',
   'shop-portal': 'the Threshold', 'shop-staff': 'the Threshold', 'shop-familiars': 'the Threshold',
-  'shop-horizon': 'the Horizon District', 'shop-assay': 'the Horizon District', 'shop-crossing': 'the Horizon District',
+  'shop-horizon': 'the Horizon District', 'shop-assay': 'the Horizon District', 'shop-crossing': 'the Horizon District', 'shop-caesura': 'the Horizon District',
   'shop-covenant': 'the Temple', 'shop-bonfires': 'the Founding Bonfire',
   'shop-circle': 'the Gathering Quarters', 'shop-hall': 'the Gathering Quarters',
 };
@@ -2166,17 +2204,14 @@ function SwordsmanCityKeyPanel({
         )}
         {onExportCityKey && (
           <CarryButton
-            label="🗝️ City Key.json"
+            label="🗝️ Your key"
             color="#ffd700"
-            onClick={onExportCityKey}
-            disabled={!key?.kappa}
-            title={key?.kappa
-              ? 'Export the content-addressed City Key (κ stamped) — round-trips to /star, /lattice, /sigil and agentprivacy /city'
-              : 'The key is unstruck — strike once to derive a κ before carrying it out'}
+            onClick={() => window.dispatchEvent(new Event('spellweb:open-key'))}
+            title="Your key: bring, sync, export and carry your City Key (in the ceremony panel)"
           />
         )}
         <CarryButton
-          label="⤵ Import Key / Journey / Task"
+          label="⤵ Import journey / task"
           color="#ffd700"
           dashed
           onClick={() => importRef.current?.click()}

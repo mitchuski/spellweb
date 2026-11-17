@@ -9,3 +9,12 @@
 .sw-star{top:82px;right:12px;bottom:auto;left:auto;display:flex;flex-direction:column-reverse;align-items:flex-end}
 .sw-star-panel{margin:8px 0 0;max-height:calc(100dvh - 152px)}
 @media(max-width:767px){.sw-star{top:max(10px,env(safe-area-inset-top));right:12px}.sw-star-panel{max-height:calc(100dvh - 82px)}}
+
+/* 2026-11-17: the key card opens above the ceremony bar (the floating ✦ Star button is gone) */
+.sw-star-panel.sw-key-card{position:fixed;left:50%;right:auto;top:auto;bottom:150px;transform:translateX(-50%);width:min(380px,calc(100vw - 24px));max-height:calc(100vh - 190px);overflow:auto;z-index:1200}
+.sw-key-card a{color:inherit;text-decoration:underline}
+@media (max-width:640px){.sw-star-panel.sw-key-card{bottom:12px;max-height:calc(100vh - 24px)}}
+
+/* in the drawer's Key tab: no floating card */
+.sw-star-panel.sw-key-inline{position:static;transform:none;width:auto;max-height:none;overflow:visible;border:0;border-radius:0;box-shadow:none;background:transparent;margin:0}
+.sw-star.sw-star-inline{position:static;inset:auto;display:block;z-index:auto}

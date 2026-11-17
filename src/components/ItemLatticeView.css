@@ -23,3 +23,7 @@
  .item-lattice button[aria-label="Enter focus mode"], .item-lattice button[aria-label="Exit focus mode"] { display: none; }
  .item-lattice > div > div:last-child { font-size: 11px !important; }
 }
+
+/* 2026-11-17 in the drawer the list runs its full length (it was capped at ~4 rows) */
+.item-lattice-docked-body .lattice-results { max-height: none; overflow: visible; gap: 4px; }
+.item-lattice-docked-body .lattice-results button { min-height: 36px; padding: 7px 10px; }

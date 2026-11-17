@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import { drawManifold, drawStellaOctangula } from '../lib/starDraw';
 import { useEquippedStar, useStarGeometry } from '../lib/starLoadout';
 import { useStarAppearance } from '../lib/starAppearance';
 
@@ -320,7 +321,10 @@ export function WanderingOrbs({
         // core, and it turns with the orbit: the stella octangula drawn in its own dimension, so it reads as
         // the eight-pointed star the Star renders — a flat pair of triangles is only its silhouette down a
         // body diagonal, and that silhouette is a hexagram, which is not the figure.
-        const mark = 27 * (g ? g.core / 0.6 : 1);
+        // 2026-11-17: the same Privacy Star as the Key tab and agentprivacy: the star inside a faint manifold ring that
+        // ripples with the key's shape; a touch smaller so the orbs lead
+        const mark = 23 * (g ? g.core / 0.6 : 1);
+        drawManifold(ctx, center.x, center.y, mark * 1.35, a * 0.9, g ?? { eps: 0.35, m: 5, n: 6 }, paletteRef.current?.mage ?? '#a78bfa', 0.16, 5);
         drawStellaOctangula(ctx, center.x, center.y, mark, a * 0.9, paletteRef.current?.sword ?? '#ff6b6b', paletteRef.current?.mage ?? '#a78bfa');
       }
       // Draw orbs
@@ -393,44 +397,6 @@ export function WanderingOrbs({
     />
     </>
   );
-}
-
-// The stella octangula: two regular tetrahedra crossing — the Swordsman's in the sword colour, the Mage's in the
-// mage colour — projected from three dimensions with fixed tilts that keep the view off the body diagonals
-// (where the figure collapses to a hexagram) and off the axes (where it collapses to a square).
-const TET_A: ReadonlyArray<readonly [number, number, number]> = [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]];
-const TET_B: ReadonlyArray<readonly [number, number, number]> = TET_A.map(([x, y, z]) => [-x, -y, -z] as const);
-const TET_EDGES: ReadonlyArray<readonly [number, number]> = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]];
-function drawStellaOctangula(
-  ctx: CanvasRenderingContext2D,
-  cx: number, cy: number,
-  size: number,
-  angle: number,
-  swordColor: string,
-  mageColor: string
-) {
-  const tilt = 0.62, roll = 0.31;
-  const cA = Math.cos(angle), sA = Math.sin(angle), cT = Math.cos(tilt), sT = Math.sin(tilt), cR = Math.cos(roll), sR = Math.sin(roll);
-  const s = size / Math.sqrt(3); // vertices sit at radius √3, so the figure fits the mark radius
-  const project = ([x, y, z]: readonly [number, number, number]) => {
-    const X1 = x * cA + z * sA, Z1 = -x * sA + z * cA;          // turn about the vertical axis with the orbit
-    const Y2 = y * cT - Z1 * sT, Z2 = y * sT + Z1 * cT;         // tilt toward the viewer
-    const X3 = X1 * cR - Y2 * sR, Y3 = X1 * sR + Y2 * cR;       // a small roll
-    return { x: cx + X3 * s, y: cy + Y3 * s * 0.92, d: (Z2 + Math.sqrt(3)) / (2 * Math.sqrt(3)) }; // d: 0 far … 1 near
-  };
-  const hex = (v: number) => Math.round(v).toString(16).padStart(2, '0');
-  const draw = (tet: ReadonlyArray<readonly [number, number, number]>, color: string) => {
-    const P = tet.map(project);
-    for (const [i, j] of TET_EDGES) {
-      const p = P[i], q = P[j], d = (p.d + q.d) / 2;
-      ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y);
-      ctx.strokeStyle = color + hex(70 + 150 * d); // nearer edges brighter and heavier
-      ctx.lineWidth = 0.7 + 0.9 * d;
-      ctx.stroke();
-    }
-  };
-  draw(TET_A, swordColor);
-  draw(TET_B, mageColor);
 }
 
 function drawOrbiterEmoji(

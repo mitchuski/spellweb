@@ -83,7 +83,8 @@ async function checkKey(key) {
 async function checkTask(document) {
   json(document);
   requireThat(object(document) && typeof document.id === 'string' && document.id.length > 0 && object(document.payload), 'expected Trust Task document id and payload');
-  requireThat(typeof document.type === 'string' && /^https:\/\/trusttasks\.org\/spec\/[a-z0-9][a-z0-9/-]*\/\d+\.\d+(?:#response)?$/.test(document.type), 'expected versioned registry Trust Task type');
+  // 2026-11-17: the public registry, or agentprivacy's own namespace (its specs live at agentprivacy.ai/trust-tasks/spec/<slug>/<v>)
+  requireThat(typeof document.type === 'string' && /^https:\/\/(?:trusttasks\.org\/spec|agentprivacy\.ai\/trust-tasks\/spec)\/[a-z0-9][a-z0-9/-]*\/\d+\.\d+(?:#response)?$/.test(document.type), 'expected versioned Trust Task type (trusttasks.org or agentprivacy.ai/trust-tasks)');
   // This is an opaque document commitment under the City's L5 rule, NOT a
   // framework taskDigest/stepDigest and NOT proof/schema/status verification.
   return { id: document.id, type: document.type, documentCommitment: await digest(document) };

@@ -46,11 +46,19 @@ const TYPE_BUTTONS = [
 export function GraphFilters({
   filters, typeFilters, onToggleLayer, onToggleType, isOpen = true,
   onOpenConstellations, onOpenZKBlades, hasLatestProof, constellationCount = 0, forgedBladesCount = 0, witnessBladesCount: _wbc = 0,
-}: GraphFiltersProps) {
+  shown = true, onShow,
+}: GraphFiltersProps & { shown?: boolean; onShow?: (v: boolean) => void }) {
   // Collapse state for each section
   const [layersCollapsed, setLayersCollapsed] = useState(false);
   const [typesCollapsed, setTypesCollapsed] = useState(false);
 
+  // 2026-11-17: layers + legend fold into one small corner button; the graph keeps the screen
+  if (!shown && onShow) return (
+    <button onClick={() => onShow(true)} title="Layers, node types and the colour key" aria-label="Show layers and the colour key"
+      style={{ position: 'absolute', top: 68, left: 12, zIndex: 80, background: `${THEME.panelBg}e0`, border: `1px solid ${THEME.panelBorder}`, borderRadius: 6, color: THEME.textDim, padding: '7px 11px', fontSize: 11, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, backdropFilter: 'blur(12px)' }}>
+      ☰ Layers
+    </button>
+  );
   return (
     <div
       className={`filters-panel ${isOpen ? 'filters-open' : ''}`}
@@ -67,6 +75,7 @@ export function GraphFilters({
         maxWidth: 170,
       }}
     >
+      {onShow && <button onClick={() => onShow(false)} aria-label="Fold layers" title="Fold" style={{ position: 'absolute', top: 6, right: 6, background: 'transparent', border: 'none', color: THEME.textDim, cursor: 'pointer', fontSize: 13, lineHeight: 1 }}>×</button>}
       <div
         onClick={() => setLayersCollapsed(!layersCollapsed)}
         style={{
@@ -232,30 +241,6 @@ export function GraphFilters({
           </button>
         )}
 
-        {/* Share Knowledge */}
-        <a
-          href="https://agentprivacy.ai/evoke"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            width: "100%",
-            padding: "6px 8px",
-            marginBottom: 4,
-            borderRadius: 4,
-            background: "transparent",
-            border: `1px solid ${THEME.panelBorder}`,
-            color: THEME.textDim,
-            fontSize: 11,
-            fontFamily: "'IBM Plex Sans', sans-serif",
-            textAlign: "left",
-            textDecoration: "none",
-          }}
-        >
-          <span>🔮</span> Share Knowledge
-        </a>
       </div>
     </div>
   );

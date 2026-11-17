@@ -8,7 +8,8 @@ import StarConnection from './components/StarConnection'
 
 function Root() {
   const isMobile = useIsMobile();
-  return <>{isMobile ? <MobileSpell /> : <SpellWeb />}<StarConnection /></>;
+  // desktop: the key lives in the drawer's Key tab (SpellWeb); phones keep the full-sheet card
+  return <>{isMobile ? <><MobileSpell /><StarConnection /></> : <SpellWeb />}</>;
 }
 
 createRoot(document.getElementById('root')!).render(
